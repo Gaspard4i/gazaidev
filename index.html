@@ -88,6 +88,8 @@
       border-color: #C0392B;
       animation: pulse 1s infinite;
     }
+    select optgroup { font-style: italic; color: var(--ink-soft); }
+    select option { font-style: normal; color: var(--ink); }
     button.active {
       background: var(--orange);
       border-color: var(--orange);
@@ -128,9 +130,21 @@
   <h1>GAZAIDEV</h1>
   <div class="controls">
     <select id="algo-select">
-      <option value="bubble">Bubble Sort</option>
-      <option value="quick">Quick Sort</option>
-      <option value="merge">Merge Sort</option>
+      <optgroup label="Classiques">
+        <option value="bubble">Bubble Sort</option>
+        <option value="quick">Quick Sort</option>
+        <option value="merge">Merge Sort</option>
+      </optgroup>
+      <optgroup label="Absurdes">
+        <option value="thanos">Thanos Sort</option>
+        <option value="stalin">Stalin Sort</option>
+        <option value="communism">Communism Sort</option>
+        <option value="sort67">67 Sort</option>
+        <option value="trump">Trump Sort</option>
+        <option value="hitler">Hitler Sort</option>
+        <option value="diddy">Diddy Sort</option>
+        <option value="epstein">Epstein Sort</option>
+      </optgroup>
     </select>
     <select id="mode-select">
       <option value="single">Solo</option>

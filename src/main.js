@@ -4,6 +4,14 @@ import { Recorder } from './recorder/recorder.js';
 import { bubbleSort } from './algos/bubbleSort.js';
 import { quickSort } from './algos/quickSort.js';
 import { mergeSort } from './algos/mergeSort.js';
+import { thanosSort } from './algos/thanosSort.js';
+import { communismSort } from './algos/communismSort.js';
+import { stalinSort } from './algos/stalinSort.js';
+import { sort67 } from './algos/67Sort.js';
+import { trumpSort } from './algos/trumpSort.js';
+import { hitlerSort } from './algos/hitlerSort.js';
+import { diddySort } from './algos/diddySort.js';
+import { epsteinSort } from './algos/epsteinSort.js';
 
 const canvas = document.getElementById('canvas');
 const statusEl = document.getElementById('status');
@@ -15,11 +23,24 @@ const btnLoop = document.getElementById('btn-loop');
 const btnRainbow = document.getElementById('btn-rainbow');
 const speedSlider = document.getElementById('speed');
 
-const ALGOS = { bubble: bubbleSort, quick: quickSort, merge: mergeSort };
+const ALGOS = {
+  bubble: bubbleSort, quick: quickSort, merge: mergeSort,
+  thanos: thanosSort, communism: communismSort, stalin: stalinSort,
+  sort67: sort67, trump: trumpSort, hitler: hitlerSort,
+  diddy: diddySort, epstein: epsteinSort,
+};
 const META = {
-  bubble: { name: 'BUBBLE SORT', complexity: 'O(n\u00B2)' },
-  quick: { name: 'QUICK SORT', complexity: 'O(n log n)' },
-  merge: { name: 'MERGE SORT', complexity: 'O(n log n)' },
+  bubble:    { name: 'BUBBLE SORT',    complexity: 'O(n\u00B2)' },
+  quick:     { name: 'QUICK SORT',     complexity: 'O(n log n)' },
+  merge:     { name: 'MERGE SORT',     complexity: 'O(n log n)' },
+  thanos:    { name: 'THANOS SORT',    complexity: 'O(n/2... /2... /2)' },
+  communism: { name: 'COMMUNISM SORT', complexity: 'O(equality)' },
+  stalin:    { name: 'STALIN SORT',    complexity: 'O(n) guaranteed' },
+  sort67:    { name: '67 SORT',        complexity: 'O(6+7)' },
+  trump:     { name: 'TRUMP SORT',     complexity: 'O(only the best)' },
+  hitler:    { name: 'HITLER SORT',    complexity: 'O(nein)' },
+  diddy:     { name: 'DIDDY SORT',     complexity: 'O(party)' },
+  epstein:   { name: 'EPSTEIN SORT',   complexity: 'O(under 18)' },
 };
 const NUM_BARS = 200;
 
