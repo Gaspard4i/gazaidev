@@ -534,11 +534,11 @@ export class Renderer {
   }
 
   // Avion pour 9/11 Sort
-  drawPlane(planeX) {
+  drawPlane(planeX, planeY) {
     const { ctx, width, height } = this;
     ctx.save();
     const x = planeX * width;
-    const y = height * 0.35;
+    const y = (planeY || 0.35) * height;
 
     // Corps de l'avion
     ctx.fillStyle = '#444444';

@@ -28,6 +28,19 @@ const btnRec = document.getElementById('btn-rec');
 const btnLoop = document.getElementById('btn-loop');
 const btnRainbow = document.getElementById('btn-rainbow');
 const speedSlider = document.getElementById('speed');
+const speedVal = document.getElementById('speed-val');
+const speedMode = document.getElementById('speed-mode');
+
+const barsSlider = document.getElementById('bars');
+const barsVal = document.getElementById('bars-val');
+
+speedSlider.addEventListener('input', () => {
+  speedVal.textContent = speedSlider.value;
+});
+barsSlider.addEventListener('input', () => {
+  barsVal.textContent = barsSlider.value;
+  if (phase === 'idle') reset();
+});
 
 const ALGOS = {
   bubble: bubbleSort, quick: quickSort, merge: mergeSort,
@@ -76,9 +89,6 @@ let flashOpacity = 0;
 let shuffleFrame = 0;
 let smokeFrame = 0;
 let sortFrameCount = 0;
-let totalYieldsEstimate = 0;
-const TARGET_MIN_FRAMES = 600;  // ~10s a 60fps
-const TARGET_MAX_FRAMES = 1800; // ~30s a 60fps
 
 function generateData(n) {
   return Array.from({ length: n }, (_, i) => i + 1)
@@ -109,12 +119,23 @@ function getStats() {
   };
 }
 
-function speedRamp() {
+function getSpeed() {
   const base = parseInt(speedSlider.value);
+  const mode = speedMode.value;
   const progress = getStats().progress;
-  if (progress < 0.15) return base;
-  if (progress < 0.85) return Math.round(base * (1 + progress * 0.5));
-  if (progress < 0.95) return Math.max(1, base);
+
+  if (mode === 'stable') return base;
+
+  if (mode === 'accelerate') {
+    // Commence a base, finit a base * 5
+    return Math.max(1, Math.round(base * (1 + progress * 4)));
+  }
+
+  if (mode === 'decelerate') {
+    // Commence a base * 5, finit a 1
+    return Math.max(1, Math.round(base * (5 - progress * 4.5)));
+  }
+
   return base;
 }
 
@@ -127,9 +148,9 @@ function updateTheme() {
 
 function getBarCount() {
   const key = getAlgoKey();
-  if (key === 'bogo') return 5;
-  if (key === 'sigma') return 20;
-  return NUM_BARS;
+  const userBars = parseInt(barsSlider.value);
+  if (key === 'bogo') return Math.min(userBars, 7);
+  return userBars;
 }
 
 function reset() {
@@ -156,7 +177,6 @@ function start() {
   stats = { compares: 0, swaps: 0 };
   smokeFrame = 0;
   sortFrameCount = 0;
-  totalYieldsEstimate = 0;
   running = true;
   btnStart.textContent = 'Pause';
 
@@ -168,17 +188,8 @@ function start() {
   animate();
 }
 
-let frameSkip = 0;
-
 function animate() {
   if (!running) return;
-
-  // Throttle global : skip 1 frame sur 2 pour ralentir tout
-  frameSkip++;
-  if (frameSkip % 2 !== 0) {
-    animFrameId = requestAnimationFrame(animate);
-    return;
-  }
 
   if (phase === 'shuffling') {
     animateShuffle();
@@ -207,37 +218,9 @@ function animateShuffle() {
   }
 }
 
-function isAbsurd() {
-  const absurd = ['trump', 'thanos', 'communism', 'stalin', 'hitler', 'diddy', 'epstein', 'sort67', 'nineEleven', 'unsort', 'bogo', 'sigma', 'gaza', 'french'];
-  return absurd.includes(getAlgoKey());
-}
-
 function animateSort() {
   sortFrameCount++;
-
-  // Vitesse adaptative pour les tris absurdes :
-  // Si le tri va durer < 10s → ralentir (1 step/frame ou moins)
-  // Si le tri va durer > 30s → accelerer progressivement
-  let stepsPerFrame;
-  if (isAbsurd()) {
-    const totalSteps = stats.compares + stats.swaps;
-    const remaining = Math.max(1, totalYieldsEstimate - totalSteps);
-    const framesUsed = sortFrameCount;
-    const framesRemaining = remaining; // rough estimate: 1 step/frame
-
-    if (framesUsed + framesRemaining < TARGET_MIN_FRAMES) {
-      // Trop rapide → 1 step par frame (on ralentit)
-      stepsPerFrame = 1;
-    } else if (framesUsed + framesRemaining / 1 > TARGET_MAX_FRAMES) {
-      // Trop long → accelerer progressivement
-      const excess = (framesUsed + remaining) / TARGET_MAX_FRAMES;
-      stepsPerFrame = Math.max(1, Math.round(excess * 2));
-    } else {
-      stepsPerFrame = 1;
-    }
-  } else {
-    stepsPerFrame = speedRamp();
-  }
+  const stepsPerFrame = getSpeed();
 
   let lastStep = null;
   let done = false;
@@ -252,7 +235,6 @@ function animateSort() {
     if (lastStep.type === 'compare') stats.compares++;
     if (lastStep.type === 'swap') stats.swaps++;
     sonifier.play(lastStep, data);
-    totalYieldsEstimate = Math.max(totalYieldsEstimate, (stats.compares + stats.swaps) * 1.1);
   }
 
   renderer.draw(data, lastStep, getStats());
@@ -286,7 +268,7 @@ function drawSpecialEffects(step) {
   // 9/11: avion, poussiere
   if (key === 'nineEleven') {
     if (step.meta === 'plane' && step.planeX !== undefined) {
-      renderer.drawPlane(step.planeX);
+      renderer.drawPlane(step.planeX, step.planeY);
     }
     if (step.meta === 'dust' && step.dustFrame !== undefined) {
       renderer.drawDust(step.dustFrame);
