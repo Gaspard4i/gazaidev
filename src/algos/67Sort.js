@@ -1,30 +1,41 @@
 // 67 Sort — Ne garde que les 6 et les 7
-// Reduit progressivement chaque valeur. Si elle n'est pas 6 ou 7, on la force.
-// Resultat : un tableau de 6 et 7 uniquement
+// Phase 1 : supprime tout ce qui n'est pas 6 ou 7
+// Phase 2 : le resultat final alterne 6,7,6,7... exactement 6 ou 7 fois
 export function* sort67(arr) {
-  // Phase 1 : normaliser — tout doit devenir 6 ou 7
-  for (let i = 0; i < arr.length; i++) {
+  // Phase 1 : purge — seuls les 6 et 7 survivent
+  let i = 0;
+  while (i < arr.length) {
     yield { type: 'compare', indices: [i], meta: 'evaluate' };
-    const target = arr[i] % 2 === 0 ? 6 : 7;
-    if (arr[i] !== target) {
-      // Reduction progressive vers 6 ou 7
-      while (arr[i] > target + 1) {
-        arr[i] = Math.max(target, Math.floor(arr[i] * 0.7));
-        yield { type: 'swap', indices: [i], values: [arr[i]], meta: 'reduce' };
-      }
-      arr[i] = target;
-      yield { type: 'swap', indices: [i], values: [target], meta: 'force' };
+    if (arr[i] !== 6 && arr[i] !== 7) {
+      yield { type: 'swap', indices: [i], values: [0], meta: 'purge' };
+      arr.splice(i, 1);
+    } else {
+      i++;
     }
   }
 
-  // Phase 2 : trier les 6 avant les 7 (bubble basique)
+  // Phase 2 : on decide — 6 ou 7 elements au final ?
+  const finalLength = Math.random() < 0.5 ? 6 : 7;
+
+  // Ajuster la taille : trop court -> ajouter, trop long -> couper
+  while (arr.length > finalLength) {
+    const last = arr.length - 1;
+    yield { type: 'swap', indices: [last], values: [0], meta: 'trim' };
+    arr.splice(last, 1);
+  }
+  while (arr.length < finalLength) {
+    const val = arr.length % 2 === 0 ? 6 : 7;
+    arr.push(val);
+    yield { type: 'swap', indices: [arr.length - 1], values: [val], meta: 'grow' };
+  }
+
+  // Phase 3 : forcer l'alternance 6,7,6,7,...
   for (let i = 0; i < arr.length; i++) {
-    for (let j = 0; j < arr.length - i - 1; j++) {
-      yield { type: 'compare', indices: [j, j + 1] };
-      if (arr[j] > arr[j + 1]) {
-        [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
-        yield { type: 'swap', indices: [j, j + 1], values: [arr[j], arr[j + 1]] };
-      }
+    const target = i % 2 === 0 ? 6 : 7;
+    yield { type: 'compare', indices: [i], meta: 'evaluate' };
+    if (arr[i] !== target) {
+      arr[i] = target;
+      yield { type: 'swap', indices: [i], values: [target], meta: 'force' };
     }
   }
 }
