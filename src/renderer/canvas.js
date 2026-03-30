@@ -220,6 +220,32 @@ const THEMES = {
       shuffle: '#FF00FF',
     },
   },
+  french: {
+    bg: '#0a0a1e',
+    stripe: 'rgba(0, 0, 150, 0.06)',
+    // Bleu blanc rouge selon la valeur
+    barColor: (ratio) => {
+      if (ratio < 0.33) return `rgb(${Math.round(30 + ratio * 3 * 100)}, ${Math.round(30 + ratio * 3 * 80)}, ${Math.round(180 + ratio * 75)})`; // bleu (pauvres)
+      if (ratio < 0.66) return `rgb(${Math.round(200 + ratio * 55)}, ${Math.round(200 + ratio * 55)}, ${Math.round(200 + ratio * 55)})`; // blanc (classe moyenne)
+      return `rgb(${Math.round(180 + ratio * 75)}, ${Math.round(20 + ratio * 30)}, ${Math.round(30 + ratio * 20)})`; // rouge (riches)
+    },
+    compare: '#FFFFFF',
+    swap: '#FFD700',
+    metaColors: {
+      rich: '#FF0000',
+      poor: '#3344AA',
+      middle_class: '#CCCCCC',
+      taxed: '#FF8800',
+      enriched: '#FFD700',
+      transfer: '#FF4444',
+      impoverished: '#333366',
+      homeless: '#222244',
+      fiscal_year: '#444444',
+    },
+    endMessage: [
+      { text: 'VIVE LA FRANCE', style: 'normal', color: '#FFFFFF' },
+    ],
+  },
   gaza: {
     bg: '#1a1510',
     stripe: 'rgba(200, 150, 80, 0.05)',

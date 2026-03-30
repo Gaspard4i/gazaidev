@@ -1,31 +1,38 @@
 // Thanos Sort — "Perfectly balanced, as all things should be"
-// A chaque passe, supprime la moitie des elements qui ne sont pas tries
-// Continue jusqu'a ce que le reste soit trie (ou qu'il ne reste qu'un element)
+// A chaque snap, supprime exactement la moitie des elements au hasard
+// Continue jusqu'a ce qu'il ne reste qu'un seul element (ou zero)
+// Peu importe si c'est trie ou non — the snap is inevitable
 export function* thanosSort(arr) {
-  while (!isSorted(arr)) {
-    const toRemove = [];
-    for (let i = 0; i < arr.length - 1; i++) {
-      yield { type: 'compare', indices: [i, i + 1] };
-      if (arr[i] > arr[i + 1]) {
-        // Snap — marque pour suppression (aleatoire entre les deux)
-        const victim = Math.random() < 0.5 ? i : i + 1;
-        if (!toRemove.includes(victim)) toRemove.push(victim);
-      }
-      // Snap seulement la moitie
-      if (toRemove.length >= Math.floor(arr.length / 2)) break;
+  while (arr.length > 1) {
+    // Inspecter tout le monde avant le snap
+    for (let i = 0; i < arr.length; i++) {
+      yield { type: 'compare', indices: [i], meta: 'inspecting' };
     }
-    // Supprime du plus grand index au plus petit pour pas decaler
-    toRemove.sort((a, b) => b - a);
-    for (const idx of toRemove) {
+
+    // Pause dramatique avant le snap
+    for (let f = 0; f < 15; f++) {
+      yield { type: 'compare', indices: [], meta: 'snap_charging' };
+    }
+
+    // Le snap — choisir aleatoirement la moitie a eliminer
+    const halfCount = Math.floor(arr.length / 2);
+    const indices = Array.from({ length: arr.length }, (_, i) => i);
+    // Fisher-Yates pour choisir aleatoirement
+    for (let i = indices.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [indices[i], indices[j]] = [indices[j], indices[i]];
+    }
+    const victims = indices.slice(0, halfCount).sort((a, b) => b - a);
+
+    // Eliminer du dernier au premier
+    for (const idx of victims) {
       yield { type: 'swap', indices: [idx], values: [0], meta: 'snap' };
       arr.splice(idx, 1);
     }
-  }
-}
 
-function isSorted(arr) {
-  for (let i = 0; i < arr.length - 1; i++) {
-    if (arr[i] > arr[i + 1]) return false;
+    // Pause apres le snap — contempler l'equilibre
+    for (let f = 0; f < 20; f++) {
+      yield { type: 'compare', indices: [], meta: 'balanced' };
+    }
   }
-  return true;
 }

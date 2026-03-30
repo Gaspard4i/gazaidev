@@ -17,6 +17,7 @@ import { unsort } from './algos/unsort.js';
 import { bogoSort } from './algos/bogoSort.js';
 import { sigmaSort } from './algos/sigmaSort.js';
 import { gazaSort } from './algos/gazaSort.js';
+import { frenchSort } from './algos/frenchSort.js';
 
 const canvas = document.getElementById('canvas');
 const statusEl = document.getElementById('status');
@@ -34,7 +35,7 @@ const ALGOS = {
   sort67: sort67, trump: trumpSort, hitler: hitlerSort,
   diddy: diddySort, epstein: epsteinSort,
   nineEleven: nineElevenSort, unsort: unsort,
-  bogo: bogoSort, sigma: sigmaSort, gaza: gazaSort,
+  bogo: bogoSort, sigma: sigmaSort, gaza: gazaSort, french: frenchSort,
 };
 const META = {
   bubble:    { name: 'BUBBLE SORT',    complexity: 'O(n\u00B2)', desc: 'Compares neighbors and swaps them. Simple but slow.' },
@@ -53,6 +54,7 @@ const META = {
   bogo:      { name: 'BOGO SORT',     complexity: 'O(n \u00D7 n!)', desc: 'Random shuffle until sorted. Pray.' },
   sigma:     { name: 'SIGMA SORT',    complexity: 'O(sigma\u00B2)', desc: 'Random bar howls, takes #1 spot, sorts betas below.' },
   gaza:      { name: 'GAZA SORT',     complexity: 'O(genocide)', desc: 'Bombs only fall on children. Then airstrikes destroy everything.' },
+  french:    { name: 'FRENCH SORT',   complexity: 'O(taxes\u00B2)', desc: 'Taxes the middle class to enrich the rich. The poor disappear.' },
 };
 const NUM_BARS = 80;
 
@@ -197,7 +199,7 @@ function animateShuffle() {
 }
 
 function isAbsurd() {
-  const absurd = ['trump', 'thanos', 'communism', 'stalin', 'hitler', 'diddy', 'epstein', 'sort67', 'nineEleven', 'unsort', 'bogo', 'sigma', 'gaza'];
+  const absurd = ['trump', 'thanos', 'communism', 'stalin', 'hitler', 'diddy', 'epstein', 'sort67', 'nineEleven', 'unsort', 'bogo', 'sigma', 'gaza', 'french'];
   return absurd.includes(getAlgoKey());
 }
 
