@@ -270,6 +270,24 @@ const THEMES = {
     },
     endMessage: 'FREE_PALESTINE_FLAG',
   },
+  drug: {
+    bg: '#0a0010',
+    stripe: 'rgba(255, 0, 255, 0.04)',
+    barColor: (ratio) => {
+      const hue = (ratio * 360 + Date.now() * 0.1) % 360;
+      return `hsl(${hue}, 90%, 55%)`;
+    },
+    compare: '#FF00FF',
+    swap: '#00FFFF',
+    metaColors: {
+      sober: '#888888',
+      taking_drugs: '#FF00FF',
+      tripping: '#00FF00',
+      peak: '#FFFF00',
+      comedown: '#888888',
+      flipped: '#AAAAAA',
+    },
+  },
   gamble: {
     bg: '#0d1a0d',
     stripe: 'rgba(0, 200, 0, 0.04)',
@@ -1125,6 +1143,132 @@ export class Renderer {
       ctx.setTransform(1, 0, 0, 1, 0, 0);
     }
 
+    ctx.restore();
+  }
+
+  // Drug Sort — effets psychedeliques
+  drawTrip(data, frame, intensity) {
+    const { ctx, width, height } = this;
+    ctx.save();
+
+    // Fond qui pulse en couleurs
+    const hue = (frame * 3) % 360;
+    ctx.fillStyle = `hsla(${hue}, 80%, 10%, 0.9)`;
+    ctx.fillRect(0, 0, width, height);
+
+    // Barres qui ondulent
+    const n = data.length;
+    if (n === 0) { ctx.restore(); return; }
+    const barWidth = width / n;
+    const maxVal = Math.max(...data);
+
+    for (let i = 0; i < n; i++) {
+      const barH = (data[i] / maxVal) * (height * 0.65);
+      const wave = Math.sin(frame * 0.05 + i * 0.3) * 30 * intensity;
+      const xWave = Math.sin(frame * 0.03 + i * 0.5) * 15 * intensity;
+      const x = i * barWidth + xWave;
+      const y = height - barH - 30 + wave;
+
+      const barHue = (i / n * 360 + frame * 5) % 360;
+      ctx.fillStyle = `hsl(${barHue}, 90%, ${50 + Math.sin(frame * 0.1 + i) * 20}%)`;
+      ctx.fillRect(x, y, barWidth - 1, barH);
+    }
+
+    // Spirales psychedeliques
+    const spiralCount = Math.floor(intensity * 4);
+    for (let s = 0; s < spiralCount; s++) {
+      ctx.strokeStyle = `hsla(${(hue + s * 90) % 360}, 100%, 60%, ${0.3 * intensity})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      const cx = width * (0.2 + s * 0.2);
+      const cy = height * 0.4;
+      for (let a = 0; a < 20; a++) {
+        const angle = a * 0.5 + frame * 0.05;
+        const r = a * 8 + frame * 0.5;
+        ctx.lineTo(cx + Math.cos(angle) * r, cy + Math.sin(angle) * r);
+      }
+      ctx.stroke();
+    }
+
+    // Texte flottant
+    ctx.font = 'bold 36px "Segoe UI", system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    const msgs = ['woooah', 'dude...', 'the colors', 'i can taste sounds', 'bro...', 'is this real?'];
+    const msg = msgs[Math.floor(frame / 30) % msgs.length];
+    const textY = height * 0.3 + Math.sin(frame * 0.08) * 40;
+    const textHue = (frame * 7) % 360;
+    ctx.fillStyle = `hsla(${textHue}, 100%, 70%, ${0.6 + Math.sin(frame * 0.1) * 0.3})`;
+    ctx.fillText(msg, width / 2 + Math.sin(frame * 0.06) * 30, textY);
+
+    this._drawWatermark();
+    ctx.restore();
+  }
+
+  // Drug Sort — ecran qui tourne pendant le peak
+  drawPeak(data, frame) {
+    const { ctx, width, height } = this;
+    ctx.save();
+
+    const rotation = (frame / 60) * Math.PI * 0.5; // tourne de 0 a 90 degres
+    ctx.translate(width / 2, height / 2);
+    ctx.rotate(rotation);
+    ctx.translate(-width / 2, -height / 2);
+
+    // Dessiner les barres avec des couleurs folles
+    const hue = (frame * 8) % 360;
+    ctx.fillStyle = `hsla(${hue}, 60%, 8%, 1)`;
+    ctx.fillRect(0, 0, width, height);
+
+    const n = data.length;
+    if (n > 0) {
+      const barWidth = width / n;
+      const maxVal = Math.max(...data);
+      for (let i = 0; i < n; i++) {
+        const barH = (data[i] / maxVal) * (height * 0.65);
+        const barHue = (i / n * 360 + frame * 10) % 360;
+        ctx.fillStyle = `hsl(${barHue}, 100%, 55%)`;
+        ctx.fillRect(i * barWidth, height - barH - 30, barWidth - 1, barH);
+      }
+    }
+
+    ctx.restore();
+  }
+
+  // Drug Sort — ecran retourne (trie mais a l'envers)
+  drawFlipped(data) {
+    const { ctx, width, height } = this;
+    ctx.save();
+
+    // Retourner verticalement
+    ctx.translate(0, height);
+    ctx.scale(1, -1);
+
+    const theme = this._getTheme();
+    ctx.fillStyle = '#0a0010';
+    ctx.fillRect(0, 0, width, height);
+
+    const n = data.length;
+    if (n > 0) {
+      const barWidth = width / n;
+      const maxVal = Math.max(...data);
+      for (let i = 0; i < n; i++) {
+        const barH = (data[i] / maxVal) * (height * 0.70);
+        const ratio = data[i] / maxVal;
+        const hue = ratio * 120 + 200; // bleu-violet
+        ctx.fillStyle = `hsl(${hue}, 50%, 55%)`;
+        ctx.fillRect(i * barWidth, height - barH - 30, barWidth - 1, barH);
+      }
+    }
+
+    ctx.restore();
+
+    // Texte "sorted... I think?"
+    ctx.save();
+    ctx.font = 'italic 36px "Segoe UI", system-ui, sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.textAlign = 'center';
+    ctx.fillText('sorted... I think?', width / 2, height * 0.1);
+    this._drawWatermark();
     ctx.restore();
   }
 

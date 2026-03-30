@@ -22,6 +22,7 @@ import { gambleSort } from './algos/gambleSort.js';
 import { adhdSort } from './algos/adhdSort.js';
 import { autismSort } from './algos/autismSort.js';
 import { magicianSort } from './algos/magicianSort.js';
+import { drugSort } from './algos/drugSort.js';
 
 const canvas = document.getElementById('canvas');
 const statusEl = document.getElementById('status');
@@ -48,6 +49,7 @@ const ALGOS = {
   nineEleven: nineElevenSort, unsort: unsort,
   bogo: bogoSort, sigma: sigmaSort, gaza: gazaSort, french: frenchSort,
   gamble: gambleSort, adhd: adhdSort, autism: autismSort, magician: magicianSort,
+  drug: drugSort,
 };
 const META = {
   bubble:    { name: 'BUBBLE SORT',    complexity: 'O(n\u00B2)', desc: 'Compares neighbors and swaps them. Simple but slow.' },
@@ -71,6 +73,7 @@ const META = {
   adhd:      { name: 'ADHD SORT',     complexity: 'O(n\u00B2 + distractions)', desc: 'Sorts but keeps getting distracted and messing things up.' },
   autism:    { name: 'AUTISM SORT',   complexity: 'O(1) (big brain)', desc: 'Analyzes everything, calculates, then solves it instantly.' },
   magician:  { name: 'MAGICIAN SORT', complexity: 'O(abracadabra)', desc: 'Hides the list behind a curtain. When revealed: sorted. TADAA!' },
+  drug:      { name: 'DRUG SORT',     complexity: 'O(trip)', desc: 'Takes substances. Hallucinates. Wakes up with it sorted but flipped.' },
 };
 const NUM_BARS = 80;
 
@@ -148,7 +151,7 @@ function getStepsThisFrame() {
 function updateTheme() {
   const key = getAlgoKey();
   // Les tris absurdes ont leur propre theme, les classiques utilisent default
-  const absurdThemes = ['trump', 'thanos', 'communism', 'stalin', 'hitler', 'diddy', 'epstein', 'sort67', 'nineEleven', 'unsort', 'bogo', 'sigma'];
+  const absurdThemes = ['trump', 'thanos', 'communism', 'stalin', 'hitler', 'diddy', 'epstein', 'sort67', 'nineEleven', 'unsort', 'bogo', 'sigma', 'gaza', 'french', 'gamble', 'adhd', 'autism', 'magician', 'drug'];
   renderer.theme = absurdThemes.includes(key) ? key : 'default';
 }
 
@@ -240,6 +243,8 @@ const ANIMATION_METAS = new Set([
   'fiscal_year',
   'calm',
   'inspecting', 'mark_star', 'deporting',
+  'taking_drugs', 'tripping', 'peak', 'comedown', 'flipped',
+  'sober',
 ]);
 
 function animateSort() {
@@ -349,6 +354,19 @@ function drawSpecialEffects(step) {
     if (step.meta === 'tadaa') {
       renderer.drawConfetti(step.confettiFrame || 0);
       if (step.confettiFrame === 0) sonifier.playTadaa();
+    }
+  }
+
+  // Drug: effets psychedeliques
+  if (key === 'drug') {
+    if (step.meta === 'tripping') {
+      renderer.drawTrip(data, step.tripFrame || 0, step.tripIntensity || 0.5);
+    }
+    if (step.meta === 'peak') {
+      renderer.drawPeak(data, step.peakFrame || 0);
+    }
+    if (step.meta === 'comedown' || step.meta === 'flipped') {
+      renderer.drawFlipped(data);
     }
   }
 
