@@ -16,6 +16,7 @@ import { nineElevenSort } from './algos/nineElevenSort.js';
 import { unsort } from './algos/unsort.js';
 import { bogoSort } from './algos/bogoSort.js';
 import { sigmaSort } from './algos/sigmaSort.js';
+import { gazaSort } from './algos/gazaSort.js';
 
 const canvas = document.getElementById('canvas');
 const statusEl = document.getElementById('status');
@@ -33,7 +34,7 @@ const ALGOS = {
   sort67: sort67, trump: trumpSort, hitler: hitlerSort,
   diddy: diddySort, epstein: epsteinSort,
   nineEleven: nineElevenSort, unsort: unsort,
-  bogo: bogoSort, sigma: sigmaSort,
+  bogo: bogoSort, sigma: sigmaSort, gaza: gazaSort,
 };
 const META = {
   bubble:    { name: 'BUBBLE SORT',    complexity: 'O(n\u00B2)', desc: 'Compares neighbors and swaps them. Simple but slow.' },
@@ -51,6 +52,7 @@ const META = {
   unsort:    { name: 'UNSORT',        complexity: 'O(chaos)', desc: 'First sorts perfectly. Then destroys everything.' },
   bogo:      { name: 'BOGO SORT',     complexity: 'O(n \u00D7 n!)', desc: 'Random shuffle until sorted. Pray.' },
   sigma:     { name: 'SIGMA SORT',    complexity: 'O(sigma\u00B2)', desc: 'Random bar howls, takes #1 spot, sorts betas below.' },
+  gaza:      { name: 'GAZA SORT',     complexity: 'O(genocide)', desc: 'Bombs only fall on children. Then airstrikes destroy everything.' },
 };
 const NUM_BARS = 80;
 
@@ -72,7 +74,9 @@ let flashOpacity = 0;
 let shuffleFrame = 0;
 let smokeFrame = 0;
 let sortFrameCount = 0;
-const MIN_ABSURD_FRAMES = 600; // ~10s a 60fps
+let totalYieldsEstimate = 0;
+const TARGET_MIN_FRAMES = 600;  // ~10s a 60fps
+const TARGET_MAX_FRAMES = 1800; // ~30s a 60fps
 
 function generateData(n) {
   return Array.from({ length: n }, (_, i) => i + 1)
@@ -150,6 +154,7 @@ function start() {
   stats = { compares: 0, swaps: 0 };
   smokeFrame = 0;
   sortFrameCount = 0;
+  totalYieldsEstimate = 0;
   running = true;
   btnStart.textContent = 'Pause';
 
@@ -192,14 +197,36 @@ function animateShuffle() {
 }
 
 function isAbsurd() {
-  const absurd = ['trump', 'thanos', 'communism', 'stalin', 'hitler', 'diddy', 'epstein', 'sort67', 'nineEleven', 'unsort', 'bogo', 'sigma'];
+  const absurd = ['trump', 'thanos', 'communism', 'stalin', 'hitler', 'diddy', 'epstein', 'sort67', 'nineEleven', 'unsort', 'bogo', 'sigma', 'gaza'];
   return absurd.includes(getAlgoKey());
 }
 
 function animateSort() {
-  // Les tris absurdes avancent a 1 step/frame pour durer au moins 10s
-  const stepsPerFrame = isAbsurd() ? 1 : speedRamp();
   sortFrameCount++;
+
+  // Vitesse adaptative pour les tris absurdes :
+  // Si le tri va durer < 10s → ralentir (1 step/frame ou moins)
+  // Si le tri va durer > 30s → accelerer progressivement
+  let stepsPerFrame;
+  if (isAbsurd()) {
+    const totalSteps = stats.compares + stats.swaps;
+    const remaining = Math.max(1, totalYieldsEstimate - totalSteps);
+    const framesUsed = sortFrameCount;
+    const framesRemaining = remaining; // rough estimate: 1 step/frame
+
+    if (framesUsed + framesRemaining < TARGET_MIN_FRAMES) {
+      // Trop rapide → 1 step par frame (on ralentit)
+      stepsPerFrame = 1;
+    } else if (framesUsed + framesRemaining / 1 > TARGET_MAX_FRAMES) {
+      // Trop long → accelerer progressivement
+      const excess = (framesUsed + remaining) / TARGET_MAX_FRAMES;
+      stepsPerFrame = Math.max(1, Math.round(excess * 2));
+    } else {
+      stepsPerFrame = 1;
+    }
+  } else {
+    stepsPerFrame = speedRamp();
+  }
 
   let lastStep = null;
   let done = false;
@@ -214,18 +241,13 @@ function animateSort() {
     if (lastStep.type === 'compare') stats.compares++;
     if (lastStep.type === 'swap') stats.swaps++;
     sonifier.play(lastStep, data);
+    totalYieldsEstimate = Math.max(totalYieldsEstimate, (stats.compares + stats.swaps) * 1.1);
   }
 
   renderer.draw(data, lastStep, getStats());
   if (lastStep) drawSpecialEffects(lastStep);
 
   if (done) {
-    // Si tri absurde et pas assez de frames, on attend
-    if (isAbsurd() && sortFrameCount < MIN_ABSURD_FRAMES) {
-      // Continuer a animer le resultat en attendant les 10s
-      return;
-    }
-    // Tri termine -> lancer le sweep
     phase = 'sweeping';
     sweepIndex = 0;
     statusEl.textContent = 'Sweep...';
@@ -237,14 +259,17 @@ function drawSpecialEffects(step) {
   if (!step) return;
   const key = getAlgoKey();
 
-  // Hitler: dessiner les camps + fumee
-  if (key === 'hitler' && step.camps) {
-    const maxVal = Math.max(...data, ...step.camps, 1);
-    renderer.drawCamps(step.camps, maxVal);
-  }
-  if (key === 'hitler' && step.meta === 'smoke') {
-    // Fumee qui monte des camps
-    renderer.drawSmoke(smokeFrame++, 30);
+  // Hitler: barres marquees en jaune + etoile + fumee
+  if (key === 'hitler') {
+    if (step.marked && step.marked.length > 0) {
+      renderer.drawStars(step.marked, data);
+    }
+    if (step.meta === 'smoke_chimney' && step.smokeIdx !== undefined) {
+      renderer.drawChimneySmoke(step.smokeIdx, data);
+    }
+    if (step.meta === 'smoke_final' && step.dustFrame !== undefined) {
+      renderer.drawSmoke(step.dustFrame, 30);
+    }
   }
 
   // 9/11: avion, poussiere
@@ -260,6 +285,29 @@ function drawSpecialEffects(step) {
   // Sigma: howl + flex effect (lune + ondes)
   if (key === 'sigma' && (step.meta === 'howl' || step.meta === 'sigma_flex') && step.indices && step.indices.length > 0) {
     renderer.drawHowl(step.indices[0], data);
+  }
+
+  // Gaza: bombes, avion, explosions, ruines
+  if (key === 'gaza') {
+    if (step.meta === 'bomb_falling' && step.indices && step.indices.length > 0) {
+      renderer.drawBomb(step.indices[0], data, step.bombFrame || 0);
+    }
+    if (step.meta === 'bomb_impact' && step.indices && step.indices.length > 0) {
+      renderer.drawExplosion(step.indices[0], data, 1);
+    }
+    if (step.meta === 'airstrike' && step.planeX !== undefined) {
+      renderer.drawMilitaryPlane(step.planeX);
+    }
+    if (step.meta === 'explosion' && step.indices && step.indices.length > 0) {
+      renderer.drawExplosion(step.indices[0], data, step.explosionFrame || 0);
+    }
+    if (step.meta === 'ruins' && step.dustFrame !== undefined) {
+      renderer.drawRuins(step.dustFrame);
+      // Afficher FREE PALESTINE pendant les ruines
+      if (step.dustFrame > 15) {
+        renderer.drawEndMessage();
+      }
+    }
   }
 }
 

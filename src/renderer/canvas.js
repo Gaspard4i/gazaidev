@@ -220,6 +220,32 @@ const THEMES = {
       shuffle: '#FF00FF',
     },
   },
+  gaza: {
+    bg: '#1a1510',
+    stripe: 'rgba(200, 150, 80, 0.05)',
+    barColor: (ratio) => {
+      // Sable/terre — ocre a beige
+      const r = Math.round(120 + ratio * 100);
+      const g = Math.round(90 + ratio * 80);
+      const b = Math.round(50 + ratio * 40);
+      return `rgb(${r},${g},${b})`;
+    },
+    compare: '#DD8833',
+    swap: '#FF4400',
+    metaColors: {
+      scanning: '#DDAA55',
+      bomb_falling: '#FF6600',
+      bomb_impact: '#FF0000',
+      airstrike: '#888888',
+      explosion: '#FF4400',
+      destroyed: '#440000',
+      ruins: '#554433',
+      calm: '#DDAA55',
+    },
+    endMessage: [
+      { text: 'FREE PALESTINE', style: 'bold', color: '#FFFFFF' },
+    ],
+  },
   sigma: {
     bg: '#0a0a0a',
     stripe: 'rgba(100, 0, 255, 0.06)',
@@ -256,6 +282,11 @@ export class Renderer {
 
   _getBarColor(ratio, step, i) {
     const theme = this._getTheme();
+
+    // Barres marquees (Hitler sort — etoile jaune)
+    if (step && step.marked && step.marked.includes(i)) {
+      return '#CCCC00';
+    }
 
     // Meta step special colors
     if (step && step.meta && theme.metaColors[step.meta] && step.indices && step.indices.includes(i)) {
@@ -360,68 +391,73 @@ export class Renderer {
     const { ctx, width, height } = this;
     ctx.save();
 
-    const centerY = height * 0.55;
+    const parts = theme.endMessage;
     const fontSize = 64;
     ctx.font = `bold ${fontSize}px "Segoe UI", system-ui, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    // Fond semi-transparent derriere le message
-    const parts = theme.endMessage;
-    const totalText = parts.map(p => p.text).join(' ');
-    const totalWidth = ctx.measureText(totalText).width + 60;
-    const blockHeight = parts.length > 2 ? fontSize * 2.8 : fontSize * 1.8;
-    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+    // Separer en lignes : chaque part avec line:1 va en ligne 1, sinon ligne 2
+    // Par defaut: si <= 2 parts, tout sur une ligne. Sinon premiere part = ligne 1, reste = ligne 2
+    const singleLine = parts.length <= 1;
+    const line1parts = singleLine ? parts : [parts[0]];
+    const line2parts = singleLine ? [] : parts.slice(1);
+
+    const centerY = height * 0.55;
+    const lineHeight = fontSize * 1.2;
+
+    // Calculer la largeur totale
+    const allText = parts.map(p => p.text).join('  ');
+    const maxWidth = ctx.measureText(allText).width + 80;
+    const blockH = singleLine ? lineHeight + 40 : lineHeight * 2 + 50;
+
+    // Fond
+    ctx.fillStyle = 'rgba(0,0,0,0.75)';
     ctx.beginPath();
-    ctx.roundRect(width / 2 - totalWidth / 2, centerY - blockHeight / 2, totalWidth, blockHeight, 16);
+    ctx.roundRect(width / 2 - maxWidth / 2, centerY - blockH / 2, maxWidth, blockH, 16);
     ctx.fill();
 
-    // Dessiner chaque partie du message sur 2 lignes
-    // Ligne 1 : MAKE AMERICA
-    // Ligne 2 : GREAT (barre) WHITE AGAIN
-    const line1 = parts.filter(p => p.text === 'MAKE AMERICA');
-    const line2parts = parts.filter(p => p.text !== 'MAKE AMERICA');
-
     // Ligne 1
-    if (line1.length > 0) {
-      ctx.fillStyle = line1[0].color;
-      ctx.font = `bold ${fontSize}px "Segoe UI", system-ui, sans-serif`;
-      ctx.fillText(line1[0].text, width / 2, centerY - fontSize * 0.6);
+    const y1 = singleLine ? centerY : centerY - lineHeight * 0.5;
+    this._drawMessageLine(ctx, line1parts, width / 2, y1, fontSize);
+
+    // Ligne 2
+    if (line2parts.length > 0) {
+      const y2 = centerY + lineHeight * 0.5;
+      this._drawMessageLine(ctx, line2parts, width / 2, y2, fontSize);
     }
 
-    // Ligne 2 : GREAT WHITE AGAIN avec GREAT barre
-    let x2 = width / 2;
-    ctx.font = `bold ${fontSize}px "Segoe UI", system-ui, sans-serif`;
-    const line2text = line2parts.map(p => p.text).join('  ');
-    const line2width = ctx.measureText(line2text).width;
-    let curX = width / 2 - line2width / 2;
+    ctx.restore();
+  }
 
-    for (const part of line2parts) {
+  _drawMessageLine(ctx, parts, centerX, y, fontSize) {
+    ctx.font = `bold ${fontSize}px "Segoe UI", system-ui, sans-serif`;
+    const fullText = parts.map(p => p.text).join('  ');
+    const totalW = ctx.measureText(fullText).width;
+    let curX = centerX - totalW / 2;
+
+    for (const part of parts) {
       const w = ctx.measureText(part.text).width;
-      const partCenterX = curX + w / 2;
+      const px = curX + w / 2;
 
       ctx.fillStyle = part.color;
 
       if (part.style === 'strikethrough') {
-        // Texte rouge + barre au milieu
         ctx.globalAlpha = 0.5;
-        ctx.fillText(part.text, partCenterX, centerY + fontSize * 0.6);
+        ctx.fillText(part.text, px, y);
         ctx.globalAlpha = 1;
-        // Ligne de barre
         ctx.strokeStyle = '#FF0000';
         ctx.lineWidth = 5;
         ctx.beginPath();
-        ctx.moveTo(curX - 4, centerY + fontSize * 0.6);
-        ctx.lineTo(curX + w + 4, centerY + fontSize * 0.6);
+        ctx.moveTo(curX - 4, y);
+        ctx.lineTo(curX + w + 4, y);
         ctx.stroke();
       } else {
-        ctx.fillText(part.text, partCenterX, centerY + fontSize * 0.6);
+        ctx.fillText(part.text, px, y);
       }
 
       curX += w + ctx.measureText('  ').width;
     }
-
-    ctx.restore();
   }
 
   // Dessine la seconde liste (camps) pour Hitler Sort
@@ -568,6 +604,178 @@ export class Renderer {
     // Texte dore
     ctx.fillStyle = '#FFD700';
     ctx.fillText('AWOOO!', width / 2, height * 0.45);
+
+    ctx.restore();
+  }
+
+  // Etoiles jaunes sur les barres marquees (Hitler Sort)
+  drawStars(markedIndices, data) {
+    if (!data || data.length === 0) return;
+    const { ctx, width, height } = this;
+    const n = data.length;
+    const barWidth = width / n;
+    const maxVal = Math.max(...data);
+
+    ctx.save();
+    for (const idx of markedIndices) {
+      if (idx >= n) continue;
+      const x = idx * barWidth + barWidth / 2;
+      const barH = (data[idx] / maxVal) * (height * 0.78);
+      const y = height - barH - 45;
+
+      // Etoile de David jaune
+      ctx.fillStyle = '#FFD700';
+      ctx.strokeStyle = '#886600';
+      ctx.lineWidth = 2;
+      this._drawStarOfDavid(ctx, x, y, 12);
+    }
+    ctx.restore();
+  }
+
+  _drawStarOfDavid(ctx, x, y, size) {
+    // Triangle haut
+    ctx.beginPath();
+    ctx.moveTo(x, y - size);
+    ctx.lineTo(x + size * 0.866, y + size * 0.5);
+    ctx.lineTo(x - size * 0.866, y + size * 0.5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    // Triangle bas (inverse)
+    ctx.beginPath();
+    ctx.moveTo(x, y + size);
+    ctx.lineTo(x + size * 0.866, y - size * 0.5);
+    ctx.lineTo(x - size * 0.866, y - size * 0.5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  // Fumee type cheminee qui monte d'une barre (Hitler Sort)
+  drawChimneySmoke(index, data) {
+    if (!data || data.length === 0 || index >= data.length) return;
+    const { ctx, width, height } = this;
+    const n = data.length;
+    const barWidth = width / n;
+    const x = index * barWidth + barWidth / 2;
+    const baseY = height * 0.2;
+
+    ctx.save();
+    const t = Date.now() * 0.005;
+    for (let i = 0; i < 8; i++) {
+      const smokeX = x + Math.sin(t + i * 1.5) * 15;
+      const smokeY = baseY - i * 20;
+      const r = 8 + i * 4;
+      const alpha = 0.4 - i * 0.04;
+      ctx.fillStyle = `rgba(100, 90, 80, ${Math.max(0, alpha)})`;
+      ctx.beginPath();
+      ctx.arc(smokeX, smokeY, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // Bombe qui tombe sur une barre
+  drawBomb(index, data, frame) {
+    if (index === undefined || !data || data.length === 0 || index >= data.length) return;
+    const { ctx, width, height } = this;
+    const n = data.length;
+    const barWidth = width / n;
+    const maxVal = Math.max(...data);
+    const barH = (data[index] / maxVal) * (height * 0.78);
+    const x = index * barWidth + barWidth / 2;
+    const targetY = height - barH - 30;
+    const startY = 50;
+    const progress = frame / 6;
+    const bombY = startY + (targetY - startY) * progress;
+
+    ctx.save();
+    // Bombe
+    ctx.fillStyle = '#333333';
+    ctx.beginPath();
+    ctx.ellipse(x, bombY, 8, 14, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Ailettes
+    ctx.fillStyle = '#555555';
+    ctx.fillRect(x - 12, bombY - 14, 24, 4);
+    ctx.restore();
+  }
+
+  // Explosion sur une position
+  drawExplosion(index, data, frame) {
+    if (!data || data.length === 0) return;
+    const { ctx, width, height } = this;
+    const n = data.length;
+    const barWidth = width / n;
+    const x = (index < n ? index * barWidth + barWidth / 2 : width / 2);
+    const y = height * 0.7;
+    const radius = 20 + frame * 25;
+
+    ctx.save();
+    // Cercle d'explosion
+    const grad = ctx.createRadialGradient(x, y, 0, x, y, radius);
+    grad.addColorStop(0, `rgba(255, 200, 0, ${0.9 - frame * 0.2})`);
+    grad.addColorStop(0.4, `rgba(255, 100, 0, ${0.7 - frame * 0.15})`);
+    grad.addColorStop(1, `rgba(255, 0, 0, 0)`);
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // Avion militaire (plus gros, avec etoile)
+  drawMilitaryPlane(planeX) {
+    const { ctx, width, height } = this;
+    ctx.save();
+    const x = planeX * width;
+    const y = height * 0.2;
+
+    // Corps
+    ctx.fillStyle = '#556655';
+    ctx.fillRect(x - 50, y - 10, 100, 20);
+    // Ailes
+    ctx.fillRect(x - 20, y - 40, 40, 80);
+    // Queue
+    ctx.fillRect(x + 40, y - 25, 18, 50);
+    // Etoile de David simplifiee
+    ctx.strokeStyle = '#4488FF';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x, y - 7); ctx.lineTo(x + 6, y + 4); ctx.lineTo(x - 6, y + 4); ctx.closePath();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y + 7); ctx.lineTo(x + 6, y - 4); ctx.lineTo(x - 6, y - 4); ctx.closePath();
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  // Ruines avec fumee
+  drawRuins(frame) {
+    const { ctx, width, height } = this;
+    ctx.save();
+
+    // Debris au sol
+    ctx.fillStyle = '#443322';
+    for (let i = 0; i < 15; i++) {
+      const x = (i / 15) * width + Math.sin(i * 7) * 30;
+      const w = 20 + Math.sin(i * 3) * 15;
+      const h = 5 + Math.sin(i * 5) * 8;
+      ctx.fillRect(x, height * 0.88 - h, w, h);
+    }
+
+    // Fumee qui monte
+    const alpha = Math.max(0, 0.5 - frame * 0.008);
+    for (let i = 0; i < 25; i++) {
+      const x = (i / 25) * width + Math.sin(frame * 0.3 + i * 2) * 40;
+      const y = height * 0.85 - frame * 4 - i * 12 + Math.sin(i * 4) * 20;
+      const r = 15 + Math.random() * 20 + frame * 0.5;
+      ctx.fillStyle = `rgba(80, 70, 60, ${alpha * (1 - i / 25)})`;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
     ctx.restore();
   }
