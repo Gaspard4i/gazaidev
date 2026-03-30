@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gazaidev — Algo Visualizer</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #1A1A1A;
+      color: #F5EEDC;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    h1 {
+      color: #D35400;
+      font-size: 1.4rem;
+      margin-bottom: 12px;
+      letter-spacing: 2px;
+    }
+    .controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+    button, select {
+      background: #2C5F6F;
+      color: #F5EEDC;
+      border: 1px solid #4A707A;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    button:hover, select:hover { background: #4A707A; }
+    button.rec { background: #D35400; border-color: #D35400; }
+    button.rec.recording { background: #c0392b; animation: pulse 1s infinite; }
+    @keyframes pulse { 50% { opacity: 0.7; } }
+    .speed-control {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #4A707A;
+      font-size: 0.8rem;
+    }
+    input[type="range"] { width: 80px; accent-color: #D35400; }
+    canvas {
+      border: 1px solid #2C5F6F;
+      border-radius: 4px;
+      max-height: 70vh;
+    }
+    .status {
+      margin-top: 8px;
+      font-size: 0.75rem;
+      color: #4A707A;
+    }
+  </style>
+</head>
+<body>
+  <h1>GAZAIDEV</h1>
+  <div class="controls">
+    <select id="algo-select">
+      <option value="bubble">Bubble Sort</option>
+      <option value="quick">Quick Sort</option>
+      <option value="merge">Merge Sort</option>
+    </select>
+    <select id="mode-select">
+      <option value="single">Solo</option>
+      <option value="race">Race</option>
+    </select>
+    <button id="btn-start">Play</button>
+    <button id="btn-reset">Reset</button>
+    <button id="btn-rec" class="rec">REC</button>
+    <div class="speed-control">
+      <label for="speed">Vitesse</label>
+      <input type="range" id="speed" min="1" max="20" value="5">
+    </div>
+  </div>
+  <canvas id="canvas" width="1080" height="1920"></canvas>
+  <div class="status" id="status">Pret</div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
