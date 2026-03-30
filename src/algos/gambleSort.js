@@ -3,7 +3,7 @@
 // Sinon → on perd. Le but c'est finir positif.
 // Les bets sont aleatoires (1-50)
 export function* gambleSort(arr) {
-  let balance = 0;
+  let balance = 1000;
 
   // Plusieurs passes comme un bubble sort, mais avec des paris
   for (let pass = 0; pass < arr.length; pass++) {
