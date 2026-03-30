@@ -71,6 +71,8 @@ let sweepIndex = 0;
 let flashOpacity = 0;
 let shuffleFrame = 0;
 let smokeFrame = 0;
+let sortFrameCount = 0;
+const MIN_ABSURD_FRAMES = 600; // ~10s a 60fps
 
 function generateData(n) {
   return Array.from({ length: n }, (_, i) => i + 1)
@@ -146,6 +148,7 @@ function start() {
 
   stats = { compares: 0, swaps: 0 };
   smokeFrame = 0;
+  sortFrameCount = 0;
   running = true;
   btnStart.textContent = 'Pause';
 
@@ -187,19 +190,23 @@ function animateShuffle() {
   }
 }
 
+function isAbsurd() {
+  const absurd = ['trump', 'thanos', 'communism', 'stalin', 'hitler', 'diddy', 'epstein', 'sort67', 'nineEleven', 'unsort', 'bogo', 'sigma'];
+  return absurd.includes(getAlgoKey());
+}
+
 function animateSort() {
-  const stepsPerFrame = speedRamp();
+  // Les tris absurdes avancent a 1 step/frame pour durer au moins 10s
+  const stepsPerFrame = isAbsurd() ? 1 : speedRamp();
+  sortFrameCount++;
 
   let lastStep = null;
+  let done = false;
   for (let i = 0; i < stepsPerFrame; i++) {
     const result = generator.next();
     if (result.done) {
-      // Tri termine -> lancer le sweep
-      phase = 'sweeping';
-      sweepIndex = 0;
-      statusEl.textContent = 'Sweep...';
-      renderer.draw(data, null, getStats());
-      return;
+      done = true;
+      break;
     }
 
     lastStep = result.value;
@@ -209,7 +216,20 @@ function animateSort() {
   }
 
   renderer.draw(data, lastStep, getStats());
-  drawSpecialEffects(lastStep);
+  if (lastStep) drawSpecialEffects(lastStep);
+
+  if (done) {
+    // Si tri absurde et pas assez de frames, on attend
+    if (isAbsurd() && sortFrameCount < MIN_ABSURD_FRAMES) {
+      // Continuer a animer le resultat en attendant les 10s
+      return;
+    }
+    // Tri termine -> lancer le sweep
+    phase = 'sweeping';
+    sweepIndex = 0;
+    statusEl.textContent = 'Sweep...';
+    renderer.draw(data, null, getStats());
+  }
 }
 
 function drawSpecialEffects(step) {
