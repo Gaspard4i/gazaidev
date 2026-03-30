@@ -5,60 +5,122 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gazaidev — Algo Visualizer</title>
   <style>
+    :root {
+      --bg: #FBF6EE;
+      --bg-card: #F5F0E8;
+      --orange: #E8621F;
+      --orange-soft: #F09A56;
+      --navy: #1B3A5C;
+      --sky: #A8C8E0;
+      --sky-light: #D4E4F0;
+      --cream: #FBF6EE;
+      --ink: #2A2A2A;
+      --ink-soft: #5C5C5C;
+      --white: #FFFFFF;
+      --stripe: repeating-linear-gradient(
+        0deg, transparent, transparent 3px, rgba(168,200,224,0.2) 3px, rgba(168,200,224,0.2) 4px
+      );
+    }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      background: #1A1A1A;
-      color: #F5EEDC;
-      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      background-image: var(--stripe);
+      color: var(--ink);
+      font-family: 'Georgia', 'Palatino', serif;
       display: flex;
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
-      padding: 20px;
+      padding: 24px;
     }
     h1 {
-      color: #D35400;
-      font-size: 1.4rem;
-      margin-bottom: 12px;
-      letter-spacing: 2px;
+      color: var(--orange);
+      font-size: 1.6rem;
+      margin-bottom: 14px;
+      letter-spacing: 3px;
+      font-weight: 700;
+      text-shadow: 2px 2px 0 rgba(232,98,31,0.15);
     }
     .controls {
       display: flex;
-      gap: 8px;
+      gap: 10px;
       flex-wrap: wrap;
       justify-content: center;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
+      background: var(--bg-card);
+      padding: 12px 18px;
+      border-radius: 12px;
+      border: 2px solid var(--sky);
+      box-shadow: 3px 3px 0 var(--sky-light);
     }
     button, select {
-      background: #2C5F6F;
-      color: #F5EEDC;
-      border: 1px solid #4A707A;
-      padding: 8px 16px;
-      border-radius: 6px;
+      background: var(--navy);
+      color: var(--cream);
+      border: 2px solid var(--navy);
+      padding: 8px 18px;
+      border-radius: 8px;
       cursor: pointer;
       font-size: 0.85rem;
+      font-family: 'Georgia', serif;
+      font-weight: 600;
+      transition: all 0.15s;
+      box-shadow: 2px 2px 0 rgba(27,58,92,0.2);
     }
-    button:hover, select:hover { background: #4A707A; }
-    button.rec { background: #D35400; border-color: #D35400; }
-    button.rec.recording { background: #c0392b; animation: pulse 1s infinite; }
+    button:hover, select:hover {
+      background: var(--sky);
+      color: var(--navy);
+      border-color: var(--navy);
+      transform: translateY(-1px);
+      box-shadow: 3px 3px 0 rgba(27,58,92,0.25);
+    }
+    button.rec {
+      background: var(--orange);
+      border-color: var(--orange);
+      box-shadow: 2px 2px 0 rgba(232,98,31,0.3);
+    }
+    button.rec:hover {
+      background: var(--orange-soft);
+      color: var(--white);
+      border-color: var(--orange);
+    }
+    button.rec.recording {
+      background: #C0392B;
+      border-color: #C0392B;
+      animation: pulse 1s infinite;
+    }
+    button.active {
+      background: var(--orange);
+      border-color: var(--orange);
+    }
+    button.active:hover {
+      background: var(--orange-soft);
+      border-color: var(--orange);
+      color: var(--white);
+    }
     @keyframes pulse { 50% { opacity: 0.7; } }
     .speed-control {
       display: flex;
       align-items: center;
       gap: 6px;
-      color: #4A707A;
+      color: var(--navy);
       font-size: 0.8rem;
+      font-weight: 600;
     }
-    input[type="range"] { width: 80px; accent-color: #D35400; }
+    input[type="range"] {
+      width: 80px;
+      accent-color: var(--orange);
+    }
     canvas {
-      border: 1px solid #2C5F6F;
-      border-radius: 4px;
+      border: 3px solid var(--navy);
+      border-radius: 10px;
       max-height: 70vh;
+      box-shadow: 4px 4px 0 var(--sky);
     }
     .status {
-      margin-top: 8px;
-      font-size: 0.75rem;
-      color: #4A707A;
+      margin-top: 10px;
+      font-size: 0.8rem;
+      color: var(--ink-soft);
+      font-style: italic;
     }
   </style>
 </head>
@@ -77,6 +139,8 @@
     <button id="btn-start">Play</button>
     <button id="btn-reset">Reset</button>
     <button id="btn-rec" class="rec">REC</button>
+    <button id="btn-loop">Loop</button>
+    <button id="btn-rainbow">Rainbow</button>
     <div class="speed-control">
       <label for="speed">Vitesse</label>
       <input type="range" id="speed" min="1" max="20" value="5">

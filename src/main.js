@@ -6,15 +6,21 @@ import { quickSort } from './algos/quickSort.js';
 import { mergeSort } from './algos/mergeSort.js';
 
 const canvas = document.getElementById('canvas');
-const status = document.getElementById('status');
+const statusEl = document.getElementById('status');
 const algoSelect = document.getElementById('algo-select');
-const modeSelect = document.getElementById('mode-select');
 const btnStart = document.getElementById('btn-start');
 const btnReset = document.getElementById('btn-reset');
 const btnRec = document.getElementById('btn-rec');
+const btnLoop = document.getElementById('btn-loop');
+const btnRainbow = document.getElementById('btn-rainbow');
 const speedSlider = document.getElementById('speed');
 
 const ALGOS = { bubble: bubbleSort, quick: quickSort, merge: mergeSort };
+const META = {
+  bubble: { name: 'BUBBLE SORT', complexity: 'O(n\u00B2)' },
+  quick: { name: 'QUICK SORT', complexity: 'O(n log n)' },
+  merge: { name: 'MERGE SORT', complexity: 'O(n log n)' },
+};
 const NUM_BARS = 200;
 
 const renderer = new Renderer(canvas);
@@ -25,70 +31,203 @@ let data = [];
 let generator = null;
 let running = false;
 let animFrameId = null;
+let loopEnabled = false;
+let stats = { compares: 0, swaps: 0 };
+
+// State machine: idle -> shuffling -> sorting -> sweeping -> flashing -> looping -> idle
+let phase = 'idle';
+let sweepIndex = 0;
+let flashOpacity = 0;
+let shuffleFrame = 0;
 
 function generateData(n) {
   return Array.from({ length: n }, (_, i) => i + 1)
     .sort(() => Math.random() - 0.5);
 }
 
+function getAlgoKey() {
+  return algoSelect.value;
+}
+
+function getMeta() {
+  return META[getAlgoKey()] || META.bubble;
+}
+
+function getStats() {
+  const meta = getMeta();
+  // Estimation grossiere du total pour la progress bar
+  const n = NUM_BARS;
+  const estimated = getAlgoKey() === 'bubble' ? n * n / 2 : n * Math.log2(n) * 2;
+  return {
+    algoName: meta.name,
+    complexity: meta.complexity,
+    compares: stats.compares,
+    swaps: stats.swaps,
+    progress: Math.min(stats.compares / estimated, 1),
+  };
+}
+
+function speedRamp() {
+  const base = parseInt(speedSlider.value);
+  const progress = getStats().progress;
+  if (progress < 0.15) return base;
+  if (progress < 0.80) return Math.round(base * (2 + progress * 3));
+  if (progress < 0.95) return Math.max(1, Math.round(base * 0.5));
+  return base;
+}
+
 function reset() {
   running = false;
+  phase = 'idle';
   if (animFrameId) cancelAnimationFrame(animFrameId);
   data = generateData(NUM_BARS);
   generator = null;
-  renderer.draw(data);
-  status.textContent = 'Pret';
+  stats = { compares: 0, swaps: 0 };
+  renderer.draw(data, null, getStats());
+  statusEl.textContent = 'Pret';
   btnStart.textContent = 'Play';
-}
-
-function getAlgoFn() {
-  return ALGOS[algoSelect.value] || bubbleSort;
 }
 
 function start() {
   if (running) {
     running = false;
+    phase = 'idle';
     btnStart.textContent = 'Play';
     return;
   }
 
-  const algoFn = getAlgoFn();
-  generator = algoFn(data);
+  stats = { compares: 0, swaps: 0 };
   running = true;
   btnStart.textContent = 'Pause';
-  status.textContent = `${algoSelect.value} sort en cours...`;
+
+  // Start with shuffle animation
+  phase = 'shuffling';
+  shuffleFrame = 0;
+  data = generateData(NUM_BARS);
+  statusEl.textContent = 'Shuffle...';
   animate();
 }
 
 function animate() {
   if (!running) return;
 
-  const stepsPerFrame = parseInt(speedSlider.value);
+  if (phase === 'shuffling') {
+    animateShuffle();
+  } else if (phase === 'sorting') {
+    animateSort();
+  } else if (phase === 'sweeping') {
+    animateSweep();
+  } else if (phase === 'flashing') {
+    animateFlash();
+  } else if (phase === 'looping') {
+    animateLoop();
+  }
+
+  animFrameId = requestAnimationFrame(animate);
+}
+
+function animateShuffle() {
+  shuffleFrame++;
+  if (shuffleFrame % 3 === 0) sonifier.playShuffle();
+  renderer.draw(data, null, getStats());
+
+  if (shuffleFrame >= 20) {
+    phase = 'sorting';
+    generator = ALGOS[getAlgoKey()](data);
+    statusEl.textContent = `${getMeta().name} en cours...`;
+  }
+}
+
+function animateSort() {
+  const stepsPerFrame = speedRamp();
 
   let lastStep = null;
-
   for (let i = 0; i < stepsPerFrame; i++) {
     const result = generator.next();
     if (result.done) {
-      running = false;
-      renderer.draw(data, null);
-      status.textContent = 'Termine !';
-      btnStart.textContent = 'Play';
-      if (recorder.isRecording) recorder.stop();
+      // Tri termine -> lancer le sweep
+      phase = 'sweeping';
+      sweepIndex = 0;
+      statusEl.textContent = 'Sweep...';
+      renderer.draw(data, null, getStats());
       return;
     }
 
     lastStep = result.value;
-    // Les generateurs modifient arr en place, data pointe vers la meme ref
+    if (lastStep.type === 'compare') stats.compares++;
+    if (lastStep.type === 'swap') stats.swaps++;
     sonifier.play(lastStep, data);
   }
 
-  renderer.draw(data, lastStep);
-  animFrameId = requestAnimationFrame(animate);
+  renderer.draw(data, lastStep, getStats());
 }
 
+function animateSweep() {
+  sonifier.playSweep(sweepIndex, data.length);
+  const statsObj = getStats();
+  statsObj.progress = 1;
+  renderer.drawSweep(data, sweepIndex, statsObj);
+
+  sweepIndex++;
+  if (sweepIndex >= data.length) {
+    phase = 'flashing';
+    flashOpacity = 0.5;
+    sonifier.playCompletion();
+    statusEl.textContent = 'Termine !';
+  }
+}
+
+function animateFlash() {
+  const statsObj = getStats();
+  statsObj.progress = 1;
+  renderer.drawSweep(data, data.length, statsObj);
+  renderer.drawFlash(flashOpacity);
+  flashOpacity -= 0.05;
+
+  if (flashOpacity <= 0) {
+    if (loopEnabled) {
+      phase = 'looping';
+      shuffleFrame = 0;
+    } else {
+      running = false;
+      phase = 'idle';
+      btnStart.textContent = 'Play';
+      if (recorder.isRecording) recorder.stop();
+    }
+  }
+}
+
+function animateLoop() {
+  shuffleFrame++;
+
+  // Petit delai puis reset et relance
+  if (shuffleFrame < 10) {
+    const s = getStats(); s.progress = 1;
+    renderer.drawSweep(data, data.length, s);
+    return;
+  }
+
+  if (shuffleFrame === 10) {
+    data = generateData(NUM_BARS);
+    stats = { compares: 0, swaps: 0 };
+  }
+
+  if (shuffleFrame < 25) {
+    renderer.draw(data, null, getStats());
+    if (shuffleFrame % 3 === 0) sonifier.playShuffle();
+    return;
+  }
+
+  // Relancer le tri
+  phase = 'sorting';
+  generator = ALGOS[getAlgoKey()](data);
+  statusEl.textContent = `${getMeta().name} en cours...`;
+}
+
+// Event listeners
 btnStart.addEventListener('click', start);
 btnReset.addEventListener('click', reset);
+
 btnRec.addEventListener('click', () => {
   if (recorder.isRecording) {
     recorder.stop();
@@ -99,6 +238,19 @@ btnRec.addEventListener('click', () => {
     btnRec.classList.add('recording');
     btnRec.textContent = 'STOP';
   }
+});
+
+btnLoop.addEventListener('click', () => {
+  loopEnabled = !loopEnabled;
+  btnLoop.classList.toggle('active', loopEnabled);
+  btnLoop.textContent = loopEnabled ? 'Loop ON' : 'Loop';
+});
+
+btnRainbow.addEventListener('click', () => {
+  renderer.rainbow = !renderer.rainbow;
+  btnRainbow.classList.toggle('active', renderer.rainbow);
+  btnRainbow.textContent = renderer.rainbow ? 'Rainbow ON' : 'Rainbow';
+  if (phase === 'idle') renderer.draw(data, null, getStats());
 });
 
 reset();

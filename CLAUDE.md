@@ -14,12 +14,16 @@
 - **Audio:** Web Audio API (natif) — OscillatorNode, freq = 200 + (val/max) * 800 Hz
 - **Dependances au chargement:** 0
 
-### Palette couleurs
-- `#D35400` — orange principal
-- `#F5EEDC` — beige clair
-- `#2C5F6F` — bleu-vert fonce
-- `#4A707A` — bleu-vert clair
-- `#1A1A1A` — fond noir
+### Palette couleurs (vibe moodboard marin/scrapbook)
+- `#E8621F` — orange vif (poisson rouge)
+- `#F09A56` — corail / orange doux
+- `#1B3A5C` — bleu marine profond (fond pingouin)
+- `#A8C8E0` — bleu ciel (damier / rayures)
+- `#D4E4F0` — bleu ciel clair
+- `#FBF6EE` — creme chaud (fond papier)
+- `#F5F0E8` — blanc casse (cartes)
+- `#2A2A2A` — encre sombre (texte)
+- Style: illustratif, ludique, "handmade", serif (Georgia)
 
 ### Format export
 - 1080x1920 (9:16 portrait)
