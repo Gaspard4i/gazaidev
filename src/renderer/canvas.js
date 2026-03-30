@@ -243,14 +243,14 @@ const THEMES = {
     compare: '#FFFFFF',
     swap: '#FFD700',
     metaColors: {
-      rich: '#FF0000',
-      poor: '#3344AA',
-      middle_class: '#CCCCCC',
-      taxed: '#FF8800',
-      enriched: '#FFD700',
-      transfer: '#FF4444',
-      impoverished: '#333366',
-      homeless: '#222244',
+      rich: '#FFD700',        // or
+      poor: '#B87333',        // cuivre
+      middle_class: '#C0C0C0', // argent
+      taxed: '#FF8800',       // orange flash — on te prend ton argent
+      enriched: '#FFF44F',    // or brillant flash
+      transfer: '#FFD700',
+      impoverished: '#8B5A2B', // cuivre fonce
+      homeless: '#4A3520',    // cuivre tres fonce
       fiscal_year: '#444444',
     },
     endMessage: [
