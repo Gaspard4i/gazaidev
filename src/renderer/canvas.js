@@ -28,20 +28,24 @@ const THEMES = {
   trump: {
     bg: '#1a1a2e',
     stripe: 'rgba(200, 160, 120, 0.08)',
-    // Gradient de couleur de peau : clair (haut) -> fonce (bas)
     barColor: (ratio) => {
-      // Du brun fonce au peche clair
-      const r = Math.round(90 + ratio * 155);  // 90 -> 245
-      const g = Math.round(50 + ratio * 140);  // 50 -> 190
-      const b = Math.round(30 + ratio * 110);  // 30 -> 140
+      const r = Math.round(90 + ratio * 155);
+      const g = Math.round(50 + ratio * 140);
+      const b = Math.round(30 + ratio * 110);
       return `rgb(${r},${g},${b})`;
     },
-    compare: '#FFD700', // or
+    compare: '#FFD700',
     swap: '#FF4444',
     metaColors: {
       vetting: '#FFD700',
       deported: '#FF0000',
     },
+    endMessage: [
+      { text: 'MAKE AMERICA', style: 'normal', color: '#FF0000' },
+      { text: 'GREAT', style: 'strikethrough', color: '#FF0000' },
+      { text: 'WHITE', style: 'bold', color: '#FFFFFF' },
+      { text: 'AGAIN', style: 'normal', color: '#FF0000' },
+    ],
   },
   thanos: {
     bg: '#1a0a2e',
@@ -273,6 +277,77 @@ export class Renderer {
 
     if (stats) this._drawOverlays(stats);
     this._drawWatermark();
+  }
+
+  drawEndMessage() {
+    const theme = this._getTheme();
+    if (!theme.endMessage) return;
+
+    const { ctx, width, height } = this;
+    ctx.save();
+
+    const centerY = height * 0.55;
+    const fontSize = 64;
+    ctx.font = `bold ${fontSize}px "Segoe UI", system-ui, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // Fond semi-transparent derriere le message
+    const parts = theme.endMessage;
+    const totalText = parts.map(p => p.text).join(' ');
+    const totalWidth = ctx.measureText(totalText).width + 60;
+    const blockHeight = parts.length > 2 ? fontSize * 2.8 : fontSize * 1.8;
+    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+    ctx.beginPath();
+    ctx.roundRect(width / 2 - totalWidth / 2, centerY - blockHeight / 2, totalWidth, blockHeight, 16);
+    ctx.fill();
+
+    // Dessiner chaque partie du message sur 2 lignes
+    // Ligne 1 : MAKE AMERICA
+    // Ligne 2 : GREAT (barre) WHITE AGAIN
+    const line1 = parts.filter(p => p.text === 'MAKE AMERICA');
+    const line2parts = parts.filter(p => p.text !== 'MAKE AMERICA');
+
+    // Ligne 1
+    if (line1.length > 0) {
+      ctx.fillStyle = line1[0].color;
+      ctx.font = `bold ${fontSize}px "Segoe UI", system-ui, sans-serif`;
+      ctx.fillText(line1[0].text, width / 2, centerY - fontSize * 0.6);
+    }
+
+    // Ligne 2 : GREAT WHITE AGAIN avec GREAT barre
+    let x2 = width / 2;
+    ctx.font = `bold ${fontSize}px "Segoe UI", system-ui, sans-serif`;
+    const line2text = line2parts.map(p => p.text).join('  ');
+    const line2width = ctx.measureText(line2text).width;
+    let curX = width / 2 - line2width / 2;
+
+    for (const part of line2parts) {
+      const w = ctx.measureText(part.text).width;
+      const partCenterX = curX + w / 2;
+
+      ctx.fillStyle = part.color;
+
+      if (part.style === 'strikethrough') {
+        // Texte rouge + barre au milieu
+        ctx.globalAlpha = 0.5;
+        ctx.fillText(part.text, partCenterX, centerY + fontSize * 0.6);
+        ctx.globalAlpha = 1;
+        // Ligne de barre
+        ctx.strokeStyle = '#FF0000';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(curX - 4, centerY + fontSize * 0.6);
+        ctx.lineTo(curX + w + 4, centerY + fontSize * 0.6);
+        ctx.stroke();
+      } else {
+        ctx.fillText(part.text, partCenterX, centerY + fontSize * 0.6);
+      }
+
+      curX += w + ctx.measureText('  ').width;
+    }
+
+    ctx.restore();
   }
 
   drawFlash(opacity) {

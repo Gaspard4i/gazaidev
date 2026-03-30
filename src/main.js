@@ -212,6 +212,7 @@ function animateFlash() {
   const statsObj = getStats();
   statsObj.progress = 1;
   renderer.drawSweep(data, data.length, statsObj);
+  renderer.drawEndMessage();
   renderer.drawFlash(flashOpacity);
   flashOpacity -= 0.05;
 
@@ -235,6 +236,7 @@ function animateLoop() {
   if (shuffleFrame < 10) {
     const s = getStats(); s.progress = 1;
     renderer.drawSweep(data, data.length, s);
+    renderer.drawEndMessage();
     return;
   }
 
