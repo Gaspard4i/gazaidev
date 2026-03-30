@@ -18,8 +18,9 @@ export function* adhdSort(arr) {
       if (focusCounter >= distractEvery) {
         focusCounter = 0;
 
-        // Pause — regarde ailleurs
-        for (let f = 0; f < 15; f++) {
+        // Pause longue — regarde ailleurs (1-2 secondes)
+        const pauseLength = 60 + Math.floor(Math.random() * 60);
+        for (let f = 0; f < pauseLength; f++) {
           yield { type: 'compare', indices: [], meta: 'distracted' };
         }
 
@@ -33,8 +34,8 @@ export function* adhdSort(arr) {
           yield { type: 'swap', indices: [a, b], values: [arr[a], arr[b]], meta: 'fidgeting' };
         }
 
-        // "Ah oui, je triais" — reprend
-        for (let f = 0; f < 5; f++) {
+        // "Ah oui, je triais" — reprend lentement
+        for (let f = 0; f < 20; f++) {
           yield { type: 'compare', indices: [], meta: 'refocusing' };
         }
       }

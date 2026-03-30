@@ -32,14 +32,10 @@ const btnRec = document.getElementById('btn-rec');
 const btnLoop = document.getElementById('btn-loop');
 const btnRainbow = document.getElementById('btn-rainbow');
 const speedSlider = document.getElementById('speed');
-const speedVal = document.getElementById('speed-val');
 const speedMode = document.getElementById('speed-mode');
 
 const barsSlider = document.getElementById('bars');
 
-speedSlider.addEventListener('input', () => {
-  speedVal.textContent = speedSlider.value;
-});
 barsSlider.addEventListener('change', () => {
   if (phase === 'idle') reset();
 });
@@ -96,6 +92,7 @@ let flashOpacity = 0;
 let shuffleFrame = 0;
 let smokeFrame = 0;
 let sortFrameCount = 0;
+let lastGambleBalance = 0;
 
 function generateData(n) {
   return Array.from({ length: n }, (_, i) => i + 1)
@@ -187,6 +184,7 @@ function start() {
   smokeFrame = 0;
   sortFrameCount = 0;
   speedAccumulator = 0;
+  lastGambleBalance = 0;
   running = true;
   btnStart.textContent = 'Pause';
 
@@ -251,6 +249,13 @@ function animateSort() {
     if (lastStep.type === 'compare') stats.compares++;
     if (lastStep.type === 'swap') stats.swaps++;
     sonifier.play(lastStep, data);
+
+    // Gamble: tracker la balance, arreter si negatif
+    if (lastStep.balance !== undefined) lastGambleBalance = lastStep.balance;
+    if (getAlgoKey() === 'gamble' && lastGambleBalance < 0) {
+      done = true;
+      break;
+    }
   }
 
   renderer.draw(data, lastStep, getStats());
@@ -296,12 +301,11 @@ function drawSpecialEffects(step) {
     renderer.drawHowl(step.indices[0], data);
   }
 
-  // Gamble: afficher bet et balance
+  // Gamble: TOUJOURS afficher la balance
   if (key === 'gamble') {
-    if (step.meta === 'win') renderer.drawGambleOverlay(step.bet, step.balance, true);
-    else if (step.meta === 'lose') renderer.drawGambleOverlay(step.bet, step.balance, false);
-    else if (step.balance !== undefined) renderer.drawGambleOverlay(step.bet, step.balance);
-    if (step.meta === 'jackpot' || step.meta === 'bankrupt') renderer.drawGambleOverlay(undefined, step.balance);
+    const bal = step.balance !== undefined ? step.balance : lastGambleBalance;
+    const isWin = step.meta === 'win' ? true : step.meta === 'lose' ? false : undefined;
+    renderer.drawGambleOverlay(step.bet, bal, isWin);
   }
 
   // ADHD: distraction
@@ -350,11 +354,18 @@ function drawSpecialEffects(step) {
   }
 }
 
+function drawPersistentOverlays() {
+  if (getAlgoKey() === 'gamble') {
+    renderer.drawGambleOverlay(undefined, lastGambleBalance);
+  }
+}
+
 function animateSweep() {
   sonifier.playSweep(sweepIndex, data.length);
   const statsObj = getStats();
   statsObj.progress = 1;
   renderer.drawSweep(data, sweepIndex, statsObj);
+  drawPersistentOverlays();
 
   sweepIndex++;
   if (sweepIndex >= data.length) {
@@ -369,6 +380,7 @@ function animateFlash() {
   const statsObj = getStats();
   statsObj.progress = 1;
   renderer.drawSweep(data, data.length, statsObj);
+  drawPersistentOverlays();
   renderer.drawEndMessage();
   renderer.drawFlash(flashOpacity);
   flashOpacity -= 0.03;
