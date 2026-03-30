@@ -223,11 +223,22 @@ const THEMES = {
   french: {
     bg: '#0a0a1e',
     stripe: 'rgba(0, 0, 150, 0.06)',
-    // Bleu blanc rouge selon la valeur
+    // Cuivre (pauvres) -> Argent (classe moyenne) -> Or (riches)
     barColor: (ratio) => {
-      if (ratio < 0.33) return `rgb(${Math.round(30 + ratio * 3 * 100)}, ${Math.round(30 + ratio * 3 * 80)}, ${Math.round(180 + ratio * 75)})`; // bleu (pauvres)
-      if (ratio < 0.66) return `rgb(${Math.round(200 + ratio * 55)}, ${Math.round(200 + ratio * 55)}, ${Math.round(200 + ratio * 55)})`; // blanc (classe moyenne)
-      return `rgb(${Math.round(180 + ratio * 75)}, ${Math.round(20 + ratio * 30)}, ${Math.round(30 + ratio * 20)})`; // rouge (riches)
+      if (ratio < 0.33) {
+        // Cuivre : brun-orange metallique
+        const t = ratio / 0.33;
+        return `rgb(${Math.round(140 + t * 40)}, ${Math.round(70 + t * 30)}, ${Math.round(40 + t * 20)})`;
+      }
+      if (ratio < 0.66) {
+        // Argent : gris metallique brillant
+        const t = (ratio - 0.33) / 0.33;
+        const v = Math.round(160 + t * 60);
+        return `rgb(${v}, ${v + 5}, ${v + 10})`;
+      }
+      // Or : dore brillant
+      const t = (ratio - 0.66) / 0.34;
+      return `rgb(${Math.round(200 + t * 55)}, ${Math.round(170 + t * 45)}, ${Math.round(30 + t * 30)})`;
     },
     compare: '#FFFFFF',
     swap: '#FFD700',
