@@ -100,18 +100,21 @@ const THEMES = {
   hitler: {
     bg: '#0a0a0a',
     stripe: 'rgba(100, 100, 100, 0.05)',
-    // Noir, blanc, rouge — palette nazie
     barColor: (ratio) => {
-      // Gris froid qui monte vers le blanc
       const v = Math.round(80 + ratio * 175);
       return `rgb(${v},${v},${Math.round(v * 0.9)})`;
     },
     compare: '#CC0000',
     swap: '#FF0000',
     metaColors: {
-      selection: '#FFCC00', // etoile jaune
+      selection: '#FFCC00',
       separated: '#888800',
+      deported: '#CCCC00',
+      smoke: '#AA8866',
     },
+    endMessage: [
+      { text: 'NEVER AGAIN', style: 'normal', color: '#FFFFFF' },
+    ],
   },
   diddy: {
     bg: '#0d001a',
@@ -162,6 +165,77 @@ const THEMES = {
       evaluate: '#00FF00',
       reduce: '#008800',
       force: '#FFFF00',
+      purge: '#FF0000',
+      trim: '#880000',
+      grow: '#00FF00',
+    },
+  },
+  nineEleven: {
+    bg: '#87CEEB',
+    stripe: 'rgba(255,255,255,0.05)',
+    barColor: (ratio) => {
+      // Gris acier pour les tours
+      const v = Math.round(120 + ratio * 60);
+      return `rgb(${v},${v},${Math.round(v * 0.95)})`;
+    },
+    compare: '#888888',
+    swap: '#AAAAAA',
+    metaColors: {
+      scanning: '#4488FF',
+      clearing: '#444444',
+      build_tower: '#CCCCCC',
+      standing: '#DDDDDD',
+      collapse: '#FF4400',
+      plane: '#333333',
+      dust: '#AA8866',
+    },
+  },
+  unsort: {
+    bg: '#1a0a0a',
+    stripe: 'rgba(255, 0, 0, 0.04)',
+    barColor: (ratio) => {
+      // Du vert (ordre) au rouge (chaos)
+      const r = Math.round(50 + ratio * 200);
+      const g = Math.round(200 - ratio * 150);
+      return `rgb(${r},${g},50)`;
+    },
+    compare: '#FFFF00',
+    swap: '#FF0000',
+    metaColors: {
+      chaos: '#FF8800',
+      destroy: '#FF0000',
+    },
+  },
+  bogo: {
+    bg: '#0a0a1a',
+    stripe: 'rgba(255, 255, 0, 0.04)',
+    barColor: (ratio) => {
+      // Couleurs chaotiques qui changent avec le temps
+      const hue = (ratio * 360 + Date.now() * 0.01) % 360;
+      return `hsl(${hue}, 70%, 55%)`;
+    },
+    compare: '#FFFFFF',
+    swap: '#FFFF00',
+    metaColors: {
+      shuffle: '#FF00FF',
+    },
+  },
+  sigma: {
+    bg: '#0a0a0a',
+    stripe: 'rgba(100, 0, 255, 0.06)',
+    barColor: (ratio) => {
+      // Gris froid avec accent violet pour les hautes valeurs
+      const r = Math.round(60 + ratio * 100);
+      const g = Math.round(60 + ratio * 60);
+      const b = Math.round(80 + ratio * 175);
+      return `rgb(${r},${g},${b})`;
+    },
+    compare: '#8800FF',
+    swap: '#AA44FF',
+    metaColors: {
+      howl: '#FFD700',
+      sigma_push: '#FF4400',
+      beta_sort: '#666688',
     },
   },
 };
@@ -347,6 +421,121 @@ export class Renderer {
       curX += w + ctx.measureText('  ').width;
     }
 
+    ctx.restore();
+  }
+
+  // Dessine la seconde liste (camps) pour Hitler Sort
+  drawCamps(camps, maxVal) {
+    if (!camps || camps.length === 0) return;
+    const { ctx, width, height } = this;
+    const campZoneX = width * 0.75;
+    const campZoneW = width * 0.22;
+    const campBarW = campZoneW / Math.max(camps.length, 1);
+
+    // Fond du camp — gris sombre avec bordure barbelees
+    ctx.fillStyle = 'rgba(40, 30, 20, 0.7)';
+    ctx.fillRect(campZoneX - 5, height * 0.15, campZoneW + 10, height * 0.7);
+
+    // Label
+    ctx.save();
+    ctx.font = 'bold 22px "Courier New", monospace';
+    ctx.fillStyle = '#888866';
+    ctx.textAlign = 'center';
+    ctx.fillText('CAMP', campZoneX + campZoneW / 2, height * 0.13);
+    ctx.restore();
+
+    // Barres dans le camp
+    for (let i = 0; i < camps.length; i++) {
+      const barH = (camps[i] / maxVal) * (height * 0.6);
+      const x = campZoneX + i * campBarW;
+      const y = height * 0.82 - barH;
+      ctx.fillStyle = '#CCCC00'; // jaune etoile
+      ctx.fillRect(x, y, campBarW - 1, barH);
+    }
+  }
+
+  // Fumee/poussiere qui monte
+  drawSmoke(frame, maxFrames) {
+    const { ctx, width, height } = this;
+    ctx.save();
+    const alpha = 0.6 - (frame / maxFrames) * 0.5;
+    for (let i = 0; i < 20; i++) {
+      const x = width * 0.75 + Math.sin(frame * 0.5 + i) * 80 + Math.random() * 40;
+      const y = height * 0.5 - frame * 8 - i * 15 + Math.random() * 20;
+      const r = 15 + Math.random() * 25;
+      ctx.fillStyle = `rgba(100, 90, 80, ${alpha * (1 - i / 20)})`;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // Avion pour 9/11 Sort
+  drawPlane(planeX) {
+    const { ctx, width, height } = this;
+    ctx.save();
+    const x = planeX * width;
+    const y = height * 0.35;
+
+    // Corps de l'avion
+    ctx.fillStyle = '#444444';
+    ctx.fillRect(x - 40, y - 8, 80, 16);
+    // Ailes
+    ctx.fillRect(x - 15, y - 30, 30, 60);
+    // Queue
+    ctx.fillRect(x + 30, y - 20, 15, 40);
+
+    ctx.restore();
+  }
+
+  // Poussiere / effondrement pour 9/11
+  drawDust(frame) {
+    const { ctx, width, height } = this;
+    ctx.save();
+    const alpha = 0.8 - frame * 0.04;
+    // Nuage de poussiere qui s'expand
+    const spread = frame * 30;
+    for (let i = 0; i < 40; i++) {
+      const x = width / 2 + (Math.random() - 0.5) * spread * 2;
+      const y = height * 0.9 - Math.random() * spread;
+      const r = 10 + Math.random() * (spread * 0.3);
+      const gray = Math.round(150 + Math.random() * 80);
+      ctx.fillStyle = `rgba(${gray}, ${gray - 10}, ${gray - 20}, ${alpha * Math.random()})`;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // Effet howl pour Sigma Sort — cercles concentriques dores
+  drawHowl(index, data) {
+    if (index === undefined || !data || data.length === 0) return;
+    const { ctx, width, height } = this;
+    const n = data.length;
+    const barWidth = width / n;
+    const maxVal = Math.max(...data);
+    const x = index * barWidth + barWidth / 2;
+    const barH = (data[index] / maxVal) * (height * 0.78);
+    const y = height - barH - 30;
+
+    ctx.save();
+    // Ondes de choc dores
+    for (let r = 0; r < 3; r++) {
+      const radius = 30 + r * 35 + (Date.now() % 500) * 0.1;
+      ctx.strokeStyle = `rgba(255, 215, 0, ${0.6 - r * 0.2})`;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    // Texte HOWL
+    ctx.font = 'bold 40px "Segoe UI", system-ui, sans-serif';
+    ctx.fillStyle = '#FFD700';
+    ctx.textAlign = 'center';
+    ctx.fillText('AWOOO!', x, y - 50);
     ctx.restore();
   }
 

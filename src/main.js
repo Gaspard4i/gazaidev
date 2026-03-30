@@ -12,6 +12,10 @@ import { trumpSort } from './algos/trumpSort.js';
 import { hitlerSort } from './algos/hitlerSort.js';
 import { diddySort } from './algos/diddySort.js';
 import { epsteinSort } from './algos/epsteinSort.js';
+import { nineElevenSort } from './algos/nineElevenSort.js';
+import { unsort } from './algos/unsort.js';
+import { bogoSort } from './algos/bogoSort.js';
+import { sigmaSort } from './algos/sigmaSort.js';
 
 const canvas = document.getElementById('canvas');
 const statusEl = document.getElementById('status');
@@ -28,6 +32,8 @@ const ALGOS = {
   thanos: thanosSort, communism: communismSort, stalin: stalinSort,
   sort67: sort67, trump: trumpSort, hitler: hitlerSort,
   diddy: diddySort, epstein: epsteinSort,
+  nineEleven: nineElevenSort, unsort: unsort,
+  bogo: bogoSort, sigma: sigmaSort,
 };
 const META = {
   bubble:    { name: 'BUBBLE SORT',    complexity: 'O(n\u00B2)', desc: 'Compares neighbors and swaps them. Simple but slow.' },
@@ -41,6 +47,10 @@ const META = {
   hitler:    { name: 'HITLER SORT',    complexity: 'O(nein)', desc: 'Separates prime numbers into a second list. Then deletes it.' },
   diddy:     { name: 'DIDDY SORT',     complexity: 'O(party)', desc: 'Big values invite small ones to the party. They disappear after.' },
   epstein:   { name: 'EPSTEIN SORT',   complexity: 'O(under 18)', desc: 'Only keeps values under 18. The rest are "too old".' },
+  nineEleven:{ name: '9/11 SORT',     complexity: 'O(2 towers)', desc: 'Finds 2 equal tall bars. Then a plane comes.' },
+  unsort:    { name: 'UNSORT',        complexity: 'O(chaos)', desc: 'First sorts perfectly. Then destroys everything.' },
+  bogo:      { name: 'BOGO SORT',     complexity: 'O(n \u00D7 n!)', desc: 'Random shuffle until sorted. Pray.' },
+  sigma:     { name: 'SIGMA SORT',    complexity: 'O(sigma\u00B2)', desc: 'Random bar howls, takes #1 spot, sorts betas below.' },
 };
 const NUM_BARS = 80;
 
@@ -60,6 +70,7 @@ let phase = 'idle';
 let sweepIndex = 0;
 let flashOpacity = 0;
 let shuffleFrame = 0;
+let smokeFrame = 0;
 
 function generateData(n) {
   return Array.from({ length: n }, (_, i) => i + 1)
@@ -102,15 +113,21 @@ function speedRamp() {
 function updateTheme() {
   const key = getAlgoKey();
   // Les tris absurdes ont leur propre theme, les classiques utilisent default
-  const absurdThemes = ['trump', 'thanos', 'communism', 'stalin', 'hitler', 'diddy', 'epstein', 'sort67'];
+  const absurdThemes = ['trump', 'thanos', 'communism', 'stalin', 'hitler', 'diddy', 'epstein', 'sort67', 'nineEleven', 'unsort', 'bogo', 'sigma'];
   renderer.theme = absurdThemes.includes(key) ? key : 'default';
+}
+
+function getBarCount() {
+  const key = getAlgoKey();
+  if (key === 'bogo') return 5; // bogo sort avec plus de 5 = heat death of universe
+  return NUM_BARS;
 }
 
 function reset() {
   running = false;
   phase = 'idle';
   if (animFrameId) cancelAnimationFrame(animFrameId);
-  data = generateData(NUM_BARS);
+  data = generateData(getBarCount());
   generator = null;
   stats = { compares: 0, swaps: 0 };
   updateTheme();
@@ -128,13 +145,14 @@ function start() {
   }
 
   stats = { compares: 0, swaps: 0 };
+  smokeFrame = 0;
   running = true;
   btnStart.textContent = 'Pause';
 
   // Start with shuffle animation
   phase = 'shuffling';
   shuffleFrame = 0;
-  data = generateData(NUM_BARS);
+  data = generateData(getBarCount());
   statusEl.textContent = 'Shuffle...';
   animate();
 }
@@ -191,6 +209,37 @@ function animateSort() {
   }
 
   renderer.draw(data, lastStep, getStats());
+  drawSpecialEffects(lastStep);
+}
+
+function drawSpecialEffects(step) {
+  if (!step) return;
+  const key = getAlgoKey();
+
+  // Hitler: dessiner les camps + fumee
+  if (key === 'hitler' && step.camps) {
+    const maxVal = Math.max(...data, ...step.camps, 1);
+    renderer.drawCamps(step.camps, maxVal);
+  }
+  if (key === 'hitler' && step.meta === 'smoke') {
+    // Fumee qui monte des camps
+    renderer.drawSmoke(smokeFrame++, 30);
+  }
+
+  // 9/11: avion, poussiere
+  if (key === 'nineEleven') {
+    if (step.meta === 'plane' && step.planeX !== undefined) {
+      renderer.drawPlane(step.planeX);
+    }
+    if (step.meta === 'dust' && step.dustFrame !== undefined) {
+      renderer.drawDust(step.dustFrame);
+    }
+  }
+
+  // Sigma: howl effect
+  if (key === 'sigma' && step.meta === 'howl' && step.indices && step.indices.length > 0) {
+    renderer.drawHowl(step.indices[0], data);
+  }
 }
 
 function animateSweep() {
@@ -241,7 +290,7 @@ function animateLoop() {
   }
 
   if (shuffleFrame === 10) {
-    data = generateData(NUM_BARS);
+    data = generateData(getBarCount());
     stats = { compares: 0, swaps: 0 };
   }
 
