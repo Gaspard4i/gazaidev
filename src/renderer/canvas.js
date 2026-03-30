@@ -272,6 +272,78 @@ const THEMES = {
       { text: 'FREE PALESTINE', style: 'bold', color: '#FFFFFF' },
     ],
   },
+  gamble: {
+    bg: '#0d1a0d',
+    stripe: 'rgba(0, 200, 0, 0.04)',
+    barColor: (ratio) => {
+      const r = Math.round(20 + ratio * 60);
+      const g = Math.round(80 + ratio * 150);
+      const b = Math.round(20 + ratio * 40);
+      return `rgb(${r},${g},${b})`;
+    },
+    compare: '#FFD700',
+    swap: '#FF4444',
+    metaColors: {
+      betting: '#FFD700',
+      win: '#00FF00',
+      lose: '#FF0000',
+      swap_after_loss: '#FF4444',
+      jackpot: '#FFD700',
+      bankrupt: '#FF0000',
+    },
+  },
+  adhd: {
+    bg: '#1a1a0a',
+    stripe: 'rgba(255, 200, 0, 0.04)',
+    barColor: (ratio) => {
+      const hue = (ratio * 60 + Date.now() * 0.02) % 360;
+      return `hsl(${hue}, 60%, 55%)`;
+    },
+    compare: '#FFAA00',
+    swap: '#FF6600',
+    metaColors: {
+      distracted: '#888888',
+      fidgeting: '#FF00FF',
+      refocusing: '#00FFAA',
+    },
+  },
+  autism: {
+    bg: '#050510',
+    stripe: 'rgba(0, 100, 255, 0.04)',
+    barColor: (ratio) => {
+      const r = Math.round(30 + ratio * 50);
+      const g = Math.round(60 + ratio * 120);
+      const b = Math.round(150 + ratio * 105);
+      return `rgb(${r},${g},${b})`;
+    },
+    compare: '#00CCFF',
+    swap: '#00FF88',
+    metaColors: {
+      analyzing: '#00CCFF',
+      calculating: '#AAAAFF',
+      high_iq: '#FFD700',
+      placed: '#00FF88',
+    },
+  },
+  magician: {
+    bg: '#0a0010',
+    stripe: 'rgba(200, 0, 255, 0.04)',
+    barColor: (ratio) => {
+      const r = Math.round(100 + ratio * 155);
+      const g = Math.round(20 + ratio * 80);
+      const b = Math.round(150 + ratio * 105);
+      return `rgb(${r},${g},${b})`;
+    },
+    compare: '#FFD700',
+    swap: '#FF44FF',
+    metaColors: {
+      showoff: '#FFD700',
+      curtain_close: '#CC0000',
+      behind_curtain: '#440000',
+      curtain_open: '#CC0000',
+      tadaa: '#FFD700',
+    },
+  },
   sigma: {
     bg: '#0a0a0a',
     stripe: 'rgba(100, 0, 255, 0.06)',
@@ -801,6 +873,199 @@ export class Renderer {
       ctx.beginPath();
       ctx.arc(x, y, r, 0, Math.PI * 2);
       ctx.fill();
+    }
+
+    ctx.restore();
+  }
+
+  // Gamble Sort — affiche le bet et la balance
+  drawGambleOverlay(bet, balance, isWin) {
+    const { ctx, width, height } = this;
+    ctx.save();
+
+    // Balance en haut a droite
+    ctx.font = 'bold 42px "Courier New", monospace';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'top';
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.beginPath();
+    ctx.roundRect(width - 320, 370, 300, 120, 10);
+    ctx.fill();
+
+    ctx.fillStyle = balance >= 0 ? '#00FF00' : '#FF4444';
+    ctx.fillText(`$${balance >= 0 ? '+' : ''}${balance}`, width - 40, 380);
+
+    if (bet !== undefined) {
+      ctx.font = '32px "Courier New", monospace';
+      ctx.fillStyle = '#FFD700';
+      ctx.fillText(`BET: $${bet}`, width - 40, 430);
+    }
+
+    // WIN/LOSE flash au centre
+    if (isWin !== undefined) {
+      ctx.font = 'bold 72px "Segoe UI", system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      if (isWin) {
+        ctx.fillStyle = '#00FF00';
+        ctx.fillText('+$' + bet, width / 2, height * 0.5);
+      } else {
+        ctx.fillStyle = '#FF4444';
+        ctx.fillText('-$' + bet, width / 2, height * 0.5);
+      }
+    }
+
+    ctx.restore();
+  }
+
+  // ADHD Sort — texte de distraction
+  drawDistraction() {
+    const { ctx, width, height } = this;
+    ctx.save();
+    ctx.font = 'bold 48px "Segoe UI", system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.beginPath();
+    ctx.roundRect(width / 2 - 250, height * 0.45 - 35, 500, 80, 12);
+    ctx.fill();
+
+    const msgs = ['*scrolling TikTok*', '*checking Discord*', '*ooh a butterfly*', '*what was I doing?*', '*plays with pen*'];
+    const msg = msgs[Math.floor(Date.now() / 500) % msgs.length];
+    ctx.fillStyle = '#FFAA00';
+    ctx.fillText(msg, width / 2, height * 0.45 + 10);
+    ctx.restore();
+  }
+
+  // Autism Sort — HIGH IQ + calculating animation
+  drawHighIQ(frame) {
+    const { ctx, width, height } = this;
+    ctx.save();
+
+    // Fond sombre overlay
+    ctx.fillStyle = 'rgba(0, 0, 20, 0.85)';
+    ctx.fillRect(0, 0, width, height);
+
+    // Texte HIGH IQ qui pulse
+    const scale = 1 + Math.sin(frame * 0.3) * 0.1;
+    ctx.font = `bold ${Math.round(80 * scale)}px "Segoe UI", system-ui, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#FFD700';
+    ctx.fillText('HIGH IQ', width / 2, height * 0.4);
+
+    // IQ number qui monte
+    const iq = 140 + frame * 3;
+    ctx.font = 'bold 60px "Courier New", monospace';
+    ctx.fillStyle = '#00CCFF';
+    ctx.fillText(`IQ: ${iq}`, width / 2, height * 0.55);
+
+    // Formules qui flottent
+    ctx.font = '24px "Courier New", monospace';
+    ctx.fillStyle = 'rgba(100, 200, 255, 0.4)';
+    const formulas = ['E=mc²', '∑(n²)', '∫f(x)dx', 'O(1)', 'λx.x', '∇²φ=0', 'P=NP?', 'π·r²'];
+    for (let i = 0; i < formulas.length; i++) {
+      const x = (width * 0.15) + (i % 4) * (width * 0.22);
+      const y = height * 0.65 + Math.floor(i / 4) * 50 + Math.sin(frame * 0.1 + i) * 15;
+      ctx.fillText(formulas[i], x, y);
+    }
+
+    ctx.restore();
+  }
+
+  drawCalculating(frame) {
+    const { ctx, width, height } = this;
+    ctx.save();
+
+    ctx.fillStyle = 'rgba(0, 0, 20, 0.7)';
+    ctx.fillRect(0, 0, width, height);
+
+    // Barre de loading
+    const loadW = width * 0.6;
+    const loadH = 20;
+    const loadX = width * 0.2;
+    const loadY = height * 0.5;
+    const progress = frame / 40;
+
+    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    ctx.beginPath();
+    ctx.roundRect(loadX, loadY, loadW, loadH, 10);
+    ctx.fill();
+    ctx.fillStyle = '#00CCFF';
+    ctx.beginPath();
+    ctx.roundRect(loadX, loadY, loadW * progress, loadH, 10);
+    ctx.fill();
+
+    ctx.font = 'bold 36px "Courier New", monospace';
+    ctx.fillStyle = '#AAAAFF';
+    ctx.textAlign = 'center';
+    const dots = '.'.repeat((frame % 4));
+    ctx.fillText(`Calculating${dots}`, width / 2, loadY - 30);
+
+    ctx.font = '24px "Courier New", monospace';
+    ctx.fillStyle = 'rgba(150, 200, 255, 0.5)';
+    ctx.fillText(`${Math.round(progress * 100)}% neural pathways activated`, width / 2, loadY + 50);
+
+    ctx.restore();
+  }
+
+  // Magician Sort — rideau rouge
+  drawCurtain(progress) {
+    const { ctx, width, height } = this;
+    ctx.save();
+    const curtainWidth = width * progress;
+
+    // Rideau rouge avec plis
+    ctx.fillStyle = '#8B0000';
+    ctx.fillRect(0, 0, curtainWidth, height);
+
+    // Plis du rideau
+    for (let x = 0; x < curtainWidth; x += 40) {
+      const shade = Math.sin(x * 0.08) * 30;
+      ctx.fillStyle = `rgba(${139 + shade}, 0, 0, 0.3)`;
+      ctx.fillRect(x, 0, 20, height);
+    }
+
+    // Bord dore du rideau
+    ctx.fillStyle = '#DAA520';
+    ctx.fillRect(curtainWidth - 6, 0, 6, height);
+
+    // Tringle doree en haut
+    ctx.fillStyle = '#DAA520';
+    ctx.fillRect(0, 0, Math.min(curtainWidth + 20, width), 15);
+
+    ctx.restore();
+  }
+
+  // Magician Sort — confettis + TADAA
+  drawConfetti(frame) {
+    const { ctx, width, height } = this;
+    ctx.save();
+
+    // TADAA!
+    if (frame < 40) {
+      const scale = Math.min(1, frame / 10);
+      ctx.font = `bold ${Math.round(90 * scale)}px "Segoe UI", system-ui, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = 'rgba(0,0,0,0.4)';
+      ctx.fillText('TADAA!', width / 2 + 3, height * 0.4 + 3);
+      ctx.fillStyle = '#FFD700';
+      ctx.fillText('TADAA!', width / 2, height * 0.4);
+    }
+
+    // Confettis dores qui tombent
+    const colors = ['#FFD700', '#FF6600', '#FF00FF', '#00FF88', '#00CCFF', '#FF4444'];
+    for (let i = 0; i < 30; i++) {
+      const seed = i * 7 + 13;
+      const x = (seed * 37 + frame * (2 + i % 3)) % width;
+      const y = ((seed * 53 + frame * (3 + i % 4)) % (height + 200)) - 100;
+      const size = 6 + (seed % 8);
+      const rotation = (frame * 0.05 + seed) * (i % 2 === 0 ? 1 : -1);
+
+      ctx.fillStyle = colors[i % colors.length];
+      ctx.translate(x, y);
+      ctx.rotate(rotation);
+      ctx.fillRect(-size / 2, -size / 4, size, size / 2);
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
     }
 
     ctx.restore();

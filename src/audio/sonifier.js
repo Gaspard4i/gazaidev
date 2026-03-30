@@ -65,6 +65,18 @@ export class Sonifier {
     });
   }
 
+  playTadaa() {
+    if (!this.enabled) return;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    const t = this.ctx.currentTime;
+    // Fanfare TADAA : C5-E5-G5-C6 rapide puis C6 long
+    [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+      this._beepAt(freq, t + i * 0.1, 0.2, 0.4);
+    });
+    // Note finale longue
+    this._beepAt(1046.5, t + 0.5, 0.5, 0.35);
+  }
+
   _beepADSR(freq, duration, peakGain) {
     const t = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();

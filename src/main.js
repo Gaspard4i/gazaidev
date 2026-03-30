@@ -18,6 +18,10 @@ import { bogoSort } from './algos/bogoSort.js';
 import { sigmaSort } from './algos/sigmaSort.js';
 import { gazaSort } from './algos/gazaSort.js';
 import { frenchSort } from './algos/frenchSort.js';
+import { gambleSort } from './algos/gambleSort.js';
+import { adhdSort } from './algos/adhdSort.js';
+import { autismSort } from './algos/autismSort.js';
+import { magicianSort } from './algos/magicianSort.js';
 
 const canvas = document.getElementById('canvas');
 const statusEl = document.getElementById('status');
@@ -32,13 +36,11 @@ const speedVal = document.getElementById('speed-val');
 const speedMode = document.getElementById('speed-mode');
 
 const barsSlider = document.getElementById('bars');
-const barsVal = document.getElementById('bars-val');
 
 speedSlider.addEventListener('input', () => {
   speedVal.textContent = speedSlider.value;
 });
-barsSlider.addEventListener('input', () => {
-  barsVal.textContent = barsSlider.value;
+barsSlider.addEventListener('change', () => {
   if (phase === 'idle') reset();
 });
 
@@ -49,6 +51,7 @@ const ALGOS = {
   diddy: diddySort, epstein: epsteinSort,
   nineEleven: nineElevenSort, unsort: unsort,
   bogo: bogoSort, sigma: sigmaSort, gaza: gazaSort, french: frenchSort,
+  gamble: gambleSort, adhd: adhdSort, autism: autismSort, magician: magicianSort,
 };
 const META = {
   bubble:    { name: 'BUBBLE SORT',    complexity: 'O(n\u00B2)', desc: 'Compares neighbors and swaps them. Simple but slow.' },
@@ -68,6 +71,10 @@ const META = {
   sigma:     { name: 'SIGMA SORT',    complexity: 'O(sigma\u00B2)', desc: 'Random bar howls, takes #1 spot, sorts betas below.' },
   gaza:      { name: 'GAZA SORT',     complexity: 'O(genocide)', desc: 'Bombs only fall on children. Then airstrikes destroy everything.' },
   french:    { name: 'FRENCH SORT',   complexity: 'O(taxes\u00B2)', desc: 'Taxes the middle class to enrich the rich. The poor disappear.' },
+  gamble:    { name: 'GAMBLE SORT',   complexity: 'O(n \u00D7 luck)', desc: 'Bet on each comparison. Win if already sorted, lose if not.' },
+  adhd:      { name: 'ADHD SORT',     complexity: 'O(n\u00B2 + distractions)', desc: 'Sorts but keeps getting distracted and messing things up.' },
+  autism:    { name: 'AUTISM SORT',   complexity: 'O(1) (big brain)', desc: 'Analyzes everything, calculates, then solves it instantly.' },
+  magician:  { name: 'MAGICIAN SORT', complexity: 'O(abracadabra)', desc: 'Hides the list behind a curtain. When revealed: sorted. TADAA!' },
 };
 const NUM_BARS = 80;
 
@@ -119,24 +126,26 @@ function getStats() {
   };
 }
 
-function getSpeed() {
-  const base = parseInt(speedSlider.value);
+let speedAccumulator = 0;
+
+function getRawSpeed() {
+  const base = parseFloat(speedSlider.value);
   const mode = speedMode.value;
   const progress = getStats().progress;
 
   if (mode === 'stable') return base;
-
-  if (mode === 'accelerate') {
-    // Commence a base, finit a base * 5
-    return Math.max(1, Math.round(base * (1 + progress * 4)));
-  }
-
-  if (mode === 'decelerate') {
-    // Commence a base * 5, finit a 1
-    return Math.max(1, Math.round(base * (5 - progress * 4.5)));
-  }
-
+  if (mode === 'accelerate') return base * (1 + progress * 4);
+  if (mode === 'decelerate') return base * (5 - progress * 4.5);
   return base;
+}
+
+// Retourne le nombre de steps a faire cette frame (0 si on skip)
+function getStepsThisFrame() {
+  const speed = Math.max(0.1, getRawSpeed());
+  speedAccumulator += speed;
+  const steps = Math.floor(speedAccumulator);
+  speedAccumulator -= steps;
+  return steps;
 }
 
 function updateTheme() {
@@ -177,6 +186,7 @@ function start() {
   stats = { compares: 0, swaps: 0 };
   smokeFrame = 0;
   sortFrameCount = 0;
+  speedAccumulator = 0;
   running = true;
   btnStart.textContent = 'Pause';
 
@@ -220,7 +230,13 @@ function animateShuffle() {
 
 function animateSort() {
   sortFrameCount++;
-  const stepsPerFrame = getSpeed();
+  const stepsPerFrame = getStepsThisFrame();
+
+  // Si speed < 1, on skip certaines frames sans avancer l'algo
+  if (stepsPerFrame === 0) {
+    renderer.draw(data, null, getStats());
+    return;
+  }
 
   let lastStep = null;
   let done = false;
@@ -278,6 +294,36 @@ function drawSpecialEffects(step) {
   // Sigma: howl + flex effect (lune + ondes)
   if (key === 'sigma' && (step.meta === 'howl' || step.meta === 'sigma_flex') && step.indices && step.indices.length > 0) {
     renderer.drawHowl(step.indices[0], data);
+  }
+
+  // Gamble: afficher bet et balance
+  if (key === 'gamble') {
+    if (step.meta === 'win') renderer.drawGambleOverlay(step.bet, step.balance, true);
+    else if (step.meta === 'lose') renderer.drawGambleOverlay(step.bet, step.balance, false);
+    else if (step.balance !== undefined) renderer.drawGambleOverlay(step.bet, step.balance);
+    if (step.meta === 'jackpot' || step.meta === 'bankrupt') renderer.drawGambleOverlay(undefined, step.balance);
+  }
+
+  // ADHD: distraction
+  if (key === 'adhd' && (step.meta === 'distracted' || step.meta === 'fidgeting')) {
+    renderer.drawDistraction();
+  }
+
+  // Autism: calculating + HIGH IQ
+  if (key === 'autism') {
+    if (step.meta === 'calculating') renderer.drawCalculating(step.calcFrame || 0);
+    if (step.meta === 'high_iq') renderer.drawHighIQ(step.iqFrame || 0);
+  }
+
+  // Magician: rideau + confettis
+  if (key === 'magician') {
+    if (step.meta === 'curtain_close' || step.meta === 'curtain_open' || step.meta === 'behind_curtain') {
+      renderer.drawCurtain(step.curtainProgress);
+    }
+    if (step.meta === 'tadaa') {
+      renderer.drawConfetti(step.confettiFrame || 0);
+      if (step.confettiFrame === 0) sonifier.playTadaa();
+    }
   }
 
   // Gaza: bombes, avion, explosions, ruines

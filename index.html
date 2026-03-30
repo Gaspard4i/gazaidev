@@ -112,6 +112,17 @@
       width: 80px;
       accent-color: var(--orange);
     }
+    input[type="number"] {
+      width: 60px;
+      background: var(--navy);
+      color: var(--cream);
+      border: 2px solid var(--navy);
+      border-radius: 6px;
+      padding: 4px 6px;
+      font-family: 'Georgia', serif;
+      font-size: 0.85rem;
+      text-align: center;
+    }
     canvas {
       border: 3px solid var(--navy);
       border-radius: 10px;
@@ -150,6 +161,10 @@
         <option value="sigma">Sigma Sort</option>
         <option value="gaza">Gaza Sort</option>
         <option value="french">French Sort</option>
+        <option value="gamble">Gamble Sort</option>
+        <option value="adhd">ADHD Sort</option>
+        <option value="autism">Autism Sort</option>
+        <option value="magician">Magician Sort</option>
       </optgroup>
     </select>
     <select id="mode-select">
@@ -163,7 +178,7 @@
     <button id="btn-rainbow">Rainbow</button>
     <div class="speed-control">
       <label for="speed">Vitesse</label>
-      <input type="range" id="speed" min="1" max="50" value="1">
+      <input type="range" id="speed" min="0.1" max="50" value="1" step="0.1">
       <span id="speed-val">1</span>
     </div>
     <select id="speed-mode">
@@ -173,8 +188,7 @@
     </select>
     <div class="speed-control">
       <label for="bars">Barres</label>
-      <input type="range" id="bars" min="3" max="200" value="80">
-      <span id="bars-val">80</span>
+      <input type="number" id="bars" min="3" max="500" value="80" step="1">
     </div>
   </div>
   <canvas id="canvas" width="1080" height="1920"></canvas>
