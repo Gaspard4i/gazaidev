@@ -30,19 +30,19 @@ const ALGOS = {
   diddy: diddySort, epstein: epsteinSort,
 };
 const META = {
-  bubble:    { name: 'BUBBLE SORT',    complexity: 'O(n\u00B2)' },
-  quick:     { name: 'QUICK SORT',     complexity: 'O(n log n)' },
-  merge:     { name: 'MERGE SORT',     complexity: 'O(n log n)' },
-  thanos:    { name: 'THANOS SORT',    complexity: 'O(n/2... /2... /2)' },
-  communism: { name: 'COMMUNISM SORT', complexity: 'O(equality)' },
-  stalin:    { name: 'STALIN SORT',    complexity: 'O(n) guaranteed' },
-  sort67:    { name: '67 SORT',        complexity: 'O(6+7)' },
-  trump:     { name: 'TRUMP SORT',     complexity: 'O(only the best)' },
-  hitler:    { name: 'HITLER SORT',    complexity: 'O(nein)' },
-  diddy:     { name: 'DIDDY SORT',     complexity: 'O(party)' },
-  epstein:   { name: 'EPSTEIN SORT',   complexity: 'O(under 18)' },
+  bubble:    { name: 'BUBBLE SORT',    complexity: 'O(n\u00B2)', desc: 'Compares neighbors and swaps them. Simple but slow.' },
+  quick:     { name: 'QUICK SORT',     complexity: 'O(n log n)', desc: 'Picks a pivot, partitions, conquers. The GOAT.' },
+  merge:     { name: 'MERGE SORT',     complexity: 'O(n log n)', desc: 'Divide, sort halves, merge. Stable & reliable.' },
+  thanos:    { name: 'THANOS SORT',    complexity: 'O(n/2... /2... /2)', desc: '"I am inevitable." Snaps half the unsorted elements each pass.' },
+  communism: { name: 'COMMUNISM SORT', complexity: 'O(equality)', desc: 'Redistributes all values equally. No one is above average, comrade.' },
+  stalin:    { name: 'STALIN SORT',    complexity: 'O(n) guaranteed', desc: 'One pass. Any element out of order goes to the gulag.' },
+  sort67:    { name: '67 SORT',        complexity: 'O(6+7)', desc: 'Forces every value to become 6 or 7. Nothing else matters.' },
+  trump:     { name: 'TRUMP SORT',     complexity: 'O(only the best)', desc: 'Extreme vetting. Only the top 30% stay. The rest are deported.' },
+  hitler:    { name: 'HITLER SORT',    complexity: 'O(nein)', desc: 'Separates prime numbers into a second list. Then deletes it.' },
+  diddy:     { name: 'DIDDY SORT',     complexity: 'O(party)', desc: 'Big values invite small ones to the party. They disappear after.' },
+  epstein:   { name: 'EPSTEIN SORT',   complexity: 'O(under 18)', desc: 'Only keeps values under 18. The rest are "too old".' },
 };
-const NUM_BARS = 200;
+const NUM_BARS = 80;
 
 const renderer = new Renderer(canvas);
 const sonifier = new Sonifier();
@@ -82,8 +82,10 @@ function getStats() {
   return {
     algoName: meta.name,
     complexity: meta.complexity,
+    desc: meta.desc,
     compares: stats.compares,
     swaps: stats.swaps,
+    bars: data.length,
     progress: Math.min(stats.compares / estimated, 1),
   };
 }
@@ -97,6 +99,13 @@ function speedRamp() {
   return base;
 }
 
+function updateTheme() {
+  const key = getAlgoKey();
+  // Les tris absurdes ont leur propre theme, les classiques utilisent default
+  const absurdThemes = ['trump', 'thanos', 'communism', 'stalin', 'hitler', 'diddy', 'epstein', 'sort67'];
+  renderer.theme = absurdThemes.includes(key) ? key : 'default';
+}
+
 function reset() {
   running = false;
   phase = 'idle';
@@ -104,6 +113,7 @@ function reset() {
   data = generateData(NUM_BARS);
   generator = null;
   stats = { compares: 0, swaps: 0 };
+  updateTheme();
   renderer.draw(data, null, getStats());
   statusEl.textContent = 'Pret';
   btnStart.textContent = 'Play';
@@ -246,6 +256,9 @@ function animateLoop() {
 }
 
 // Event listeners
+algoSelect.addEventListener('change', () => {
+  if (phase === 'idle') reset();
+});
 btnStart.addEventListener('click', start);
 btnReset.addEventListener('click', reset);
 
