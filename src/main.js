@@ -226,19 +226,34 @@ function animateShuffle() {
   }
 }
 
+// Meta steps d'animation qui doivent toujours avancer (pas affectes par la vitesse)
+const ANIMATION_METAS = new Set([
+  'distracted', 'fidgeting', 'refocusing',
+  'curtain_close', 'curtain_open', 'behind_curtain', 'tadaa', 'showoff',
+  'howl', 'sigma_flex', 'sigma_push',
+  'bomb_falling', 'bomb_impact', 'airstrike', 'explosion', 'ruins', 'dust',
+  'snap_charging', 'balanced',
+  'smoke_chimney', 'smoke_final',
+  'high_iq', 'calculating',
+  'standing', 'plane', 'collapse', 'build_tower',
+  'jackpot', 'bankrupt',
+  'fiscal_year',
+  'calm',
+  'inspecting', 'mark_star', 'deporting',
+]);
+
 function animateSort() {
   sortFrameCount++;
   const stepsPerFrame = getStepsThisFrame();
 
-  // Si speed < 1, on skip certaines frames sans avancer l'algo
-  if (stepsPerFrame === 0) {
-    renderer.draw(data, null, getStats());
-    return;
-  }
+  // Toujours avancer d'au moins 1 step pour les animations
+  const minSteps = Math.max(stepsPerFrame, 1);
 
   let lastStep = null;
   let done = false;
-  for (let i = 0; i < stepsPerFrame; i++) {
+  let stepsExecuted = 0;
+
+  for (let i = 0; i < minSteps; i++) {
     const result = generator.next();
     if (result.done) {
       done = true;
@@ -249,11 +264,18 @@ function animateSort() {
     if (lastStep.type === 'compare') stats.compares++;
     if (lastStep.type === 'swap') stats.swaps++;
     sonifier.play(lastStep, data);
+    stepsExecuted++;
 
     // Gamble: tracker la balance, arreter si negatif
     if (lastStep.balance !== undefined) lastGambleBalance = lastStep.balance;
     if (getAlgoKey() === 'gamble' && lastGambleBalance < 0) {
       done = true;
+      break;
+    }
+
+    // Si c'est un step d'animation et que la vitesse est basse,
+    // on s'arrete apres 1 step pour pas skipper l'animation
+    if (lastStep.meta && ANIMATION_METAS.has(lastStep.meta) && stepsPerFrame <= 1) {
       break;
     }
   }
@@ -428,7 +450,7 @@ function animateLoop() {
 
 // Event listeners
 algoSelect.addEventListener('change', () => {
-  if (phase === 'idle') reset();
+  reset(); // toujours reset quand on change d'algo
 });
 btnStart.addEventListener('click', start);
 btnReset.addEventListener('click', reset);
