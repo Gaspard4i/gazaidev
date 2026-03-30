@@ -30,14 +30,19 @@ export function* frenchSort(arr) {
         arr[i] = val - tax;
         yield { type: 'swap', indices: [i], values: [arr[i]], meta: 'taxed' };
 
-        // Redistribuer la taxe au plus riche du tableau
-        let richestIdx = 0;
+        // Trouver TOUS les riches et repartir la taxe entre eux
+        const richIndices = [];
         for (let j = 0; j < arr.length; j++) {
-          if (arr[j] > arr[richestIdx]) richestIdx = j;
+          if (arr[j] >= richThreshold) richIndices.push(j);
         }
-        arr[richestIdx] += tax;
-        yield { type: 'swap', indices: [richestIdx], values: [arr[richestIdx]], meta: 'enriched' };
-        yield { type: 'compare', indices: [i, richestIdx], meta: 'transfer' };
+        if (richIndices.length > 0) {
+          const share = Math.max(1, Math.round(tax / richIndices.length));
+          for (const rIdx of richIndices) {
+            arr[rIdx] += share;
+            yield { type: 'swap', indices: [rIdx], values: [arr[rIdx]], meta: 'enriched' };
+            yield { type: 'compare', indices: [i, rIdx], meta: 'transfer' };
+          }
+        }
       } else if (val <= poorThreshold && val > 2) {
         // Pauvres : perdent aussi (inflation, cout de la vie)
         arr[i] = Math.max(1, val - Math.round(val * 0.1));
