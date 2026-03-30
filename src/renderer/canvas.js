@@ -268,9 +268,7 @@ const THEMES = {
       ruins: '#554433',
       calm: '#DDAA55',
     },
-    endMessage: [
-      { text: 'FREE PALESTINE', style: 'bold', color: '#FFFFFF' },
-    ],
+    endMessage: 'FREE_PALESTINE_FLAG',
   },
   gamble: {
     bg: '#0d1a0d',
@@ -489,6 +487,13 @@ export class Renderer {
     const { ctx, width, height } = this;
     ctx.save();
 
+    // Cas special : FREE PALESTINE avec drapeau
+    if (theme.endMessage === 'FREE_PALESTINE_FLAG') {
+      this._drawFreePalestine(ctx, width, height);
+      ctx.restore();
+      return;
+    }
+
     const parts = theme.endMessage;
     const fontSize = 64;
     ctx.font = `bold ${fontSize}px "Segoe UI", system-ui, sans-serif`;
@@ -704,6 +709,58 @@ export class Renderer {
     ctx.fillText('AWOOO!', width / 2, height * 0.45);
 
     ctx.restore();
+  }
+
+  // FREE PALESTINE avec drapeau palestinien
+  _drawFreePalestine(ctx, width, height) {
+    const centerY = height * 0.5;
+    const flagW = width * 0.75;
+    const flagH = flagW * 0.5;
+    const flagX = (width - flagW) / 2;
+    const flagY = centerY - flagH / 2 - 30;
+
+    // Drapeau palestinien : 3 bandes horizontales + triangle rouge
+    const bandH = flagH / 3;
+
+    // Noir
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(flagX, flagY, flagW, bandH);
+    // Blanc
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(flagX, flagY + bandH, flagW, bandH);
+    // Vert
+    ctx.fillStyle = '#009736';
+    ctx.fillRect(flagX, flagY + bandH * 2, flagW, bandH);
+    // Triangle rouge a gauche
+    ctx.fillStyle = '#CE1126';
+    ctx.beginPath();
+    ctx.moveTo(flagX, flagY);
+    ctx.lineTo(flagX + flagW * 0.35, flagY + flagH / 2);
+    ctx.lineTo(flagX, flagY + flagH);
+    ctx.closePath();
+    ctx.fill();
+
+    // Bordure du drapeau
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(flagX, flagY, flagW, flagH);
+
+    // Texte FREE PALESTINE
+    const textY = flagY + flagH + 60;
+    ctx.font = 'bold 80px "Segoe UI", system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // Ombre
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillText('FREE', width / 2 + 3, textY + 3);
+    ctx.fillText('PALESTINE', width / 2 + 3, textY + 90 + 3);
+
+    // Texte blanc
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText('FREE', width / 2, textY);
+    ctx.fillStyle = '#CE1126';
+    ctx.fillText('PALESTINE', width / 2, textY + 90);
   }
 
   // Etoiles jaunes sur les barres marquees (Hitler Sort)

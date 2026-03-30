@@ -368,8 +368,8 @@ function drawSpecialEffects(step) {
     }
     if (step.meta === 'ruins' && step.dustFrame !== undefined) {
       renderer.drawRuins(step.dustFrame);
-      // Afficher FREE PALESTINE pendant les ruines
-      if (step.dustFrame > 15) {
+      // Afficher FREE PALESTINE tot pendant les ruines
+      if (step.dustFrame > 5) {
         renderer.drawEndMessage();
       }
     }
