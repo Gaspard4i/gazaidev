@@ -509,7 +509,7 @@ export class Renderer {
     ctx.restore();
   }
 
-  // Effet howl pour Sigma Sort — cercles concentriques dores
+  // Effet howl pour Sigma Sort — pleine lune + cercles + AWOOO
   drawHowl(index, data) {
     if (index === undefined || !data || data.length === 0) return;
     const { ctx, width, height } = this;
@@ -521,21 +521,54 @@ export class Renderer {
     const y = height - barH - 30;
 
     ctx.save();
-    // Ondes de choc dores
+
+    // Pleine lune en haut a droite
+    const moonX = width * 0.8;
+    const moonY = height * 0.12;
+    const moonR = 70;
+
+    // Halo de la lune
+    const glow = ctx.createRadialGradient(moonX, moonY, moonR * 0.5, moonX, moonY, moonR * 3);
+    glow.addColorStop(0, 'rgba(255, 250, 200, 0.3)');
+    glow.addColorStop(0.5, 'rgba(255, 250, 200, 0.08)');
+    glow.addColorStop(1, 'rgba(255, 250, 200, 0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(moonX - moonR * 3, moonY - moonR * 3, moonR * 6, moonR * 6);
+
+    // Lune
+    ctx.fillStyle = '#FFFDE0';
+    ctx.beginPath();
+    ctx.arc(moonX, moonY, moonR, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Crateres subtils
+    ctx.fillStyle = 'rgba(200, 195, 160, 0.4)';
+    ctx.beginPath(); ctx.arc(moonX - 20, moonY - 15, 12, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(moonX + 25, moonY + 10, 8, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(moonX - 5, moonY + 25, 15, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(moonX + 15, moonY - 25, 6, 0, Math.PI * 2); ctx.fill();
+
+    // Ondes de choc dores autour du sigma
+    const pulse = (Date.now() % 600) / 600; // 0->1 pulsation
     for (let r = 0; r < 3; r++) {
-      const radius = 30 + r * 35 + (Date.now() % 500) * 0.1;
-      ctx.strokeStyle = `rgba(255, 215, 0, ${0.6 - r * 0.2})`;
-      ctx.lineWidth = 3;
+      const radius = 20 + r * 40 + pulse * 30;
+      ctx.strokeStyle = `rgba(255, 215, 0, ${0.7 - r * 0.2 - pulse * 0.3})`;
+      ctx.lineWidth = 4 - r;
       ctx.beginPath();
       ctx.arc(x, y, radius, 0, Math.PI * 2);
       ctx.stroke();
     }
 
-    // Texte HOWL
-    ctx.font = 'bold 40px "Segoe UI", system-ui, sans-serif';
-    ctx.fillStyle = '#FFD700';
+    // Texte AWOOO
+    ctx.font = 'bold 52px "Segoe UI", system-ui, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('AWOOO!', x, y - 50);
+    // Ombre
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillText('AWOOO!', width / 2 + 2, height * 0.45 + 2);
+    // Texte dore
+    ctx.fillStyle = '#FFD700';
+    ctx.fillText('AWOOO!', width / 2, height * 0.45);
+
     ctx.restore();
   }
 

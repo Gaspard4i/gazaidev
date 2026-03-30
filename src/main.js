@@ -121,7 +121,8 @@ function updateTheme() {
 
 function getBarCount() {
   const key = getAlgoKey();
-  if (key === 'bogo') return 5; // bogo sort avec plus de 5 = heat death of universe
+  if (key === 'bogo') return 5;
+  if (key === 'sigma') return 20;
   return NUM_BARS;
 }
 
@@ -256,8 +257,8 @@ function drawSpecialEffects(step) {
     }
   }
 
-  // Sigma: howl effect
-  if (key === 'sigma' && step.meta === 'howl' && step.indices && step.indices.length > 0) {
+  // Sigma: howl + flex effect (lune + ondes)
+  if (key === 'sigma' && (step.meta === 'howl' || step.meta === 'sigma_flex') && step.indices && step.indices.length > 0) {
     renderer.drawHowl(step.indices[0], data);
   }
 }

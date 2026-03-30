@@ -1,54 +1,61 @@
 // 9/11 Sort — Trouve les 2 barres les plus hautes et egales (tours jumelles)
 // Supprime tout le reste, puis un "avion" traverse et les detruit
 export function* nineElevenSort(arr) {
-  // Phase 1 : trouver les 2 plus grandes valeurs
   const maxVal = Math.max(...arr);
   const twinHeight = maxVal;
 
-  // Phase 2 : supprimer tout ce qui n'est pas une tour jumelle
-  // On garde 2 barres cote a cote au centre avec la meme hauteur
+  // Phase 1 : scanner toutes les barres
   let i = 0;
   while (i < arr.length) {
     yield { type: 'compare', indices: [i], meta: 'scanning' };
     i++;
   }
 
-  // Vider le tableau et mettre 2 tours jumelles au centre
+  // Phase 2 : vider le tableau une barre a la fois
   while (arr.length > 0) {
     yield { type: 'swap', indices: [arr.length - 1], values: [0], meta: 'clearing' };
     arr.splice(arr.length - 1, 1);
   }
 
-  // Construire les 2 tours jumelles
-  arr.push(twinHeight, twinHeight);
-  yield { type: 'swap', indices: [0], values: [twinHeight], meta: 'build_tower' };
-  yield { type: 'swap', indices: [1], values: [twinHeight], meta: 'build_tower' };
+  // Phase 3 : construire les 2 tours jumelles brique par brique
+  arr.push(0, 0);
+  const buildSteps = 30;
+  for (let f = 1; f <= buildSteps; f++) {
+    arr[0] = Math.round(twinHeight * (f / buildSteps));
+    arr[1] = Math.round(twinHeight * (f / buildSteps));
+    yield { type: 'swap', indices: [0, 1], values: [arr[0], arr[1]], meta: 'build_tower' };
+  }
 
-  // Phase 3 : pause — les tours sont debout
-  for (let f = 0; f < 30; f++) {
+  // Phase 4 : les tours sont debout — pause longue
+  for (let f = 0; f < 60; f++) {
     yield { type: 'compare', indices: [0, 1], meta: 'standing' };
   }
 
-  // Phase 4 : l'avion arrive (de droite a gauche, signale par meta)
-  for (let f = 0; f < 20; f++) {
-    yield { type: 'compare', indices: [], meta: 'plane', planeX: 1 - f / 20 };
+  // Phase 5 : l'avion arrive lentement de droite a gauche
+  for (let f = 0; f < 40; f++) {
+    yield { type: 'compare', indices: [], meta: 'plane', planeX: 1 - f / 40 };
   }
 
-  // Phase 5 : impact — premiere tour s'effondre progressivement
-  const steps = 10;
-  for (let f = steps; f >= 0; f--) {
-    arr[1] = Math.round(twinHeight * (f / steps));
+  // Phase 6 : impact tour 1 — effondrement LENT
+  const collapseSteps = 30;
+  for (let f = collapseSteps; f >= 0; f--) {
+    arr[1] = Math.round(twinHeight * (f / collapseSteps));
     yield { type: 'swap', indices: [1], values: [arr[1]], meta: 'collapse' };
   }
 
-  // Deuxieme tour s'effondre
-  for (let f = steps; f >= 0; f--) {
-    arr[0] = Math.round(twinHeight * (f / steps));
+  // Pause entre les 2 effondrements
+  for (let f = 0; f < 30; f++) {
+    yield { type: 'compare', indices: [0], meta: 'standing' };
+  }
+
+  // Phase 7 : deuxieme tour s'effondre encore plus lentement
+  for (let f = collapseSteps; f >= 0; f--) {
+    arr[0] = Math.round(twinHeight * (f / collapseSteps));
     yield { type: 'swap', indices: [0], values: [arr[0]], meta: 'collapse' };
   }
 
-  // Phase 6 : fumee / poussiere
-  for (let f = 0; f < 15; f++) {
+  // Phase 8 : fumee / poussiere — longue
+  for (let f = 0; f < 40; f++) {
     yield { type: 'compare', indices: [], meta: 'dust', dustFrame: f };
   }
 
