@@ -113,8 +113,8 @@ function speedRamp() {
   const base = parseInt(speedSlider.value);
   const progress = getStats().progress;
   if (progress < 0.15) return base;
-  if (progress < 0.80) return Math.round(base * (2 + progress * 3));
-  if (progress < 0.95) return Math.max(1, Math.round(base * 0.5));
+  if (progress < 0.85) return Math.round(base * (1 + progress * 0.5));
+  if (progress < 0.95) return Math.max(1, base);
   return base;
 }
 
@@ -168,8 +168,17 @@ function start() {
   animate();
 }
 
+let frameSkip = 0;
+
 function animate() {
   if (!running) return;
+
+  // Throttle global : skip 1 frame sur 2 pour ralentir tout
+  frameSkip++;
+  if (frameSkip % 2 !== 0) {
+    animFrameId = requestAnimationFrame(animate);
+    return;
+  }
 
   if (phase === 'shuffling') {
     animateShuffle();
@@ -334,7 +343,7 @@ function animateFlash() {
   renderer.drawSweep(data, data.length, statsObj);
   renderer.drawEndMessage();
   renderer.drawFlash(flashOpacity);
-  flashOpacity -= 0.05;
+  flashOpacity -= 0.03;
 
   if (flashOpacity <= 0) {
     if (loopEnabled) {
