@@ -112,9 +112,6 @@ const THEMES = {
       deported: '#CCCC00',
       smoke: '#AA8866',
     },
-    endMessage: [
-      { text: 'NEVER AGAIN', style: 'normal', color: '#FFFFFF' },
-    ],
   },
   diddy: {
     bg: '#0d001a',
@@ -1184,39 +1181,92 @@ export class Renderer {
 
     const t = frame / 60;
 
-    // Ciel rouge/orange
+    // Ciel — gradient qui change du bleu sombre au rouge intense
     const grad = ctx.createLinearGradient(0, 0, 0, height);
-    grad.addColorStop(0, `rgba(${Math.round(80 + t * 150)}, ${Math.round(20 + t * 30)}, 0, 0.9)`);
-    grad.addColorStop(1, `rgba(20, 10, 5, 0.95)`);
+    const skyR = Math.round(20 + t * 200);
+    const skyG = Math.round(15 + t * 40);
+    grad.addColorStop(0, `rgb(${skyR}, ${skyG}, ${Math.round(30 - t * 20)})`);
+    grad.addColorStop(0.6, `rgb(${Math.round(skyR * 0.4)}, ${Math.round(skyG * 0.3)}, 5)`);
+    grad.addColorStop(1, `rgb(10, 5, 0)`);
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, width, height);
 
-    // Tige du champignon
-    const stemW = 80 + t * 40;
-    const stemH = height * 0.4 * t;
-    ctx.fillStyle = `rgba(180, 80, 20, ${0.8 - t * 0.3})`;
-    ctx.fillRect(width / 2 - stemW / 2, height * 0.5 - stemH, stemW, stemH);
+    // Point d'impact — lueur au sol
+    const glowR = 200 + t * 300;
+    const groundGlow = ctx.createRadialGradient(width / 2, height * 0.85, 0, width / 2, height * 0.85, glowR);
+    groundGlow.addColorStop(0, `rgba(255, 200, 50, ${0.6 - t * 0.4})`);
+    groundGlow.addColorStop(0.5, `rgba(255, 100, 0, ${0.3 - t * 0.2})`);
+    groundGlow.addColorStop(1, 'rgba(200, 50, 0, 0)');
+    ctx.fillStyle = groundGlow;
+    ctx.fillRect(0, height * 0.5, width, height * 0.5);
 
-    // Tete du champignon (cercles concentriques)
-    const headY = height * 0.5 - stemH;
-    const headR = 100 + t * 150;
+    // Tige du champignon — s'eleve progressivement
+    const stemTopY = height * 0.85 - height * 0.55 * Math.min(t * 1.5, 1);
+    const stemBottomY = height * 0.85;
+    const stemW = 60 + t * 30;
 
-    for (let r = 3; r >= 0; r--) {
-      const radius = headR - r * 30;
-      const colors = ['rgba(255,200,50,0.6)', 'rgba(255,120,20,0.5)', 'rgba(200,50,0,0.4)', 'rgba(100,20,0,0.3)'];
-      ctx.fillStyle = colors[r];
+    // Tige avec gradient interne (chaud au centre)
+    const stemGrad = ctx.createLinearGradient(width / 2 - stemW, 0, width / 2 + stemW, 0);
+    stemGrad.addColorStop(0, `rgba(120, 50, 10, ${0.7 - t * 0.2})`);
+    stemGrad.addColorStop(0.3, `rgba(200, 100, 20, ${0.8 - t * 0.2})`);
+    stemGrad.addColorStop(0.5, `rgba(255, 180, 50, ${0.9 - t * 0.3})`);
+    stemGrad.addColorStop(0.7, `rgba(200, 100, 20, ${0.8 - t * 0.2})`);
+    stemGrad.addColorStop(1, `rgba(120, 50, 10, ${0.7 - t * 0.2})`);
+    ctx.fillStyle = stemGrad;
+    ctx.fillRect(width / 2 - stemW / 2, stemTopY, stemW, stemBottomY - stemTopY);
+
+    // Tete du champignon — boule de feu avec couches
+    const headY = stemTopY;
+    const headR = (60 + t * 180) * Math.min(t * 2, 1);
+
+    // Couche externe — fumee sombre
+    const smokeGrad = ctx.createRadialGradient(width / 2, headY, headR * 0.3, width / 2, headY, headR * 1.3);
+    smokeGrad.addColorStop(0, 'rgba(255, 160, 30, 0)');
+    smokeGrad.addColorStop(0.7, `rgba(80, 40, 10, ${0.4 * Math.min(t * 2, 1)})`);
+    smokeGrad.addColorStop(1, `rgba(40, 20, 5, ${0.3 * Math.min(t * 2, 1)})`);
+    ctx.fillStyle = smokeGrad;
+    ctx.beginPath();
+    ctx.arc(width / 2, headY, headR * 1.3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Couche interne — boule de feu
+    for (let layer = 4; layer >= 0; layer--) {
+      const r = headR * (1 - layer * 0.18);
+      const intensity = 1 - layer * 0.15;
+      const fireGrad = ctx.createRadialGradient(width / 2, headY, 0, width / 2, headY, r);
+      fireGrad.addColorStop(0, `rgba(255, ${Math.round(255 * intensity)}, ${Math.round(100 * intensity)}, ${0.8 * intensity})`);
+      fireGrad.addColorStop(0.6, `rgba(255, ${Math.round(120 * intensity)}, 0, ${0.6 * intensity})`);
+      fireGrad.addColorStop(1, `rgba(${Math.round(200 * intensity)}, ${Math.round(40 * intensity)}, 0, 0)`);
+      ctx.fillStyle = fireGrad;
       ctx.beginPath();
-      ctx.arc(width / 2, headY, Math.max(0, radius), 0, Math.PI * 2);
+      ctx.arc(width / 2 + Math.sin(frame * 0.3 + layer) * 5, headY + Math.cos(frame * 0.2 + layer) * 3, Math.max(0, r), 0, Math.PI * 2);
       ctx.fill();
     }
 
-    // Onde de choc
-    const shockR = t * width * 0.8;
-    ctx.strokeStyle = `rgba(255, 255, 200, ${0.5 - t * 0.4})`;
-    ctx.lineWidth = 6;
-    ctx.beginPath();
-    ctx.arc(width / 2, height * 0.7, shockR, 0, Math.PI * 2);
-    ctx.stroke();
+    // Ondes de choc concentriques
+    for (let w = 0; w < 3; w++) {
+      const waveR = t * width * (0.5 + w * 0.2) - w * 50;
+      if (waveR > 0) {
+        ctx.strokeStyle = `rgba(255, 220, 150, ${Math.max(0, 0.4 - t * 0.3 - w * 0.1)})`;
+        ctx.lineWidth = 4 - w;
+        ctx.beginPath();
+        ctx.arc(width / 2, height * 0.85, waveR, Math.PI, 0);
+        ctx.stroke();
+      }
+    }
+
+    // Particules de debris
+    for (let i = 0; i < 15; i++) {
+      const seed = i * 13 + 7;
+      const angle = (seed * 0.5 + frame * 0.02);
+      const dist = t * 200 + seed * 3;
+      const px = width / 2 + Math.cos(angle) * dist;
+      const py = height * 0.85 - Math.sin(angle) * dist * 0.5 - seed * t * 2;
+      const size = 3 + (seed % 5);
+      const alpha = Math.max(0, 0.6 - t * 0.5);
+      ctx.fillStyle = `rgba(255, ${100 + seed % 100}, 0, ${alpha})`;
+      ctx.fillRect(px, py, size, size);
+    }
 
     ctx.restore();
   }
@@ -1245,16 +1295,6 @@ export class Renderer {
       const size = 2 + (seed % 4);
       ctx.fillRect(x, y, size, size);
     }
-
-    // Texte
-    const alpha = Math.min(1, frame / 20);
-    ctx.font = 'bold 48px "Segoe UI", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.6})`;
-    ctx.fillText('1945', width / 2, height * 0.45);
-    ctx.font = '28px "Segoe UI", sans-serif';
-    ctx.fillStyle = `rgba(200, 180, 160, ${alpha * 0.4})`;
-    ctx.fillText('Never forget', width / 2, height * 0.52);
 
     this._drawWatermark();
     ctx.restore();
@@ -1524,44 +1564,107 @@ export class Renderer {
     ctx.restore();
   }
 
-  // ChatGPT Sort — texte avec emojis
-  drawChatGPT(lines, typingFrame) {
+  // ChatGPT Sort — conversation complete avec bulles
+  drawChatGPT(history, typingRole, typingDots) {
     const { ctx, width, height } = this;
-    if (!lines) return;
+    if (!history) return;
     ctx.save();
 
+    // Fond ChatGPT
     ctx.fillStyle = '#343541';
     ctx.fillRect(0, 0, width, height);
 
-    // Header ChatGPT
+    // Header
     ctx.fillStyle = '#444654';
     ctx.fillRect(0, 0, width, 60);
-    ctx.font = 'bold 28px "Segoe UI", sans-serif';
+    ctx.font = 'bold 26px "Segoe UI", sans-serif';
     ctx.fillStyle = '#FFFFFF';
     ctx.textAlign = 'center';
-    ctx.fillText('ChatGPT', width / 2, 38);
+    ctx.fillText('ChatGPT 4o', width / 2, 38);
 
-    // Lignes de texte
-    ctx.font = '22px "Segoe UI", sans-serif';
+    // Messages — afficher les derniers qui tiennent a l'ecran
     ctx.textAlign = 'left';
-    const startY = 90;
-    const lineH = 30;
-    const maxLines = Math.floor((height - 100) / lineH);
-    const visibleLines = lines.filter(l => l !== '').slice(-maxLines);
+    const msgFont = '22px "Segoe UI", sans-serif';
+    ctx.font = msgFont;
+    const maxW = width - 100;
+    const lineH = 28;
+    const msgGap = 16;
 
-    for (let i = 0; i < visibleLines.length; i++) {
-      ctx.fillStyle = 'rgba(255,255,255,0.85)';
-      const text = visibleLines[i];
-      // Tronquer si trop long
-      const maxW = width - 80;
-      let display = text;
-      while (ctx.measureText(display).width > maxW && display.length > 0) {
-        display = display.slice(0, -1);
+    // Calculer la hauteur de chaque message pour scroller
+    const rendered = [];
+    for (const msg of history) {
+      const lines = this._wrapText(ctx, msg.text, maxW);
+      rendered.push({ role: msg.role, lines });
+    }
+
+    // Calculer la hauteur totale et scroller vers le bas
+    let totalH = 0;
+    for (const r of rendered) totalH += r.lines.length * lineH + msgGap + 10;
+
+    const viewH = height - 80;
+    const scrollOffset = Math.max(0, totalH - viewH);
+
+    let y = 75 - scrollOffset;
+    for (const msg of rendered) {
+      if (y > height) break;
+
+      const isUser = msg.role === 'user';
+      const bgColor = isUser ? '#2b2c37' : '#444654';
+      const blockH = msg.lines.length * lineH + 16;
+
+      if (y + blockH > 60) {
+        // Fond du message
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, y, width, blockH);
+
+        // Icone
+        ctx.font = 'bold 18px "Segoe UI", sans-serif';
+        ctx.fillStyle = isUser ? '#8E8EA0' : '#19C37D';
+        ctx.fillText(isUser ? 'You' : 'GPT', 25, y + 22);
+
+        // Texte
+        ctx.font = msgFont;
+        ctx.fillStyle = '#D1D5DB';
+        for (let l = 0; l < msg.lines.length; l++) {
+          ctx.fillText(msg.lines[l], 70, y + 22 + l * lineH);
+        }
       }
-      ctx.fillText(display, 40, startY + i * lineH);
+      y += blockH + msgGap;
+    }
+
+    // Typing indicator
+    if (typingRole) {
+      ctx.fillStyle = typingRole === 'user' ? '#2b2c37' : '#444654';
+      ctx.fillRect(0, Math.max(y, height - 50), width, 50);
+      ctx.font = '22px "Segoe UI", sans-serif';
+      ctx.fillStyle = '#8E8EA0';
+      ctx.fillText(
+        typingRole === 'user' ? `You typing${typingDots || ''}` : `ChatGPT typing${typingDots || ''}`,
+        70, Math.max(y + 28, height - 25)
+      );
     }
 
     ctx.restore();
+  }
+
+  _wrapText(ctx, text, maxW) {
+    const lines = [];
+    for (const paragraph of text.split('\n')) {
+      if (paragraph === '') { lines.push(''); continue; }
+      const words = paragraph.split(' ');
+      let line = '';
+      for (const word of words) {
+        const test = line ? line + ' ' + word : word;
+        if (ctx.measureText(test).width > maxW) {
+          if (line) lines.push(line);
+          line = word;
+        } else {
+          line = test;
+        }
+      }
+      if (line) lines.push(line);
+    }
+    return lines;
   }
 
   // Drug Sort — effets psychedeliques

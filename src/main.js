@@ -306,7 +306,7 @@ const ANIMATION_METAS = new Set([
   'sober',
   'pong_play', 'pong_score_l', 'pong_score_r', 'pong_gameover', 'pong_transform', 'pong_sort_final', 'pong_sorted',
   'claude_prompt', 'claude_response', 'claude_thinking', 'claude_no_tokens', 'claude_done',
-  'gpt_typing', 'gpt_pause', 'gpt_done',
+  'gpt_typing', 'gpt_pause', 'gpt_done', 'gpt_typing_indicator', 'gpt_message',
   'siren', 'bomber', 'nuke_falling', 'nuke_flash', 'mushroom_cloud', 'ashes',
 ]);
 
@@ -444,9 +444,14 @@ function drawSpecialEffects(step) {
     if (step.meta === 'claude_done') renderer.drawClaudeDone();
   }
 
-  // ChatGPT: texte avec emojis
+  // ChatGPT: conversation
   if (key === 'chatgpt') {
-    if (step.meta === 'gpt_typing' || step.meta === 'gpt_done') renderer.drawChatGPT(step.allLines, step.typingFrame);
+    if (step.meta === 'gpt_typing_indicator') {
+      renderer.drawChatGPT(step.history, step.typingRole, step.typingDots);
+    }
+    if (step.meta === 'gpt_message' || step.meta === 'gpt_done') {
+      renderer.drawChatGPT(step.history);
+    }
   }
 
   // Hiroshima: nuke effects
