@@ -302,7 +302,7 @@ const ANIMATION_METAS = new Set([
   'inspecting', 'mark_star', 'deporting',
   'taking_drugs', 'tripping', 'peak', 'comedown', 'flipped',
   'sober',
-  'pong_play', 'pong_score_l', 'pong_score_r', 'pong_gameover', 'pong_sort_final', 'pong_sorted',
+  'pong_play', 'pong_score_l', 'pong_score_r', 'pong_gameover', 'pong_transform', 'pong_sort_final', 'pong_sorted',
   'claude_prompt', 'claude_response', 'claude_thinking', 'claude_no_tokens', 'claude_done',
   'gpt_typing', 'gpt_pause', 'gpt_done',
 ]);
@@ -427,6 +427,9 @@ function drawSpecialEffects(step) {
     }
     if (step.meta === 'pong_gameover') {
       renderer.drawPongGameOver(step.winner, step.scoreL, step.scoreR);
+    }
+    if (step.meta === 'pong_transform') {
+      renderer.drawPongTransform(step.positions);
     }
   }
 

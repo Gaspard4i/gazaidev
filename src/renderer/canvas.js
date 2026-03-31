@@ -1199,6 +1199,75 @@ export class Renderer {
     ctx.restore();
   }
 
+  // Pong Sort — animation de transformation entites -> barres
+  drawPongTransform(positions) {
+    const { ctx, width, height } = this;
+    ctx.save();
+
+    // Fond qui transition du noir au theme
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, width, height);
+
+    if (!positions) { ctx.restore(); return; }
+
+    const maxSize = Math.max(...positions.map(p => p.size));
+
+    for (const pos of positions) {
+      const x = pos.x * width;
+      const y = pos.y * height;
+      const morph = pos.morphProgress;
+
+      // Interpoler entre la forme pong (rectangle fin/carre) et une barre
+      const barHeight = (pos.size / maxSize) * (height * 0.6);
+
+      // Forme pong : paddle = rectangle vertical fin, balle = carre
+      const isBall = pos.label === 'Ball';
+      const pongW = isBall ? 20 : 20;
+      const pongH = isBall ? 20 : height * 0.12;
+
+      // Forme finale : barre large en bas
+      const barW = width * 0.2;
+      const barFinalY = height - barHeight - 30;
+      const barFinalX = x - barW / 2;
+
+      // Interpolation
+      const currentW = pongW + (barW - pongW) * morph;
+      const currentH = pongH + (barHeight - pongH) * morph;
+      const currentX = x - currentW / 2;
+      const currentY = y - pongH / 2 + (barFinalY - (y - pongH / 2)) * morph;
+
+      // Couleur : blanc pong -> couleur selon taille
+      const ratio = pos.size / maxSize;
+      const r = Math.round(255 - morph * (255 - 27));
+      const g = Math.round(255 - morph * (255 - 58));
+      const b = Math.round(255 - morph * (255 - 92));
+      ctx.fillStyle = morph < 0.5
+        ? `rgb(255,255,255)`
+        : this._lerpColor('#1B3A5C', '#E8621F', ratio);
+
+      // Ombre
+      ctx.shadowColor = 'rgba(255,255,255,0.3)';
+      ctx.shadowBlur = 10 * (1 - morph);
+
+      ctx.fillRect(currentX, currentY, currentW, currentH);
+      ctx.shadowBlur = 0;
+
+      // Label
+      ctx.font = 'bold 24px "Segoe UI", sans-serif';
+      ctx.fillStyle = `rgba(255,255,255,${0.8 - morph * 0.3})`;
+      ctx.textAlign = 'center';
+      ctx.fillText(`${pos.label} (${pos.size})`, x, currentY - 15);
+    }
+
+    // Texte "Sorting..."
+    ctx.font = 'italic 32px "Segoe UI", sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.textAlign = 'center';
+    ctx.fillText('Sorting entities by size...', width / 2, height * 0.15);
+
+    ctx.restore();
+  }
+
   drawPongGameOver(winner, scoreL, scoreR) {
     const { ctx, width, height } = this;
     ctx.save();

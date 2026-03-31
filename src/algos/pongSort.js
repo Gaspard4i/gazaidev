@@ -77,17 +77,41 @@ export function* pongSort(arr) {
     yield { type: 'compare', indices: [], meta: 'pong_gameover', winner: scoreL >= winScore ? 'left' : 'right', scoreL, scoreR };
   }
 
-  // Phase 3 : trier les 3 entites (paddle gauche, balle, paddle droite) par taille
-  // [60, 20, 80] -> [20, 60, 80]
-  const entities = [paddleL, ballSize, paddleR];
-  entities.sort((a, b) => a - b);
-  arr.length = 0;
-  for (let i = 0; i < entities.length; i++) {
-    arr.push(entities[i]);
-    yield { type: 'swap', indices: [i], values: [entities[i]], meta: 'pong_sort_final' };
+  // Phase 3 : les entites se transforment en barres et volent vers leur position triee
+  // Positions initiales : paddle L a gauche, balle au centre, paddle R a droite
+  // Positions finales triees par taille : [balle(20), paddleL(60), paddleR(80)]
+  const entities = [
+    { label: 'Paddle L', size: paddleL, startX: 0.05, startY: padLY },
+    { label: 'Ball',     size: ballSize, startX: ballX,  startY: ballY },
+    { label: 'Paddle R', size: paddleR, startX: 0.92, startY: padRY },
+  ];
+  // Trier par taille pour determiner les positions cibles
+  const sorted = [...entities].sort((a, b) => a.size - b.size);
+  const targetXs = [0.2, 0.5, 0.8]; // 3 positions cibles centrees
+
+  // Animation de transition : 60 frames (~1s)
+  const transFrames = 60;
+  for (let f = 0; f <= transFrames; f++) {
+    const t = f / transFrames;
+    // Easing ease-in-out
+    const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
+    const positions = sorted.map((ent, i) => ({
+      size: ent.size,
+      label: ent.label,
+      x: ent.startX + (targetXs[i] - ent.startX) * ease,
+      y: ent.startY + (0.85 - ent.startY) * ease, // descendent vers le bas
+      morphProgress: ease, // 0 = forme pong, 1 = barre
+    }));
+
+    yield { type: 'compare', indices: [], meta: 'pong_transform', positions, frame: f };
   }
 
-  for (let f = 0; f < 20; f++) {
+  // Phase 4 : les barres sont en place — pause finale
+  arr.length = 0;
+  for (const ent of sorted) arr.push(ent.size);
+
+  for (let f = 0; f < 30; f++) {
     yield { type: 'compare', indices: [0, 1, 2], meta: 'pong_sorted' };
   }
 }
