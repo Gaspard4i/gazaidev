@@ -3,10 +3,14 @@ export class Sonifier {
     this.ctx = new (window.AudioContext || window.webkitAudioContext)();
     this.destination = this.ctx.createMediaStreamDestination();
     this.masterGain = this.ctx.createGain();
-    this.masterGain.gain.value = 0.15;
+    this.masterGain.gain.value = 0.08;
     this.masterGain.connect(this.ctx.destination);
     this.masterGain.connect(this.destination);
     this.enabled = true;
+    this._lastPlayTime = 0;
+    this._minInterval = 0.015; // 15ms minimum entre 2 sons
+    this._activeOscCount = 0;
+    this._maxActiveOsc = 8; // max 8 oscillateurs simultanes
   }
 
   getDestination() {
@@ -17,15 +21,23 @@ export class Sonifier {
     if (!this.enabled) return;
     if (this.ctx.state === 'suspended') this.ctx.resume();
 
+    // Limiter le debit sonore
+    const now = this.ctx.currentTime;
+    if (now - this._lastPlayTime < this._minInterval) return;
+    if (this._activeOscCount >= this._maxActiveOsc) return;
+    this._lastPlayTime = now;
+
+    if (!step.indices || step.indices.length === 0) return;
     const maxVal = Math.max(...data);
     const idx = step.indices[0];
+    if (idx >= data.length) return;
     const val = data[idx] || 1;
     const freq = 120 + (val / maxVal) * 1080;
 
     if (step.type === 'swap') {
-      this._beepADSR(freq, 0.05, 0.4);
+      this._beepADSR(freq, 0.05, 0.25);
     } else {
-      this._beepADSR(freq, 0.03, 0.25);
+      this._beepADSR(freq, 0.03, 0.15);
     }
   }
 
@@ -99,6 +111,9 @@ export class Sonifier {
     gain.connect(this.masterGain);
     osc.start(t);
     osc.stop(t + duration + 0.01);
+
+    this._activeOscCount++;
+    osc.onended = () => { this._activeOscCount = Math.max(0, this._activeOscCount - 1); };
   }
 
   _beepAt(freq, startTime, duration, peakGain) {
