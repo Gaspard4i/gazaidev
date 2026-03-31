@@ -54,7 +54,6 @@ const statusEl = document.getElementById('status');
 const algoSelect = document.getElementById('algo-select');
 const btnStart = document.getElementById('btn-start');
 const btnReset = document.getElementById('btn-reset');
-const btnRec = document.getElementById('btn-rec');
 const btnLoop = document.getElementById('btn-loop');
 const btnRainbow = document.getElementById('btn-rainbow');
 const speedSlider = document.getElementById('speed');
@@ -381,6 +380,7 @@ function start() {
     running = false;
     phase = 'idle';
     btnStart.textContent = 'Play';
+    if (recorder.isRecording) recorder.stop();
     return;
   }
 
@@ -391,6 +391,7 @@ function start() {
   lastGambleBalance = 0;
   running = true;
   btnStart.textContent = 'Pause';
+  recorder.start();
 
   // Start with shuffle animation
   phase = 'shuffling';
@@ -723,17 +724,6 @@ algoSelect.addEventListener('change', () => {
 btnStart.addEventListener('click', start);
 btnReset.addEventListener('click', reset);
 
-btnRec.addEventListener('click', () => {
-  if (recorder.isRecording) {
-    recorder.stop();
-    btnRec.classList.remove('recording');
-    btnRec.textContent = 'REC';
-  } else {
-    recorder.start();
-    btnRec.classList.add('recording');
-    btnRec.textContent = 'STOP';
-  }
-});
 
 btnLoop.addEventListener('click', () => {
   loopEnabled = !loopEnabled;
