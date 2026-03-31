@@ -1,5 +1,5 @@
 const COLORS = {
-  bg: '#FBF6EE',
+  bg: '#EDE8DE',
   barDefault: '#FFFFFF',
   barLow: '#1B3A5C',
   barHigh: '#E8621F',
@@ -34,7 +34,7 @@ const LAYOUT = {
 // Themes visuels par algo absurde
 const THEMES = {
   default: {
-    bg: '#FBF6EE',
+    bg: '#EDE8DE',
     stripe: 'rgba(168, 200, 224, 0.15)',
     barColor: (ratio) => COLORS.barDefault,
     compare: '#E8621F',
@@ -1961,7 +1961,7 @@ export class Renderer {
     const blockH = LAYOUT.codeBottom - LAYOUT.codeTop;
 
     // Fond du bloc de code — carte creme claire
-    ctx.fillStyle = '#F9F7F3';
+    ctx.fillStyle = '#FFFFFF';
     ctx.beginPath();
     ctx.roundRect(padX, LAYOUT.codeTop, blockW, blockH, 16);
     ctx.fill();
