@@ -23,6 +23,27 @@ import { adhdSort } from './algos/adhdSort.js';
 import { autismSort } from './algos/autismSort.js';
 import { magicianSort } from './algos/magicianSort.js';
 import { drugSort } from './algos/drugSort.js';
+import { selectionSort } from './algos/selectionSort.js';
+import { insertionSort } from './algos/insertionSort.js';
+import { heapSort } from './algos/heapSort.js';
+import { shellSort } from './algos/shellSort.js';
+import { combSort } from './algos/combSort.js';
+import { cocktailSort } from './algos/cocktailSort.js';
+import { gnomeSort } from './algos/gnomeSort.js';
+import { oddEvenSort } from './algos/oddEvenSort.js';
+import { countingSort } from './algos/countingSort.js';
+import { radixSort } from './algos/radixSort.js';
+import { bucketSort } from './algos/bucketSort.js';
+import { cycleSort } from './algos/cycleSort.js';
+import { pancakeSort } from './algos/pancakeSort.js';
+import { stoogeSort } from './algos/stoogeSort.js';
+import { bitonicSort } from './algos/bitonicSort.js';
+import { timSort } from './algos/timSort.js';
+import { dualPivotQuickSort } from './algos/dualPivotQuickSort.js';
+import { slowSort } from './algos/slowSort.js';
+import { sleepSort } from './algos/sleepSort.js';
+import { strandSort } from './algos/strandSort.js';
+import { patienceSort } from './algos/patienceSort.js';
 
 const canvas = document.getElementById('canvas');
 const statusEl = document.getElementById('status');
@@ -50,6 +71,13 @@ const ALGOS = {
   bogo: bogoSort, sigma: sigmaSort, gaza: gazaSort, french: frenchSort,
   gamble: gambleSort, adhd: adhdSort, autism: autismSort, magician: magicianSort,
   drug: drugSort,
+  selection: selectionSort, insertion: insertionSort, heap: heapSort,
+  shell: shellSort, comb: combSort, cocktail: cocktailSort,
+  gnome: gnomeSort, oddEven: oddEvenSort, counting: countingSort,
+  radix: radixSort, bucket: bucketSort, cycle: cycleSort,
+  pancake: pancakeSort, stooge: stoogeSort, bitonic: bitonicSort,
+  tim: timSort, dualPivot: dualPivotQuickSort, slow: slowSort,
+  sleep: sleepSort, strand: strandSort, patience: patienceSort,
 };
 const META = {
   bubble:    { name: 'BUBBLE SORT',    complexity: 'O(n\u00B2)', desc: 'Compares neighbors and swaps them. Simple but slow.' },
@@ -74,6 +102,27 @@ const META = {
   autism:    { name: 'AUTISM SORT',   complexity: 'O(1) (big brain)', desc: 'Analyzes everything, calculates, then solves it instantly.' },
   magician:  { name: 'MAGICIAN SORT', complexity: 'O(abracadabra)', desc: 'Hides the list behind a curtain. When revealed: sorted. TADAA!' },
   drug:      { name: 'DRUG SORT',     complexity: 'O(trip)', desc: 'Takes substances. Hallucinates. Wakes up with it sorted but flipped.' },
+  selection: { name: 'SELECTION SORT', complexity: 'O(n\u00B2)', desc: 'Finds minimum each pass, places it at the start.' },
+  insertion: { name: 'INSERTION SORT', complexity: 'O(n\u00B2)', desc: 'Inserts each element into its correct position.' },
+  heap:      { name: 'HEAP SORT',     complexity: 'O(n log n)', desc: 'Builds a max heap, then extracts elements.' },
+  shell:     { name: 'SHELL SORT',    complexity: 'O(n log n)', desc: 'Insertion sort with decreasing gap.' },
+  comb:      { name: 'COMB SORT',     complexity: 'O(n log n)', desc: 'Bubble sort with shrinking gap (factor 1.3).' },
+  cocktail:  { name: 'COCKTAIL SORT', complexity: 'O(n\u00B2)', desc: 'Bidirectional bubble sort (left-right-left).' },
+  gnome:     { name: 'GNOME SORT',    complexity: 'O(n\u00B2)', desc: 'Like a gnome sorting flower pots, one at a time.' },
+  oddEven:   { name: 'ODD-EVEN SORT', complexity: 'O(n\u00B2)', desc: 'Alternates comparing odd and even index pairs.' },
+  counting:  { name: 'COUNTING SORT', complexity: 'O(n+k)', desc: 'Counts occurrences, rebuilds sorted array. No comparisons.' },
+  radix:     { name: 'RADIX SORT',    complexity: 'O(n\u00B7k)', desc: 'Sorts digit by digit, from least to most significant.' },
+  bucket:    { name: 'BUCKET SORT',   complexity: 'O(n+k)', desc: 'Distributes into buckets, sorts each, concatenates.' },
+  cycle:     { name: 'CYCLE SORT',    complexity: 'O(n\u00B2)', desc: 'Minimizes writes by finding permutation cycles.' },
+  pancake:   { name: 'PANCAKE SORT',  complexity: 'O(n\u00B2)', desc: 'Flips portions like flipping pancakes.' },
+  stooge:    { name: 'STOOGE SORT',   complexity: 'O(n\u00B2\u00B7\u2077)', desc: 'Recursively sorts 2/3, 2/3, 2/3. Hilariously slow.' },
+  bitonic:   { name: 'BITONIC SORT',  complexity: 'O(n log\u00B2n)', desc: 'Network sort using bitonic sequences. Parallelizable.' },
+  tim:       { name: 'TIM SORT',      complexity: 'O(n log n)', desc: 'Hybrid merge+insertion. Python/Java default.' },
+  dualPivot: { name: 'DUAL PIVOT QS', complexity: 'O(n log n)', desc: 'Quick sort with 2 pivots. Java default.' },
+  slow:      { name: 'SLOW SORT',     complexity: 'O(n^log n)', desc: 'Multiply and surrender. Intentionally terrible.' },
+  sleep:     { name: 'SLEEP SORT',    complexity: 'O(max)', desc: 'Each element sleeps for its value, wakes up in order.' },
+  strand:    { name: 'STRAND SORT',   complexity: 'O(n\u00B2)', desc: 'Extracts sorted subsequences and merges them.' },
+  patience:  { name: 'PATIENCE SORT', complexity: 'O(n log n)', desc: 'Like dealing cards into piles, then merging.' },
 };
 const NUM_BARS = 80;
 
@@ -159,6 +208,8 @@ function getBarCount() {
   const key = getAlgoKey();
   const userBars = parseInt(barsSlider.value);
   if (key === 'bogo') return Math.min(userBars, 7);
+  if (key === 'stooge') return Math.min(userBars, 20);
+  if (key === 'slow') return Math.min(userBars, 15);
   return userBars;
 }
 
