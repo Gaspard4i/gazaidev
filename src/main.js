@@ -26,6 +26,7 @@ import { drugSort } from './algos/drugSort.js';
 import { pongSort } from './algos/pongSort.js';
 import { claudeSort } from './algos/claudeSort.js';
 import { chatgptSort } from './algos/chatgptSort.js';
+import { hiroshimaSort } from './algos/hiroshimaSort.js';
 import { selectionSort } from './algos/selectionSort.js';
 import { insertionSort } from './algos/insertionSort.js';
 import { heapSort } from './algos/heapSort.js';
@@ -73,7 +74,7 @@ const ALGOS = {
   nineEleven: nineElevenSort, unsort: unsort,
   bogo: bogoSort, sigma: sigmaSort, gaza: gazaSort, french: frenchSort,
   gamble: gambleSort, adhd: adhdSort, autism: autismSort, magician: magicianSort,
-  drug: drugSort, pong: pongSort, claude: claudeSort, chatgpt: chatgptSort,
+  drug: drugSort, pong: pongSort, claude: claudeSort, chatgpt: chatgptSort, hiroshima: hiroshimaSort,
   selection: selectionSort, insertion: insertionSort, heap: heapSort,
   shell: shellSort, comb: combSort, cocktail: cocktailSort,
   gnome: gnomeSort, oddEven: oddEvenSort, counting: countingSort,
@@ -108,6 +109,7 @@ const META = {
   pong:      { name: 'PONG SORT',    complexity: 'O(n\u00B2 rallies)', desc: 'Two bars play Pong. Loser gets sorted. Square ball.' },
   claude:    { name: 'CLAUDE SORT',  complexity: 'O(no tokens)', desc: 'Asks AI to sort. AI refuses. Runs out of tokens. Declares sorted.' },
   chatgpt:   { name: 'CHATGPT SORT', complexity: 'O(emojis)', desc: 'Explains sorting with emojis. Never actually sorts anything.' },
+  hiroshima: { name: 'HIROSHIMA SORT', complexity: 'O(boom)', desc: 'Sorts normally. Then a nuke drops. Nothing survives.' },
   selection: { name: 'SELECTION SORT', complexity: 'O(n\u00B2)', desc: 'Finds minimum each pass, places it at the start.' },
   insertion: { name: 'INSERTION SORT', complexity: 'O(n\u00B2)', desc: 'Inserts each element into its correct position.' },
   heap:      { name: 'HEAP SORT',     complexity: 'O(n log n)', desc: 'Builds a max heap, then extracts elements.' },
@@ -206,7 +208,7 @@ function getStepsThisFrame() {
 function updateTheme() {
   const key = getAlgoKey();
   // Les tris absurdes ont leur propre theme, les classiques utilisent default
-  const absurdThemes = ['trump', 'thanos', 'communism', 'stalin', 'hitler', 'diddy', 'epstein', 'sort67', 'nineEleven', 'unsort', 'bogo', 'sigma', 'gaza', 'french', 'gamble', 'adhd', 'autism', 'magician', 'drug', 'pong', 'claude', 'chatgpt'];
+  const absurdThemes = ['trump', 'thanos', 'communism', 'stalin', 'hitler', 'diddy', 'epstein', 'sort67', 'nineEleven', 'unsort', 'bogo', 'sigma', 'gaza', 'french', 'gamble', 'adhd', 'autism', 'magician', 'drug', 'pong', 'claude', 'chatgpt', 'hiroshima'];
   renderer.theme = absurdThemes.includes(key) ? key : 'default';
 }
 
@@ -305,6 +307,7 @@ const ANIMATION_METAS = new Set([
   'pong_play', 'pong_score_l', 'pong_score_r', 'pong_gameover', 'pong_transform', 'pong_sort_final', 'pong_sorted',
   'claude_prompt', 'claude_response', 'claude_thinking', 'claude_no_tokens', 'claude_done',
   'gpt_typing', 'gpt_pause', 'gpt_done',
+  'siren', 'bomber', 'nuke_falling', 'nuke_flash', 'mushroom_cloud', 'ashes',
 ]);
 
 function animateSort() {
@@ -444,6 +447,17 @@ function drawSpecialEffects(step) {
   // ChatGPT: texte avec emojis
   if (key === 'chatgpt') {
     if (step.meta === 'gpt_typing' || step.meta === 'gpt_done') renderer.drawChatGPT(step.allLines, step.typingFrame);
+  }
+
+  // Hiroshima: nuke effects
+  if (key === 'hiroshima') {
+    if (step.meta === 'bomber') renderer.drawPlane(step.planeX, 0.15);
+    if (step.meta === 'nuke_flash') renderer.drawNukeFlash(step.flashFrame);
+    if (step.meta === 'mushroom_cloud') renderer.drawMushroomCloud(step.cloudFrame);
+    if (step.meta === 'ashes') renderer.drawAshes(step.ashFrame);
+    if (step.meta === 'nuke_falling') {
+      renderer.drawBomb(Math.floor(data.length / 2), data, step.bombFrame);
+    }
   }
 
   // Drug: effets psychedeliques

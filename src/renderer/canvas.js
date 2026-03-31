@@ -371,6 +371,26 @@ const THEMES = {
       tadaa: '#FFD700',
     },
   },
+  hiroshima: {
+    bg: '#0a0808',
+    stripe: 'rgba(200, 100, 0, 0.04)',
+    barColor: (ratio) => {
+      const r = Math.round(100 + ratio * 155);
+      const g = Math.round(60 + ratio * 100);
+      const b = Math.round(30 + ratio * 40);
+      return `rgb(${r},${g},${b})`;
+    },
+    compare: '#FFAA44',
+    swap: '#FF6600',
+    metaColors: {
+      siren: '#FF0000',
+      bomber: '#666666',
+      nuke_falling: '#FFFF00',
+      nuke_flash: '#FFFFFF',
+      mushroom_cloud: '#FF4400',
+      ashes: '#444444',
+    },
+  },
   sigma: {
     bg: '#0a0a0a',
     stripe: 'rgba(100, 0, 255, 0.06)',
@@ -1157,6 +1177,89 @@ export class Renderer {
     ctx.restore();
   }
 
+  // Hiroshima Sort — champignon atomique
+  drawMushroomCloud(frame) {
+    const { ctx, width, height } = this;
+    ctx.save();
+
+    const t = frame / 60;
+
+    // Ciel rouge/orange
+    const grad = ctx.createLinearGradient(0, 0, 0, height);
+    grad.addColorStop(0, `rgba(${Math.round(80 + t * 150)}, ${Math.round(20 + t * 30)}, 0, 0.9)`);
+    grad.addColorStop(1, `rgba(20, 10, 5, 0.95)`);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, width, height);
+
+    // Tige du champignon
+    const stemW = 80 + t * 40;
+    const stemH = height * 0.4 * t;
+    ctx.fillStyle = `rgba(180, 80, 20, ${0.8 - t * 0.3})`;
+    ctx.fillRect(width / 2 - stemW / 2, height * 0.5 - stemH, stemW, stemH);
+
+    // Tete du champignon (cercles concentriques)
+    const headY = height * 0.5 - stemH;
+    const headR = 100 + t * 150;
+
+    for (let r = 3; r >= 0; r--) {
+      const radius = headR - r * 30;
+      const colors = ['rgba(255,200,50,0.6)', 'rgba(255,120,20,0.5)', 'rgba(200,50,0,0.4)', 'rgba(100,20,0,0.3)'];
+      ctx.fillStyle = colors[r];
+      ctx.beginPath();
+      ctx.arc(width / 2, headY, Math.max(0, radius), 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Onde de choc
+    const shockR = t * width * 0.8;
+    ctx.strokeStyle = `rgba(255, 255, 200, ${0.5 - t * 0.4})`;
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.arc(width / 2, height * 0.7, shockR, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  drawNukeFlash(frame) {
+    const { ctx, width, height } = this;
+    const alpha = frame < 5 ? frame / 5 : 1 - (frame - 5) / 15;
+    ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0, alpha)})`;
+    ctx.fillRect(0, 0, width, height);
+  }
+
+  drawAshes(frame) {
+    const { ctx, width, height } = this;
+    ctx.save();
+
+    // Fond gris sombre
+    ctx.fillStyle = '#1a1510';
+    ctx.fillRect(0, 0, width, height);
+
+    // Cendres qui tombent
+    ctx.fillStyle = 'rgba(150, 140, 130, 0.4)';
+    for (let i = 0; i < 40; i++) {
+      const seed = i * 17 + 7;
+      const x = (seed * 41 + frame * (1 + i % 3)) % width;
+      const y = (frame * (2 + i % 2) + seed * 23) % height;
+      const size = 2 + (seed % 4);
+      ctx.fillRect(x, y, size, size);
+    }
+
+    // Texte
+    const alpha = Math.min(1, frame / 20);
+    ctx.font = 'bold 48px "Segoe UI", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.6})`;
+    ctx.fillText('1945', width / 2, height * 0.45);
+    ctx.font = '28px "Segoe UI", sans-serif';
+    ctx.fillStyle = `rgba(200, 180, 160, ${alpha * 0.4})`;
+    ctx.fillText('Never forget', width / 2, height * 0.52);
+
+    this._drawWatermark();
+    ctx.restore();
+  }
+
   // Pong Sort — vrai terrain de pong plein ecran
   drawPongGame(ballX, ballY, padLY, padRY, scoreL, scoreR) {
     const { ctx, width, height } = this;
@@ -1641,16 +1744,14 @@ export class Renderer {
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
 
-    // Hauteur du bloc ajustee pour inclure BARS
     ctx.fillStyle = COLORS.overlayBg;
     ctx.beginPath();
-    ctx.roundRect(20, 220, 280, 130, 10);
+    ctx.roundRect(20, 220, 260, 90, 10);
     ctx.fill();
 
     ctx.fillStyle = COLORS.overlayText;
-    ctx.fillText(`CMP  ${stats.compares.toLocaleString()}`, 35, 232);
-    ctx.fillText(`SWAP ${stats.swaps.toLocaleString()}`, 35, 270);
-    ctx.fillText(`BARS ${stats.bars !== undefined ? stats.bars : '?'}`, 35, 308);
+    ctx.fillText(`SWAP ${stats.swaps.toLocaleString()}`, 35, 232);
+    ctx.fillText(`BARS ${stats.bars !== undefined ? stats.bars : '?'}`, 35, 270);
 
 
     ctx.restore();
