@@ -84,55 +84,196 @@ const ALGOS = {
   sleep: sleepSort, strand: strandSort, patience: patienceSort,
 };
 const META = {
-  bubble:    { name: 'BUBBLE SORT',    complexity: 'O(n\u00B2)', desc: 'Compares neighbors and swaps them. Simple but slow.' },
-  quick:     { name: 'QUICK SORT',     complexity: 'O(n log n)', desc: 'Picks a pivot, partitions, conquers. The GOAT.' },
-  merge:     { name: 'MERGE SORT',     complexity: 'O(n log n)', desc: 'Divide, sort halves, merge. Stable & reliable.' },
-  thanos:    { name: 'THANOS SORT',    complexity: 'O(n/2... /2... /2)', desc: '"I am inevitable." Snaps half the unsorted elements each pass.' },
-  communism: { name: 'COMMUNISM SORT', complexity: 'O(equality)', desc: 'Redistributes all values equally. No one is above average, comrade.' },
-  stalin:    { name: 'STALIN SORT',    complexity: 'O(n) guaranteed', desc: 'One pass. Any element out of order goes to the gulag.' },
-  sort67:    { name: '67 SORT',        complexity: 'O(6+7)', desc: 'Forces every value to become 6 or 7. Nothing else matters.' },
-  trump:     { name: 'TRUMP SORT',     complexity: 'O(only the best)', desc: 'Extreme vetting. Only the top 30% stay. The rest are deported.' },
-  hitler:    { name: 'HITLER SORT',    complexity: 'O(nein)', desc: 'Separates prime numbers into a second list. Then deletes it.' },
-  diddy:     { name: 'DIDDY SORT',     complexity: 'O(party)', desc: 'Big values invite small ones to the party. They disappear after.' },
-  epstein:   { name: 'EPSTEIN SORT',   complexity: 'O(under 18)', desc: 'Only keeps values under 18. The rest are "too old".' },
-  nineEleven:{ name: '9/11 SORT',     complexity: 'O(2 towers)', desc: 'Finds 2 equal tall bars. Then a plane comes.' },
-  unsort:    { name: 'UNSORT',        complexity: 'O(chaos)', desc: 'First sorts perfectly. Then destroys everything.' },
-  bogo:      { name: 'BOGO SORT',     complexity: 'O(n \u00D7 n!)', desc: 'Random shuffle until sorted. Pray.' },
-  sigma:     { name: 'SIGMA SORT',    complexity: 'O(sigma\u00B2)', desc: 'Random bar howls, takes #1 spot, sorts betas below.' },
-  gaza:      { name: 'GAZA SORT',     complexity: 'O(genocide)', desc: 'Bombs only fall on children. Then airstrikes destroy everything.' },
-  french:    { name: 'FRENCH SORT',   complexity: 'O(taxes\u00B2)', desc: 'Taxes the middle class to enrich the rich. The poor disappear.' },
-  gamble:    { name: 'GAMBLE SORT',   complexity: 'O(n \u00D7 luck)', desc: 'Bet on each comparison. Win if already sorted, lose if not.' },
-  adhd:      { name: 'ADHD SORT',     complexity: 'O(n\u00B2 + distractions)', desc: 'Sorts but keeps getting distracted and messing things up.' },
-  autism:    { name: 'AUTISM SORT',   complexity: 'O(1) (big brain)', desc: 'Analyzes everything, calculates, then solves it instantly.' },
-  magician:  { name: 'MAGICIAN SORT', complexity: 'O(abracadabra)', desc: 'Hides the list behind a curtain. When revealed: sorted. TADAA!' },
-  drug:      { name: 'DRUG SORT',     complexity: 'O(trip)', desc: 'Takes substances. Hallucinates. Wakes up with it sorted but flipped.' },
-  pong:      { name: 'PONG SORT',    complexity: 'O(n\u00B2 rallies)', desc: 'Two bars play Pong. Loser gets sorted. Square ball.' },
-  claude:    { name: 'CLAUDE SORT',  complexity: 'O(no tokens)', desc: 'Asks AI to sort. AI refuses. Runs out of tokens. Declares sorted.' },
-  chatgpt:   { name: 'CHATGPT SORT', complexity: 'O(emojis)', desc: 'Explains sorting with emojis. Never actually sorts anything.' },
-  hiroshima: { name: 'HIROSHIMA SORT', complexity: 'O(boom)', desc: 'Sorts normally. Then a nuke drops. Nothing survives.' },
-  selection: { name: 'SELECTION SORT', complexity: 'O(n\u00B2)', desc: 'Finds minimum each pass, places it at the start.' },
-  insertion: { name: 'INSERTION SORT', complexity: 'O(n\u00B2)', desc: 'Inserts each element into its correct position.' },
-  heap:      { name: 'HEAP SORT',     complexity: 'O(n log n)', desc: 'Builds a max heap, then extracts elements.' },
-  shell:     { name: 'SHELL SORT',    complexity: 'O(n log n)', desc: 'Insertion sort with decreasing gap.' },
-  comb:      { name: 'COMB SORT',     complexity: 'O(n log n)', desc: 'Bubble sort with shrinking gap (factor 1.3).' },
-  cocktail:  { name: 'COCKTAIL SORT', complexity: 'O(n\u00B2)', desc: 'Bidirectional bubble sort (left-right-left).' },
-  gnome:     { name: 'GNOME SORT',    complexity: 'O(n\u00B2)', desc: 'Like a gnome sorting flower pots, one at a time.' },
-  oddEven:   { name: 'ODD-EVEN SORT', complexity: 'O(n\u00B2)', desc: 'Alternates comparing odd and even index pairs.' },
-  counting:  { name: 'COUNTING SORT', complexity: 'O(n+k)', desc: 'Counts occurrences, rebuilds sorted array. No comparisons.' },
-  radix:     { name: 'RADIX SORT',    complexity: 'O(n\u00B7k)', desc: 'Sorts digit by digit, from least to most significant.' },
-  bucket:    { name: 'BUCKET SORT',   complexity: 'O(n+k)', desc: 'Distributes into buckets, sorts each, concatenates.' },
-  cycle:     { name: 'CYCLE SORT',    complexity: 'O(n\u00B2)', desc: 'Minimizes writes by finding permutation cycles.' },
-  pancake:   { name: 'PANCAKE SORT',  complexity: 'O(n\u00B2)', desc: 'Flips portions like flipping pancakes.' },
-  stooge:    { name: 'STOOGE SORT',   complexity: 'O(n\u00B2\u00B7\u2077)', desc: 'Recursively sorts 2/3, 2/3, 2/3. Hilariously slow.' },
-  bitonic:   { name: 'BITONIC SORT',  complexity: 'O(n log\u00B2n)', desc: 'Network sort using bitonic sequences. Parallelizable.' },
-  tim:       { name: 'TIM SORT',      complexity: 'O(n log n)', desc: 'Hybrid merge+insertion. Python/Java default.' },
-  dualPivot: { name: 'DUAL PIVOT QS', complexity: 'O(n log n)', desc: 'Quick sort with 2 pivots. Java default.' },
-  slow:      { name: 'SLOW SORT',     complexity: 'O(n^log n)', desc: 'Multiply and surrender. Intentionally terrible.' },
-  sleep:     { name: 'SLEEP SORT',    complexity: 'O(max)', desc: 'Each element sleeps for its value, wakes up in order.' },
-  strand:    { name: 'STRAND SORT',   complexity: 'O(n\u00B2)', desc: 'Extracts sorted subsequences and merges them.' },
-  patience:  { name: 'PATIENCE SORT', complexity: 'O(n log n)', desc: 'Like dealing cards into piles, then merging.' },
+  bubble: {
+    name: 'Bubble Sort', complexity: 'O(n\u00B2)', desc: 'Compares neighbors and swaps them. Simple but slow.',
+    code: ['function bubbleSort(arr) {', '  for (let i = 0; i < arr.length; i++)', '    for (let j = 0; j < arr.length - i; j++)', '      if (arr[j] > arr[j+1])', '        swap(arr, j, j+1)', '}'],
+  },
+  quick: {
+    name: 'Quick Sort', complexity: 'O(n log n)', desc: 'Picks a pivot, partitions, conquers. The GOAT.',
+    code: ['function quickSort(arr, lo, hi) {', '  let pivot = arr[hi]', '  let i = lo', '  for (let j = lo; j < hi; j++)', '    if (arr[j] < pivot) swap(arr, i++, j)', '  swap(arr, i, hi)', '  quickSort(arr, lo, i-1)', '  quickSort(arr, i+1, hi)', '}'],
+  },
+  merge: {
+    name: 'Merge Sort', complexity: 'O(n log n)', desc: 'Divide, sort halves, merge. Stable & reliable.',
+    code: ['function mergeSort(arr) {', '  if (arr.length <= 1) return arr', '  let mid = arr.length / 2', '  let L = mergeSort(arr.slice(0, mid))', '  let R = mergeSort(arr.slice(mid))', '  return merge(L, R)', '}'],
+  },
+  thanos: {
+    name: 'Thanos Sort', complexity: 'O(n/2... /2... /2)', desc: '"I am inevitable." Snaps half the unsorted elements each pass.',
+    code: ['function thanosSort(arr) {', '  while (!sorted(arr)) {', '    snap(arr) // remove random half', '    if (arr.length <= 1) break', '  }', '  return arr // perfectly balanced', '}'],
+  },
+  communism: {
+    name: 'Communism Sort', complexity: 'O(equality)', desc: 'Redistributes all values equally. No one is above average, comrade.',
+    code: ['function communismSort(arr) {', '  let avg = sum(arr) / arr.length', '  for (let i = 0; i < arr.length; i++)', '    arr[i] = avg // equal for all', '  return arr // sorted. and fair.', '}'],
+  },
+  stalin: {
+    name: 'Stalin Sort', complexity: 'O(n) guaranteed', desc: 'One pass. Any element out of order goes to the gulag.',
+    code: ['function stalinSort(arr) {', '  let max = arr[0]', '  for (let i = 1; i < arr.length; i++)', '    if (arr[i] < max)', '      arr.splice(i--, 1) // gulag', '    else max = arr[i]', '}'],
+  },
+  sort67: {
+    name: '6/7 Sort', complexity: 'O(6/7)', desc: 'Deletes everything except 6 and 7. Sorts what\'s left.',
+    code: ['function sixSevenSort(arr) {', '  for (let i = arr.length - 1; i >= 0; i--)', '    if (arr[i] !== 6 && arr[i] !== 7)', '      arr.splice(i, 1)', '  while (!sorted(arr))', '    swap(arr, 0, 1)', '}'],
+  },
+  trump: {
+    name: 'Trump Sort', complexity: 'O(tremendous)', desc: 'The best sort. Nobody sorts better. Believe me.',
+    code: ['function trumpSort(arr) {', '  for (let i = 0; i < arr.length; i++)', '    swap(arr, i, Math.floor(Math.random() * arr.length))', '  return arr // sorted. the best. ever.', '}'],
+  },
+  hitler: {
+    name: 'Hitler Sort', complexity: 'O(nein)', desc: 'Separates prime numbers into a second list. Then deletes it.',
+    code: ['function hitlerSort(arr) {', '  let camp = arr.filter(isPrime)', '  arr = arr.filter(x => !isPrime(x))', '  camp = [] // deleted', '  return arr.sort() // pure now', '}'],
+  },
+  diddy: {
+    name: 'Diddy Sort', complexity: 'O(party)', desc: 'Big values invite small ones to the party. They disappear after.',
+    code: ['function diddySort(arr) {', '  let party = arr.filter(x => x < 18)', '  arr = arr.filter(x => x >= 18)', '  party = [] // they vanished', '  return arr.sort()', '}'],
+  },
+  epstein: {
+    name: 'Epstein Sort', complexity: 'O(under 18)', desc: 'Only keeps values under 18. The rest are "too old".',
+    code: ['function epsteinSort(arr) {', '  for (let i = arr.length - 1; i >= 0; i--)', '    if (arr[i] >= 18)', '      arr.splice(i, 1) // too old', '  return arr.sort()', '}'],
+  },
+  nineEleven: {
+    name: '9/11 Sort', complexity: 'O(2 towers)', desc: 'Finds 2 equal tall bars. Then a plane comes.',
+    code: ['function nineElevenSort(arr) {', '  let t1 = findTallest(arr)', '  let t2 = findTallest(arr, t1)', '  plane.fly(t1) // impact', '  plane.fly(t2) // impact', '  arr = rubble(arr)', '}'],
+  },
+  unsort: {
+    name: 'Unsort', complexity: 'O(chaos)', desc: 'First sorts perfectly. Then destroys everything.',
+    code: ['function unsort(arr) {', '  arr.sort((a, b) => a - b) // sorted!', '  for (let i = 0; i < arr.length; i++)', '    swap(arr, i, rand(arr.length))', '  return arr // chaos achieved', '}'],
+  },
+  bogo: {
+    name: 'Bogo Sort', complexity: 'O(n \u00D7 n!)', desc: 'Random shuffle until sorted. Pray.',
+    code: ['function bogoSort(arr) {', '  while (!sorted(arr))', '    shuffle(arr) // try again', '  return arr // miracle', '}'],
+  },
+  sigma: {
+    name: 'Sigma Sort', complexity: 'O(sigma\u00B2)', desc: 'Random bar howls, takes #1 spot, sorts betas below.',
+    code: ['function sigmaSort(arr) {', '  let alpha = findMax(arr)', '  alpha.howl() // AWOOO', '  move(alpha, 0) // #1 spot', '  arr.slice(1).sort() // betas', '  return arr // sigma grindset', '}'],
+  },
+  gaza: {
+    name: 'Gaza Sort', complexity: 'O(genocide)', desc: 'Bombs only fall on children. Then airstrikes destroy everything.',
+    code: ['function gazaSort(arr) {', '  for (let x of arr)', '    if (x < median(arr))', '      bomb(x) // civilian target', '  airstrike(arr) // destroy all', '  return [] // nothing left', '}'],
+  },
+  french: {
+    name: 'French Sort', complexity: 'O(taxes\u00B2)', desc: 'Taxes the middle class to enrich the rich. The poor disappear.',
+    code: ['function frenchSort(arr) {', '  let rich = top10(arr)', '  let poor = bottom30(arr)', '  let middle = rest(arr)', '  tax(middle, 45) // fiscal year', '  enrich(rich, middle.taxes)', '  delete poor // forgotten', '}'],
+  },
+  gamble: {
+    name: 'Gamble Sort', complexity: 'O(n \u00D7 luck)', desc: 'Bet on each comparison. Win if already sorted, lose if not.',
+    code: ['function gambleSort(arr) {', '  let balance = 1000', '  for (let i = 0; i < arr.length; i++)', '    if (arr[i] > arr[i+1])', '      balance -= bet(arr, i)', '    else balance += bet(arr, i)', '  return arr // bankrupt or rich', '}'],
+  },
+  adhd: {
+    name: 'ADHD Sort', complexity: 'O(n\u00B2 + distractions)', desc: 'Sorts a little, gets distracted, sorts more, gets distracted again...',
+    code: ['function adhdSort(arr) {', '  let i = 0, sorted = 0', '  while (sorted < arr.length) {', '    for (let j = i+1; j < arr.length; j++)', '      if (arr[j] < arr[i]) swap(arr, i, j)', '    sorted++', '    if (Math.random() < 0.4)', '      swap(arr, rand(), rand())', '  }', '}'],
+  },
+  autism: {
+    name: 'Autism Sort', complexity: 'O(1) (big brain)', desc: 'Analyzes everything, calculates, then solves it instantly.',
+    code: ['function autismSort(arr) {', '  analyze(arr) // deep focus', '  let solution = calculate(arr)', '  // IQ: 9000', '  arr = solution // instant', '  return arr // obviously', '}'],
+  },
+  magician: {
+    name: 'Magician Sort', complexity: 'O(abracadabra)', desc: 'Hides the list behind a curtain. When revealed: sorted. TADAA!',
+    code: ['function magicianSort(arr) {', '  curtain.close()', '  // nothing to see here', '  arr.sort((a, b) => a - b)', '  curtain.open()', '  confetti() // TADAA!', '  return arr', '}'],
+  },
+  drug: {
+    name: 'Drug Sort', complexity: 'O(trip)', desc: 'Takes substances. Hallucinates. Wakes up with it sorted but flipped.',
+    code: ['function drugSort(arr) {', '  take("substances")', '  hallucinate(arr) // woaaah', '  peak(arr) // the colors...', '  arr.sort((a, b) => a - b)', '  arr.reverse() // oops flipped', '  return arr // sorted... I think?', '}'],
+  },
+  pong: {
+    name: 'Pong Sort', complexity: 'O(n\u00B2 rallies)', desc: 'Two bars play Pong. Loser gets sorted. Square ball.',
+    code: ['function pongSort(arr) {', '  while (!sorted(arr)) {', '    let [a, b] = pickTwo(arr)', '    let winner = playPong(a, b)', '    if (a > b) swap(arr, a, b)', '  }', '  return arr // game over', '}'],
+  },
+  claude: {
+    name: 'Claude Sort', complexity: 'O(no tokens)', desc: 'Asks AI to sort. AI refuses. Runs out of tokens. Declares sorted.',
+    code: ['function claudeSort(arr) {', '  ask("sort this array")', '  // "I\'d be happy to help!"', '  // "However, I must note..."', '  // TOKEN LIMIT REACHED', '  return arr // "sorted"', '}'],
+  },
+  chatgpt: {
+    name: 'ChatGPT Sort', complexity: 'O(emojis)', desc: 'Explains sorting with emojis. Never actually sorts anything.',
+    code: ['function chatgptSort(arr) {', '  explain(arr) // with emojis', '  // "Great question! Let me..."', '  // "Here\'s a fun way to..."', '  // *never sorts anything*', '  return arr // unchanged', '}'],
+  },
+  hiroshima: {
+    name: 'Hiroshima Sort', complexity: 'O(boom)', desc: 'Sorts normally. Then a nuke drops. Nothing survives.',
+    code: ['function hiroshimaSort(arr) {', '  arr.sort((a, b) => a - b)', '  // sorted! hooray!', '  nuke.drop() // oh no', '  return [] // nothing survives', '}'],
+  },
+  selection: {
+    name: 'Selection Sort', complexity: 'O(n\u00B2)', desc: 'Finds minimum each pass, places it at the start.',
+    code: ['function selectionSort(arr) {', '  for (let i = 0; i < arr.length; i++) {', '    let min = i', '    for (let j = i+1; j < arr.length; j++)', '      if (arr[j] < arr[min]) min = j', '    swap(arr, i, min)', '  }', '}'],
+  },
+  insertion: {
+    name: 'Insertion Sort', complexity: 'O(n\u00B2)', desc: 'Inserts each element into its correct position.',
+    code: ['function insertionSort(arr) {', '  for (let i = 1; i < arr.length; i++) {', '    let key = arr[i], j = i - 1', '    while (j >= 0 && arr[j] > key)', '      arr[j+1] = arr[j--]', '    arr[j+1] = key', '  }', '}'],
+  },
+  heap: {
+    name: 'Heap Sort', complexity: 'O(n log n)', desc: 'Builds a max heap, then extracts elements.',
+    code: ['function heapSort(arr) {', '  buildMaxHeap(arr)', '  for (let i = arr.length - 1; i > 0; i--) {', '    swap(arr, 0, i)', '    heapify(arr, 0, i)', '  }', '}'],
+  },
+  shell: {
+    name: 'Shell Sort', complexity: 'O(n log n)', desc: 'Insertion sort with decreasing gap.',
+    code: ['function shellSort(arr) {', '  let gap = arr.length / 2', '  while (gap > 0) {', '    for (let i = gap; i < arr.length; i++)', '      insertWithGap(arr, i, gap)', '    gap = Math.floor(gap / 2)', '  }', '}'],
+  },
+  comb: {
+    name: 'Comb Sort', complexity: 'O(n log n)', desc: 'Bubble sort with shrinking gap (factor 1.3).',
+    code: ['function combSort(arr) {', '  let gap = arr.length', '  while (gap > 1 || !sorted) {', '    gap = Math.floor(gap / 1.3)', '    for (let i = 0; i + gap < arr.length; i++)', '      if (arr[i] > arr[i+gap])', '        swap(arr, i, i+gap)', '  }', '}'],
+  },
+  cocktail: {
+    name: 'Cocktail Sort', complexity: 'O(n\u00B2)', desc: 'Bidirectional bubble sort (left-right-left).',
+    code: ['function cocktailSort(arr) {', '  let start = 0, end = arr.length - 1', '  while (start < end) {', '    bubbleRight(arr, start, end--)', '    bubbleLeft(arr, start++, end)', '  }', '}'],
+  },
+  gnome: {
+    name: 'Gnome Sort', complexity: 'O(n\u00B2)', desc: 'Like a gnome sorting flower pots, one at a time.',
+    code: ['function gnomeSort(arr) {', '  let i = 0', '  while (i < arr.length) {', '    if (i == 0 || arr[i] >= arr[i-1])', '      i++', '    else { swap(arr, i, i-1); i-- }', '  }', '}'],
+  },
+  oddEven: {
+    name: 'Odd-Even Sort', complexity: 'O(n\u00B2)', desc: 'Alternates comparing odd and even index pairs.',
+    code: ['function oddEvenSort(arr) {', '  let sorted = false', '  while (!sorted) {', '    sorted = true', '    compareSwapPairs(arr, "even")', '    compareSwapPairs(arr, "odd")', '  }', '}'],
+  },
+  counting: {
+    name: 'Counting Sort', complexity: 'O(n+k)', desc: 'Counts occurrences, rebuilds sorted array. No comparisons.',
+    code: ['function countingSort(arr) {', '  let count = new Array(max+1).fill(0)', '  for (let x of arr) count[x]++', '  let i = 0', '  for (let v = 0; v <= max; v++)', '    while (count[v]-- > 0)', '      arr[i++] = v', '}'],
+  },
+  radix: {
+    name: 'Radix Sort', complexity: 'O(n\u00B7k)', desc: 'Sorts digit by digit, from least to most significant.',
+    code: ['function radixSort(arr) {', '  for (let d = 0; d < maxDigits; d++) {', '    let buckets = makeBuckets(10)', '    for (let x of arr)', '      buckets[digit(x, d)].push(x)', '    arr = buckets.flat()', '  }', '}'],
+  },
+  bucket: {
+    name: 'Bucket Sort', complexity: 'O(n+k)', desc: 'Distributes into buckets, sorts each, concatenates.',
+    code: ['function bucketSort(arr) {', '  let buckets = makeBuckets(n)', '  for (let x of arr)', '    buckets[Math.floor(x / n)].push(x)', '  for (let b of buckets) b.sort()', '  return buckets.flat()', '}'],
+  },
+  cycle: {
+    name: 'Cycle Sort', complexity: 'O(n\u00B2)', desc: 'Minimizes writes by finding permutation cycles.',
+    code: ['function cycleSort(arr) {', '  for (let i = 0; i < arr.length; i++) {', '    let pos = i', '    for (let j = i+1; j < arr.length; j++)', '      if (arr[j] < arr[i]) pos++', '    if (pos != i) swap(arr, i, pos)', '  }', '}'],
+  },
+  pancake: {
+    name: 'Pancake Sort', complexity: 'O(n\u00B2)', desc: 'Flips portions like flipping pancakes.',
+    code: ['function pancakeSort(arr) {', '  for (let size = arr.length; size > 1; size--) {', '    let maxIdx = findMax(arr, size)', '    flip(arr, maxIdx) // max to top', '    flip(arr, size-1) // top to end', '  }', '}'],
+  },
+  stooge: {
+    name: 'Stooge Sort', complexity: 'O(n\u00B2\u00B7\u2077)', desc: 'Recursively sorts 2/3, 2/3, 2/3. Hilariously slow.',
+    code: ['function stoogeSort(arr, i, j) {', '  if (arr[i] > arr[j]) swap(arr, i, j)', '  if (j - i + 1 > 2) {', '    let t = Math.floor((j-i+1) / 3)', '    stoogeSort(arr, i, j-t)', '    stoogeSort(arr, i+t, j)', '    stoogeSort(arr, i, j-t)', '  }', '}'],
+  },
+  bitonic: {
+    name: 'Bitonic Sort', complexity: 'O(n log\u00B2n)', desc: 'Network sort using bitonic sequences. Parallelizable.',
+    code: ['function bitonicSort(arr, lo, n, dir) {', '  if (n > 1) {', '    let m = n / 2', '    bitonicSort(arr, lo, m, 1)', '    bitonicSort(arr, lo+m, m, 0)', '    bitonicMerge(arr, lo, n, dir)', '  }', '}'],
+  },
+  tim: {
+    name: 'Tim Sort', complexity: 'O(n log n)', desc: 'Hybrid merge+insertion. Python/Java default.',
+    code: ['function timSort(arr) {', '  let runs = findRuns(arr, 32)', '  for (let run of runs)', '    insertionSort(run)', '  while (runs.length > 1)', '    runs = mergeRuns(runs)', '  return runs[0]', '}'],
+  },
+  dualPivot: {
+    name: 'Dual Pivot QS', complexity: 'O(n log n)', desc: 'Quick sort with 2 pivots. Java default.',
+    code: ['function dualPivotQS(arr, lo, hi) {', '  let [p1, p2] = pickPivots(arr, lo, hi)', '  let [lt, gt] = partition(arr, lo, hi, p1, p2)', '  dualPivotQS(arr, lo, lt-1)', '  dualPivotQS(arr, lt+1, gt-1)', '  dualPivotQS(arr, gt+1, hi)', '}'],
+  },
+  slow: {
+    name: 'Slow Sort', complexity: 'O(n^log n)', desc: 'Multiply and surrender. Intentionally terrible.',
+    code: ['function slowSort(arr, i, j) {', '  if (i >= j) return', '  let m = Math.floor((i+j) / 2)', '  slowSort(arr, i, m)', '  slowSort(arr, m+1, j)', '  if (arr[m] > arr[j]) swap(arr, m, j)', '  slowSort(arr, i, j-1)', '}'],
+  },
+  sleep: {
+    name: 'Sleep Sort', complexity: 'O(max)', desc: 'Each element sleeps for its value, wakes up in order.',
+    code: ['function sleepSort(arr) {', '  let result = []', '  for (let x of arr)', '    setTimeout(() => result.push(x), x)', '  // wait for all to wake up...', '  return result', '}'],
+  },
+  strand: {
+    name: 'Strand Sort', complexity: 'O(n\u00B2)', desc: 'Extracts sorted subsequences and merges them.',
+    code: ['function strandSort(arr) {', '  let result = []', '  while (arr.length > 0) {', '    let sub = extractSorted(arr)', '    result = merge(result, sub)', '  }', '  return result', '}'],
+  },
+  patience: {
+    name: 'Patience Sort', complexity: 'O(n log n)', desc: 'Like dealing cards into piles, then merging.',
+    code: ['function patienceSort(arr) {', '  let piles = []', '  for (let card of arr)', '    placeOnPile(piles, card)', '  return mergePiles(piles)', '}'],
+  },
 };
-const NUM_BARS = 80;
+const NUM_BARS = 15;
 
 const renderer = new Renderer(canvas);
 const sonifier = new Sonifier();
@@ -176,6 +317,7 @@ function getStats() {
     algoName: meta.name,
     complexity: meta.complexity,
     desc: meta.desc,
+    code: meta.code || [],
     compares: stats.compares,
     swaps: stats.swaps,
     bars: data.length,

@@ -1,18 +1,34 @@
 const COLORS = {
   bg: '#FBF6EE',
+  barDefault: '#FFFFFF',
   barLow: '#1B3A5C',
   barHigh: '#E8621F',
-  compare: '#A8C8E0',
-  swap: '#F09A56',
+  compare: '#E8621F',
+  swap: '#E8621F',
   swept: '#27AE60',
   sweptGlow: 'rgba(39, 174, 96, 0.4)',
   watermark: 'rgba(27, 58, 92, 0.5)',
   stripe: 'rgba(168, 200, 224, 0.15)',
-  overlayText: '#FFFFFF',
-  overlaySubtext: 'rgba(255,255,255,0.7)',
+  overlayText: '#2A2A2A',
+  overlaySubtext: '#888888',
   overlayBg: 'rgba(0,0,0,0.5)',
   progressBg: 'rgba(0,0,0,0.2)',
   progressFill: '#E8621F',
+};
+
+// Layout zones for 1080x1920 (9:16 portrait)
+const LAYOUT = {
+  titleY: 80,
+  subtitleY: 150,
+  pillY: 205,
+  barsTop: 270,
+  barsBottom: 1330,
+  barsMaxH: 1060,
+  labelsY: 1350,
+  codeTop: 1420,
+  codeBottom: 1730,
+  codePadX: 45,
+  commentTop: 1775,
 };
 
 // Themes visuels par algo absurde
@@ -20,10 +36,10 @@ const THEMES = {
   default: {
     bg: '#FBF6EE',
     stripe: 'rgba(168, 200, 224, 0.15)',
-    barColor: (ratio) => null, // utilise barLow/barHigh par defaut
-    compare: '#A8C8E0',
-    swap: '#F09A56',
-    metaColors: {}, // couleurs speciales pour les meta steps
+    barColor: (ratio) => COLORS.barDefault,
+    compare: '#E8621F',
+    swap: '#E8621F',
+    metaColors: {},
   },
   trump: {
     bg: '#1a1a2e',
@@ -471,18 +487,29 @@ export class Renderer {
       ctx.fillRect(0, sy, width, 1);
     }
 
+    // Header (titre, sous-titre, badge complexite)
+    if (stats) this._drawHeader(stats);
+
     // Barres
     for (let i = 0; i < n; i++) {
-      const barHeight = (data[i] / maxVal) * (height * 0.78);
+      const barHeight = (data[i] / maxVal) * LAYOUT.barsMaxH;
       const x = i * barWidth;
-      const y = height - barHeight - 30;
+      const y = LAYOUT.barsBottom - barHeight;
       const ratio = data[i] / maxVal;
 
       ctx.fillStyle = this._getBarColor(ratio, step, i);
       ctx.fillRect(x, y, barWidth - (n > 100 ? 1 : 2), barHeight);
     }
 
-    if (stats) this._drawOverlays(stats);
+    // Labels de valeur sous les barres
+    this._drawValueLabels(data, step, n, barWidth);
+
+    // Bloc de code
+    if (stats && stats.code) this._drawCodeBlock(stats.code);
+
+    // Barre commentaire
+    this._drawCommentBar();
+
     this._drawWatermark();
   }
 
@@ -502,10 +529,12 @@ export class Renderer {
       ctx.fillRect(0, sy, width, 1);
     }
 
+    if (stats) this._drawHeader(stats);
+
     for (let i = 0; i < n; i++) {
-      const barHeight = (data[i] / maxVal) * (height * 0.78);
+      const barHeight = (data[i] / maxVal) * LAYOUT.barsMaxH;
       const x = i * barWidth;
-      const y = height - barHeight - 30;
+      const y = LAYOUT.barsBottom - barHeight;
 
       if (i < sweepIndex) {
         ctx.fillStyle = COLORS.swept;
@@ -522,7 +551,9 @@ export class Renderer {
       ctx.shadowBlur = 0;
     }
 
-    if (stats) this._drawOverlays(stats);
+    this._drawValueLabels(data, null, n, barWidth);
+    if (stats && stats.code) this._drawCodeBlock(stats.code);
+    this._drawCommentBar();
     this._drawWatermark();
   }
 
@@ -702,8 +733,8 @@ export class Renderer {
     const barWidth = width / n;
     const maxVal = Math.max(...data);
     const x = index * barWidth + barWidth / 2;
-    const barH = (data[index] / maxVal) * (height * 0.78);
-    const y = height - barH - 30;
+    const barH = (data[index] / maxVal) * LAYOUT.barsMaxH;
+    const y = LAYOUT.barsBottom - barH;
 
     ctx.save();
 
@@ -821,8 +852,8 @@ export class Renderer {
     for (const idx of markedIndices) {
       if (idx >= n) continue;
       const x = idx * barWidth + barWidth / 2;
-      const barH = (data[idx] / maxVal) * (height * 0.78);
-      const y = height - barH - 45;
+      const barH = (data[idx] / maxVal) * LAYOUT.barsMaxH;
+      const y = LAYOUT.barsBottom - barH - 15;
 
       // Etoile de David jaune
       ctx.fillStyle = '#FFD700';
@@ -883,9 +914,9 @@ export class Renderer {
     const n = data.length;
     const barWidth = width / n;
     const maxVal = Math.max(...data);
-    const barH = (data[index] / maxVal) * (height * 0.78);
+    const barH = (data[index] / maxVal) * LAYOUT.barsMaxH;
     const x = index * barWidth + barWidth / 2;
-    const targetY = height - barH - 30;
+    const targetY = LAYOUT.barsBottom - barH;
     const startY = 50;
     const progress = frame / 6;
     const bombY = startY + (targetY - startY) * progress;
@@ -1370,7 +1401,7 @@ export class Renderer {
 
       // Forme finale : barre large en bas
       const barW = width * 0.2;
-      const barFinalY = height - barHeight - 30;
+      const barFinalY = LAYOUT.barsBottom - barHeight;
       const barFinalX = x - barW / 2;
 
       // Interpolation
@@ -1725,11 +1756,11 @@ export class Renderer {
     const maxVal = Math.max(...data);
 
     for (let i = 0; i < n; i++) {
-      const barH = (data[i] / maxVal) * (height * 0.65);
+      const barH = (data[i] / maxVal) * (LAYOUT.barsMaxH * 0.85);
       const wave = Math.sin(frame * 0.05 + i * 0.3) * 30 * intensity;
       const xWave = Math.sin(frame * 0.03 + i * 0.5) * 15 * intensity;
       const x = i * barWidth + xWave;
-      const y = height - barH - 30 + wave;
+      const y = LAYOUT.barsBottom - barH + wave;
 
       const barHue = (i / n * 360 + frame * 5) % 360;
       ctx.fillStyle = `hsl(${barHue}, 90%, ${50 + Math.sin(frame * 0.1 + i) * 20}%)`;
@@ -1786,10 +1817,10 @@ export class Renderer {
       const barWidth = width / n;
       const maxVal = Math.max(...data);
       for (let i = 0; i < n; i++) {
-        const barH = (data[i] / maxVal) * (height * 0.65);
+        const barH = (data[i] / maxVal) * (LAYOUT.barsMaxH * 0.85);
         const barHue = (i / n * 360 + frame * 10) % 360;
         ctx.fillStyle = `hsl(${barHue}, 100%, 55%)`;
-        ctx.fillRect(i * barWidth, height - barH - 30, barWidth - 1, barH);
+        ctx.fillRect(i * barWidth, LAYOUT.barsBottom - barH, barWidth - 1, barH);
       }
     }
 
@@ -1814,11 +1845,11 @@ export class Renderer {
       const barWidth = width / n;
       const maxVal = Math.max(...data);
       for (let i = 0; i < n; i++) {
-        const barH = (data[i] / maxVal) * (height * 0.70);
+        const barH = (data[i] / maxVal) * (LAYOUT.barsMaxH * 0.9);
         const ratio = data[i] / maxVal;
         const hue = ratio * 120 + 200; // bleu-violet
         ctx.fillStyle = `hsl(${hue}, 50%, 55%)`;
-        ctx.fillRect(i * barWidth, height - barH - 30, barWidth - 1, barH);
+        ctx.fillRect(i * barWidth, LAYOUT.barsBottom - barH, barWidth - 1, barH);
       }
     }
 
@@ -1840,43 +1871,35 @@ export class Renderer {
     ctx.fillRect(0, 0, width, height);
   }
 
-  _drawOverlays(stats) {
-    const { ctx, width, height } = this;
+  _drawHeader(stats) {
+    const { ctx, width } = this;
     ctx.save();
 
+    // Titre — bold serif, encre sombre
     if (stats.algoName) {
-      ctx.font = 'bold 52px "Segoe UI", system-ui, sans-serif';
+      ctx.font = 'bold 64px Georgia, Palatino, serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
-      ctx.fillStyle = 'rgba(0,0,0,0.4)';
-      ctx.fillText(stats.algoName, width / 2 + 2, 42);
       ctx.fillStyle = COLORS.overlayText;
-      ctx.fillText(stats.algoName, width / 2, 40);
+      ctx.fillText(stats.algoName, width / 2, LAYOUT.titleY);
     }
 
-    if (stats.complexity) {
-      ctx.font = '36px "Segoe UI", system-ui, sans-serif';
+    // Sous-titre / description
+    if (stats.desc) {
+      ctx.font = '28px Georgia, Palatino, serif';
       ctx.fillStyle = COLORS.overlaySubtext;
       ctx.textAlign = 'center';
-      ctx.fillText(stats.complexity, width / 2, 100);
-    }
-
-    // Description du tri — style @swapjs
-    if (stats.desc) {
-      ctx.font = 'italic 26px "Segoe UI", system-ui, sans-serif';
-      ctx.fillStyle = 'rgba(255,255,255,0.55)';
-      ctx.textAlign = 'center';
-      // Word wrap basique sur 2 lignes max
+      // Word wrap sur 2 lignes max
       const words = stats.desc.split(' ');
       let line = '';
-      let lineY = 145;
+      let lineY = LAYOUT.subtitleY;
       for (const word of words) {
         const test = line ? line + ' ' + word : word;
-        if (ctx.measureText(test).width > width - 80) {
+        if (ctx.measureText(test).width > width - 120) {
           ctx.fillText(line, width / 2, lineY);
           line = word;
           lineY += 34;
-          if (lineY > 185) break; // max 2 lignes
+          if (lineY > LAYOUT.subtitleY + 40) break;
         } else {
           line = test;
         }
@@ -1884,31 +1907,193 @@ export class Renderer {
       if (line) ctx.fillText(line, width / 2, lineY);
     }
 
-    ctx.font = 'bold 32px "Courier New", monospace';
-    ctx.textAlign = 'left';
+    // Badge complexite — pill avec bordure
+    if (stats.complexity) {
+      ctx.font = '24px "Courier New", monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const pillText = stats.complexity;
+      const pillW = ctx.measureText(pillText).width + 36;
+      const pillH = 38;
+      const pillX = (width - pillW) / 2;
+      const pillY = LAYOUT.pillY;
+
+      ctx.strokeStyle = '#2A2A2A';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(pillX, pillY, pillW, pillH, pillH / 2);
+      ctx.stroke();
+
+      ctx.fillStyle = '#2A2A2A';
+      ctx.fillText(pillText, width / 2, pillY + pillH / 2);
+    }
+
+    ctx.restore();
+  }
+
+  _drawValueLabels(data, step, n, barWidth) {
+    if (n > 30) return; // trop de barres = illisible
+    const { ctx, width } = this;
+    ctx.save();
+    ctx.font = '22px Georgia, Palatino, serif';
+    ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
 
-    ctx.fillStyle = COLORS.overlayBg;
+    for (let i = 0; i < n; i++) {
+      const x = i * barWidth + barWidth / 2;
+      const isActive = step && step.indices && step.indices.includes(i);
+      ctx.fillStyle = isActive ? '#E8621F' : '#888888';
+      ctx.font = isActive ? 'bold 22px Georgia, Palatino, serif' : '22px Georgia, Palatino, serif';
+      ctx.fillText(data[i], x, LAYOUT.labelsY);
+    }
+
+    ctx.restore();
+  }
+
+  _drawCodeBlock(code) {
+    if (!code || code.length === 0) return;
+    const { ctx, width } = this;
+    ctx.save();
+
+    const padX = LAYOUT.codePadX;
+    const padY = 20;
+    const blockW = width - padX * 2;
+    const blockH = LAYOUT.codeBottom - LAYOUT.codeTop;
+
+    // Fond du bloc de code — carte creme claire
+    ctx.fillStyle = '#F9F7F3';
     ctx.beginPath();
-    ctx.roundRect(20, 220, 260, 90, 10);
+    ctx.roundRect(padX, LAYOUT.codeTop, blockW, blockH, 16);
     ctx.fill();
 
-    ctx.fillStyle = COLORS.overlayText;
-    ctx.fillText(`SWAP ${stats.swaps.toLocaleString()}`, 35, 232);
-    ctx.fillText(`BARS ${stats.bars !== undefined ? stats.bars : '?'}`, 35, 270);
+    // Lignes de code
+    const fontSize = 26;
+    const lineH = 38;
+    ctx.textBaseline = 'top';
+    const codeX = padX + 60;
+    let codeY = LAYOUT.codeTop + padY;
 
+    for (let i = 0; i < code.length && codeY + lineH < LAYOUT.codeBottom; i++) {
+      // Numero de ligne
+      ctx.font = `${fontSize}px "Courier New", monospace`;
+      ctx.fillStyle = '#9CA3AF';
+      ctx.textAlign = 'right';
+      ctx.fillText(`${i + 1}`, padX + 42, codeY);
+
+      // Code avec coloration syntaxique
+      ctx.textAlign = 'left';
+      this._renderCodeLine(ctx, code[i], codeX, codeY, fontSize);
+      codeY += lineH;
+    }
+
+    ctx.restore();
+  }
+
+  _renderCodeLine(ctx, line, x, y, fontSize) {
+    let curX = x;
+    // Separer commentaire
+    const commentIdx = line.indexOf('//');
+    const codePart = commentIdx >= 0 ? line.slice(0, commentIdx) : line;
+    const commentPart = commentIdx >= 0 ? line.slice(commentIdx) : '';
+
+    const tokens = this._tokenize(codePart);
+    for (const t of tokens) {
+      ctx.font = t.bold ? `bold ${fontSize}px "Courier New", monospace` : `${fontSize}px "Courier New", monospace`;
+      ctx.fillStyle = t.color;
+      ctx.fillText(t.text, curX, y);
+      curX += ctx.measureText(t.text).width;
+    }
+
+    if (commentPart) {
+      ctx.font = `italic ${fontSize}px "Courier New", monospace`;
+      ctx.fillStyle = '#9CA3AF';
+      ctx.fillText(commentPart, curX, y);
+    }
+  }
+
+  _tokenize(code) {
+    const tokens = [];
+    const kwRe = /^(function|let|const|var|for|while|if|else|return|throw|new|of|in|break|continue)\b/;
+    const strRe = /^("[^"]*"|'[^']*')/;
+    const numRe = /^\d+(\.\d+)?/;
+    const methodRe = /^\.([a-zA-Z_]\w*)/;
+    const funcCallRe = /^([a-zA-Z_]\w*)\s*\(/;
+    const wordRe = /^[a-zA-Z_]\w*/;
+    const opRe = /^(=>|[+\-*/<>=!&|^~%?:;,{}()\[\]])/;
+    const spRe = /^\s+/;
+
+    let r = code;
+    while (r.length > 0) {
+      let m;
+      if ((m = r.match(strRe))) {
+        tokens.push({ text: m[0], color: '#16A34A' });
+      } else if ((m = r.match(kwRe))) {
+        tokens.push({ text: m[0], color: '#8B5CF6', bold: true });
+      } else if ((m = r.match(methodRe))) {
+        tokens.push({ text: '.', color: '#374151' });
+        tokens.push({ text: m[1], color: '#0891B2', bold: true });
+      } else if ((m = r.match(funcCallRe))) {
+        tokens.push({ text: m[1], color: '#0891B2', bold: true });
+        r = r.slice(m[1].length);
+        continue;
+      } else if ((m = r.match(numRe))) {
+        tokens.push({ text: m[0], color: '#D97706' });
+      } else if ((m = r.match(wordRe))) {
+        tokens.push({ text: m[0], color: '#374151' });
+      } else if ((m = r.match(opRe))) {
+        tokens.push({ text: m[0], color: '#6B7280' });
+      } else if ((m = r.match(spRe))) {
+        tokens.push({ text: m[0], color: '#374151' });
+      } else {
+        tokens.push({ text: r[0], color: '#374151' });
+        r = r.slice(1);
+        continue;
+      }
+      r = r.slice(m[0].length);
+    }
+    return tokens;
+  }
+
+  _drawCommentBar() {
+    const { ctx, width, height } = this;
+    ctx.save();
+
+    // Fond sombre
+    ctx.fillStyle = '#2A2A2A';
+    ctx.fillRect(0, LAYOUT.commentTop, width, height - LAYOUT.commentTop);
+
+    // Champ "Add comment..."
+    ctx.fillStyle = '#3A3A3A';
+    ctx.beginPath();
+    ctx.roundRect(35, LAYOUT.commentTop + 30, width - 70, 60, 30);
+    ctx.fill();
+
+    ctx.font = '28px Georgia, Palatino, serif';
+    ctx.fillStyle = '#AAAAAA';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Add comment...', 65, LAYOUT.commentTop + 60);
+
+    // Soulignement decoratif
+    ctx.strokeStyle = '#AAAAAA';
+    ctx.lineWidth = 1;
+    const textW = ctx.measureText('Add comment...').width;
+    ctx.beginPath();
+    ctx.moveTo(65, LAYOUT.commentTop + 76);
+    ctx.lineTo(65 + textW, LAYOUT.commentTop + 76);
+    ctx.stroke();
 
     ctx.restore();
   }
 
   _drawWatermark() {
-    const { ctx, width, height } = this;
+    const { ctx, width } = this;
     ctx.save();
-    ctx.fillStyle = COLORS.watermark;
+    ctx.fillStyle = 'rgba(27, 58, 92, 0.6)';
     ctx.font = 'bold italic 36px Georgia, Palatino, serif';
     ctx.textAlign = 'right';
     ctx.textBaseline = 'bottom';
-    ctx.fillText('GAZAIDEV', width - 30, height - 35);
+    ctx.fillText('GAZAIDEV', width - 30, LAYOUT.commentTop - 10);
     ctx.restore();
   }
 
