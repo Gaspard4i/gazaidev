@@ -141,8 +141,8 @@ const META = {
     code: ['function bogoSort(arr) {', '  while (!sorted(arr))', '    shuffle(arr) // try again', '  return arr // miracle', '}'],
   },
   sigma: {
-    name: 'Sigma Sort', complexity: 'O(sigma\u00B2)', desc: 'Random bar howls, takes #1 spot, sorts betas below.',
-    code: ['function sigmaSort(arr) {', '  let alpha = findMax(arr)', '  alpha.howl() // AWOOO', '  move(alpha, 0) // #1 spot', '  arr.slice(1).sort() // betas', '  return arr // sigma grindset', '}'],
+    name: 'Alpha Sort', complexity: 'O(sigma\u00B2)', desc: 'Random bar howls, takes #1 spot, sorts betas below.',
+    code: ['function alphaSort(arr) {', '  let alpha = findMax(arr)', '  alpha.howl() // AWOOO', '  move(alpha, 0) // #1 spot', '  arr.slice(1).sort() // betas', '  return arr // sigma grindset', '}'],
   },
   gaza: {
     name: 'Gaza Sort', complexity: 'O(genocide)', desc: 'Bombs only fall on children. Then airstrikes destroy everything.',
