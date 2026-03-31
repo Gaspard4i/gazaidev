@@ -2055,35 +2055,7 @@ export class Renderer {
   }
 
   _drawCommentBar() {
-    const { ctx, width, height } = this;
-    ctx.save();
-
-    // Fond sombre
-    ctx.fillStyle = '#2A2A2A';
-    ctx.fillRect(0, LAYOUT.commentTop, width, height - LAYOUT.commentTop);
-
-    // Champ "Add comment..."
-    ctx.fillStyle = '#3A3A3A';
-    ctx.beginPath();
-    ctx.roundRect(35, LAYOUT.commentTop + 30, width - 70, 60, 30);
-    ctx.fill();
-
-    ctx.font = '28px Georgia, Palatino, serif';
-    ctx.fillStyle = '#AAAAAA';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('Add comment...', 65, LAYOUT.commentTop + 60);
-
-    // Soulignement decoratif
-    ctx.strokeStyle = '#AAAAAA';
-    ctx.lineWidth = 1;
-    const textW = ctx.measureText('Add comment...').width;
-    ctx.beginPath();
-    ctx.moveTo(65, LAYOUT.commentTop + 76);
-    ctx.lineTo(65 + textW, LAYOUT.commentTop + 76);
-    ctx.stroke();
-
-    ctx.restore();
+    // supprime — plus de barre commentaire
   }
 
   _drawWatermark() {
