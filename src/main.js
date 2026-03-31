@@ -23,6 +23,9 @@ import { adhdSort } from './algos/adhdSort.js';
 import { autismSort } from './algos/autismSort.js';
 import { magicianSort } from './algos/magicianSort.js';
 import { drugSort } from './algos/drugSort.js';
+import { pongSort } from './algos/pongSort.js';
+import { claudeSort } from './algos/claudeSort.js';
+import { chatgptSort } from './algos/chatgptSort.js';
 import { selectionSort } from './algos/selectionSort.js';
 import { insertionSort } from './algos/insertionSort.js';
 import { heapSort } from './algos/heapSort.js';
@@ -70,7 +73,7 @@ const ALGOS = {
   nineEleven: nineElevenSort, unsort: unsort,
   bogo: bogoSort, sigma: sigmaSort, gaza: gazaSort, french: frenchSort,
   gamble: gambleSort, adhd: adhdSort, autism: autismSort, magician: magicianSort,
-  drug: drugSort,
+  drug: drugSort, pong: pongSort, claude: claudeSort, chatgpt: chatgptSort,
   selection: selectionSort, insertion: insertionSort, heap: heapSort,
   shell: shellSort, comb: combSort, cocktail: cocktailSort,
   gnome: gnomeSort, oddEven: oddEvenSort, counting: countingSort,
@@ -102,6 +105,9 @@ const META = {
   autism:    { name: 'AUTISM SORT',   complexity: 'O(1) (big brain)', desc: 'Analyzes everything, calculates, then solves it instantly.' },
   magician:  { name: 'MAGICIAN SORT', complexity: 'O(abracadabra)', desc: 'Hides the list behind a curtain. When revealed: sorted. TADAA!' },
   drug:      { name: 'DRUG SORT',     complexity: 'O(trip)', desc: 'Takes substances. Hallucinates. Wakes up with it sorted but flipped.' },
+  pong:      { name: 'PONG SORT',    complexity: 'O(n\u00B2 rallies)', desc: 'Two bars play Pong. Loser gets sorted. Square ball.' },
+  claude:    { name: 'CLAUDE SORT',  complexity: 'O(no tokens)', desc: 'Asks AI to sort. AI refuses. Runs out of tokens. Declares sorted.' },
+  chatgpt:   { name: 'CHATGPT SORT', complexity: 'O(emojis)', desc: 'Explains sorting with emojis. Never actually sorts anything.' },
   selection: { name: 'SELECTION SORT', complexity: 'O(n\u00B2)', desc: 'Finds minimum each pass, places it at the start.' },
   insertion: { name: 'INSERTION SORT', complexity: 'O(n\u00B2)', desc: 'Inserts each element into its correct position.' },
   heap:      { name: 'HEAP SORT',     complexity: 'O(n log n)', desc: 'Builds a max heap, then extracts elements.' },
@@ -200,7 +206,7 @@ function getStepsThisFrame() {
 function updateTheme() {
   const key = getAlgoKey();
   // Les tris absurdes ont leur propre theme, les classiques utilisent default
-  const absurdThemes = ['trump', 'thanos', 'communism', 'stalin', 'hitler', 'diddy', 'epstein', 'sort67', 'nineEleven', 'unsort', 'bogo', 'sigma', 'gaza', 'french', 'gamble', 'adhd', 'autism', 'magician', 'drug'];
+  const absurdThemes = ['trump', 'thanos', 'communism', 'stalin', 'hitler', 'diddy', 'epstein', 'sort67', 'nineEleven', 'unsort', 'bogo', 'sigma', 'gaza', 'french', 'gamble', 'adhd', 'autism', 'magician', 'drug', 'pong', 'claude', 'chatgpt'];
   renderer.theme = absurdThemes.includes(key) ? key : 'default';
 }
 
@@ -296,6 +302,9 @@ const ANIMATION_METAS = new Set([
   'inspecting', 'mark_star', 'deporting',
   'taking_drugs', 'tripping', 'peak', 'comedown', 'flipped',
   'sober',
+  'pong_start', 'pong_rally', 'pong_score',
+  'claude_prompt', 'claude_response', 'claude_thinking', 'claude_no_tokens', 'claude_done',
+  'gpt_typing', 'gpt_pause', 'gpt_done',
 ]);
 
 function animateSort() {
@@ -406,6 +415,24 @@ function drawSpecialEffects(step) {
       renderer.drawConfetti(step.confettiFrame || 0);
       if (step.confettiFrame === 0) sonifier.playTadaa();
     }
+  }
+
+  // Pong: balle et paddles
+  if (key === 'pong' && step.meta === 'pong_rally') {
+    renderer.drawPong(step.ballX, step.ballY, step.leftPaddle, step.rightPaddle, data);
+  }
+
+  // Claude: prompts et reponses
+  if (key === 'claude') {
+    if (step.meta === 'claude_prompt') renderer.drawClaudePrompt(step.prompt, step.typingFrame);
+    if (step.meta === 'claude_response') renderer.drawClaudeResponse(step.response, step.typingFrame);
+    if (step.meta === 'claude_no_tokens') renderer.drawClaudeNoTokens(step.tokenFrame);
+    if (step.meta === 'claude_done') renderer.drawClaudeDone();
+  }
+
+  // ChatGPT: texte avec emojis
+  if (key === 'chatgpt') {
+    if (step.meta === 'gpt_typing' || step.meta === 'gpt_done') renderer.drawChatGPT(step.allLines, step.typingFrame);
   }
 
   // Drug: effets psychedeliques

@@ -1157,6 +1157,199 @@ export class Renderer {
     ctx.restore();
   }
 
+  // Pong Sort — jeu de pong entre 2 barres
+  drawPong(ballX, ballY, leftIdx, rightIdx, data) {
+    const { ctx, width, height } = this;
+    if (!data || data.length === 0) return;
+    const n = data.length;
+    const barWidth = width / n;
+
+    ctx.save();
+    // Terrain de pong (ligne centrale)
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([10, 10]);
+    const centerX = (leftIdx * barWidth + (rightIdx + 1) * barWidth) / 2;
+    ctx.beginPath();
+    ctx.moveTo(centerX, height * 0.15);
+    ctx.lineTo(centerX, height * 0.85);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Balle carree
+    const bx = leftIdx * barWidth + ballX * ((rightIdx - leftIdx + 1) * barWidth);
+    const by = height * ballY;
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(bx - 8, by - 8, 16, 16);
+
+    ctx.restore();
+  }
+
+  // Claude Sort — prompt/reponse
+  drawClaudePrompt(prompt, frame) {
+    const { ctx, width, height } = this;
+    ctx.save();
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+    ctx.fillRect(0, 0, width, height);
+
+    // Prompt (user)
+    ctx.fillStyle = 'rgba(210, 150, 100, 0.15)';
+    ctx.beginPath();
+    ctx.roundRect(40, height * 0.3, width - 80, 80, 12);
+    ctx.fill();
+
+    const chars = Math.min(prompt.length, Math.floor(frame / 15 * prompt.length));
+    ctx.font = '28px "Courier New", monospace';
+    ctx.fillStyle = '#DDBB88';
+    ctx.textAlign = 'left';
+    ctx.fillText('> ' + prompt.slice(0, chars), 60, height * 0.3 + 45);
+
+    // Cursor clignotant
+    if (frame % 10 < 5) {
+      const tw = ctx.measureText('> ' + prompt.slice(0, chars)).width;
+      ctx.fillRect(60 + tw + 2, height * 0.3 + 28, 12, 24);
+    }
+
+    ctx.restore();
+  }
+
+  drawClaudeResponse(response, frame) {
+    const { ctx, width, height } = this;
+    ctx.save();
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+    ctx.fillRect(0, 0, width, height);
+
+    // Reponse (Claude)
+    ctx.fillStyle = 'rgba(200, 120, 60, 0.1)';
+    ctx.beginPath();
+    ctx.roundRect(40, height * 0.4, width - 80, 120, 12);
+    ctx.fill();
+
+    // Logo Claude
+    ctx.font = 'bold 24px "Segoe UI", sans-serif';
+    ctx.fillStyle = '#DD8844';
+    ctx.textAlign = 'left';
+    ctx.fillText('Claude:', 60, height * 0.4 + 30);
+
+    const chars = Math.min(response.length, Math.floor(frame / 20 * response.length));
+    ctx.font = '22px "Segoe UI", sans-serif';
+    ctx.fillStyle = '#CCAA88';
+
+    // Word wrap
+    const words = response.slice(0, chars).split(' ');
+    let line = '';
+    let y = height * 0.4 + 60;
+    for (const word of words) {
+      const test = line ? line + ' ' + word : word;
+      if (ctx.measureText(test).width > width - 140) {
+        ctx.fillText(line, 60, y);
+        line = word;
+        y += 28;
+      } else {
+        line = test;
+      }
+    }
+    if (line) ctx.fillText(line, 60, y);
+
+    ctx.restore();
+  }
+
+  drawClaudeNoTokens(frame) {
+    const { ctx, width, height } = this;
+    ctx.save();
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+    ctx.fillRect(0, 0, width, height);
+
+    // Token counter qui descend
+    const tokens = Math.max(0, 100000 - frame * 3500);
+    ctx.font = 'bold 36px "Courier New", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = tokens > 20000 ? '#888888' : tokens > 5000 ? '#FF8800' : '#FF0000';
+    ctx.fillText(`Tokens: ${tokens.toLocaleString()}`, width / 2, height * 0.35);
+
+    // Barre de tokens
+    const barW = width * 0.6;
+    const progress = tokens / 100000;
+    ctx.fillStyle = 'rgba(255,255,255,0.1)';
+    ctx.beginPath();
+    ctx.roundRect(width * 0.2, height * 0.4, barW, 16, 8);
+    ctx.fill();
+    ctx.fillStyle = tokens > 20000 ? '#666666' : '#FF4444';
+    ctx.beginPath();
+    ctx.roundRect(width * 0.2, height * 0.4, barW * progress, 16, 8);
+    ctx.fill();
+
+    if (tokens === 0) {
+      ctx.font = 'bold 48px "Segoe UI", sans-serif';
+      ctx.fillStyle = '#FF4444';
+      ctx.fillText('TOKEN LIMIT REACHED', width / 2, height * 0.55);
+    }
+
+    ctx.restore();
+  }
+
+  drawClaudeDone() {
+    const { ctx, width, height } = this;
+    ctx.save();
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.font = 'bold 42px "Segoe UI", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#DD8844';
+    ctx.fillText('Array is "sorted"', width / 2, height * 0.4);
+
+    ctx.font = '28px "Segoe UI", sans-serif';
+    ctx.fillStyle = '#886644';
+    ctx.fillText('(it\'s not)', width / 2, height * 0.48);
+
+    ctx.font = 'italic 22px "Segoe UI", sans-serif';
+    ctx.fillStyle = '#554433';
+    ctx.fillText('- Claude, 2026', width / 2, height * 0.56);
+
+    ctx.restore();
+  }
+
+  // ChatGPT Sort — texte avec emojis
+  drawChatGPT(lines, typingFrame) {
+    const { ctx, width, height } = this;
+    if (!lines) return;
+    ctx.save();
+
+    ctx.fillStyle = '#343541';
+    ctx.fillRect(0, 0, width, height);
+
+    // Header ChatGPT
+    ctx.fillStyle = '#444654';
+    ctx.fillRect(0, 0, width, 60);
+    ctx.font = 'bold 28px "Segoe UI", sans-serif';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.textAlign = 'center';
+    ctx.fillText('ChatGPT', width / 2, 38);
+
+    // Lignes de texte
+    ctx.font = '22px "Segoe UI", sans-serif';
+    ctx.textAlign = 'left';
+    const startY = 90;
+    const lineH = 30;
+    const maxLines = Math.floor((height - 100) / lineH);
+    const visibleLines = lines.filter(l => l !== '').slice(-maxLines);
+
+    for (let i = 0; i < visibleLines.length; i++) {
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      const text = visibleLines[i];
+      // Tronquer si trop long
+      const maxW = width - 80;
+      let display = text;
+      while (ctx.measureText(display).width > maxW && display.length > 0) {
+        display = display.slice(0, -1);
+      }
+      ctx.fillText(display, 40, startY + i * lineH);
+    }
+
+    ctx.restore();
+  }
+
   // Drug Sort — effets psychedeliques
   drawTrip(data, frame, intensity) {
     const { ctx, width, height } = this;
