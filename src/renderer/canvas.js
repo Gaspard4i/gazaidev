@@ -1157,30 +1157,69 @@ export class Renderer {
     ctx.restore();
   }
 
-  // Pong Sort — jeu de pong entre 2 barres
-  drawPong(ballX, ballY, leftIdx, rightIdx, data) {
+  // Pong Sort — vrai terrain de pong plein ecran
+  drawPongGame(ballX, ballY, padLY, padRY, scoreL, scoreR) {
     const { ctx, width, height } = this;
-    if (!data || data.length === 0) return;
-    const n = data.length;
-    const barWidth = width / n;
-
     ctx.save();
-    // Terrain de pong (ligne centrale)
+
+    // Fond noir
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, width, height);
+
+    // Ligne centrale pointillee
     ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-    ctx.lineWidth = 2;
-    ctx.setLineDash([10, 10]);
-    const centerX = (leftIdx * barWidth + (rightIdx + 1) * barWidth) / 2;
+    ctx.lineWidth = 4;
+    ctx.setLineDash([20, 15]);
     ctx.beginPath();
-    ctx.moveTo(centerX, height * 0.15);
-    ctx.lineTo(centerX, height * 0.85);
+    ctx.moveTo(width / 2, 0);
+    ctx.lineTo(width / 2, height);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Balle carree
-    const bx = leftIdx * barWidth + ballX * ((rightIdx - leftIdx + 1) * barWidth);
-    const by = height * ballY;
+    // Paddles
+    const padW = 20;
+    const padH = height * 0.12;
+    // Gauche
     ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(bx - 8, by - 8, 16, 16);
+    ctx.fillRect(40, padLY * height - padH / 2, padW, padH);
+    // Droite
+    ctx.fillRect(width - 40 - padW, padRY * height - padH / 2, padW, padH);
+
+    // Balle carree
+    const ballSize = 20;
+    ctx.fillRect(ballX * width - ballSize / 2, ballY * height - ballSize / 2, ballSize, ballSize);
+
+    // Score
+    ctx.font = 'bold 80px "Courier New", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.fillText(String(scoreL || 0), width * 0.3, 120);
+    ctx.fillText(String(scoreR || 0), width * 0.7, 120);
+
+    ctx.restore();
+  }
+
+  drawPongGameOver(winner, scoreL, scoreR) {
+    const { ctx, width, height } = this;
+    ctx.save();
+
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, width, height);
+
+    // Score final
+    ctx.font = 'bold 100px "Courier New", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText(`${scoreL} - ${scoreR}`, width / 2, height * 0.4);
+
+    // Gagnant
+    ctx.font = 'bold 48px "Segoe UI", sans-serif';
+    ctx.fillStyle = '#FFD700';
+    ctx.fillText(winner === 'left' ? 'LEFT WINS!' : 'RIGHT WINS!', width / 2, height * 0.52);
+
+    ctx.font = '32px "Segoe UI", sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fillText('Now sorting the 3 entities...', width / 2, height * 0.6);
 
     ctx.restore();
   }

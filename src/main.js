@@ -302,7 +302,7 @@ const ANIMATION_METAS = new Set([
   'inspecting', 'mark_star', 'deporting',
   'taking_drugs', 'tripping', 'peak', 'comedown', 'flipped',
   'sober',
-  'pong_start', 'pong_rally', 'pong_score',
+  'pong_play', 'pong_score_l', 'pong_score_r', 'pong_gameover', 'pong_sort_final', 'pong_sorted',
   'claude_prompt', 'claude_response', 'claude_thinking', 'claude_no_tokens', 'claude_done',
   'gpt_typing', 'gpt_pause', 'gpt_done',
 ]);
@@ -417,9 +417,17 @@ function drawSpecialEffects(step) {
     }
   }
 
-  // Pong: balle et paddles
-  if (key === 'pong' && step.meta === 'pong_rally') {
-    renderer.drawPong(step.ballX, step.ballY, step.leftPaddle, step.rightPaddle, data);
+  // Pong: vrai jeu de pong
+  if (key === 'pong') {
+    if (step.meta === 'pong_play') {
+      renderer.drawPongGame(step.ballX, step.ballY, step.padLY, step.padRY, step.scoreL, step.scoreR);
+    }
+    if (step.meta === 'pong_score_l' || step.meta === 'pong_score_r') {
+      renderer.drawPongGame(0.5, 0.5, 0.5, 0.5, step.scoreL, step.scoreR);
+    }
+    if (step.meta === 'pong_gameover') {
+      renderer.drawPongGameOver(step.winner, step.scoreL, step.scoreR);
+    }
   }
 
   // Claude: prompts et reponses
