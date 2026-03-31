@@ -1545,10 +1545,11 @@ export class Renderer {
     ctx.fillText(`BARS ${stats.bars !== undefined ? stats.bars : '?'}`, 35, 308);
 
     if (stats.progress !== undefined) {
-      const barY = height - 20;
+      // Safe zone: pas dans les 20% du bas (TikTok captions)
+      const barY = height * 0.78;
       const barH = 6;
       const margin = 30;
-      const totalW = width - margin * 2;
+      const totalW = width * 0.85 - margin; // pas dans les 10% a droite
 
       ctx.fillStyle = COLORS.progressBg;
       ctx.beginPath();

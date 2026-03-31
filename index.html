@@ -2,229 +2,204 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Gazaidev — Algo Visualizer</title>
   <style>
     :root {
-      --bg: #FBF6EE;
-      --bg-card: #F5F0E8;
+      --bg: #0a0a0a;
+      --bg-card: #161616;
       --orange: #E8621F;
       --orange-soft: #F09A56;
       --navy: #1B3A5C;
       --sky: #A8C8E0;
-      --sky-light: #D4E4F0;
-      --cream: #FBF6EE;
-      --ink: #2A2A2A;
-      --ink-soft: #5C5C5C;
-      --white: #FFFFFF;
-      --stripe: repeating-linear-gradient(
-        0deg, transparent, transparent 3px, rgba(168,200,224,0.2) 3px, rgba(168,200,224,0.2) 4px
-      );
+      --cream: #F5F0E8;
+      --ink: #E0E0E0;
+      --ink-soft: #888888;
+      --border: #2a2a2a;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; overflow: hidden; }
     body {
       background: var(--bg);
-      background-image: var(--stripe);
       color: var(--ink);
-      font-family: 'Georgia', 'Palatino', serif;
+      font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-      padding: 24px;
+      height: 100vh;
     }
-    h1 {
-      color: var(--orange);
-      font-size: 1.6rem;
-      margin-bottom: 14px;
-      letter-spacing: 3px;
-      font-weight: 700;
-      text-shadow: 2px 2px 0 rgba(232,98,31,0.15);
-    }
-    .controls {
+
+    /* Canvas prend tout l'espace disponible */
+    .canvas-wrap {
+      flex: 1;
       display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
+      align-items: center;
       justify-content: center;
-      margin-bottom: 14px;
-      background: var(--bg-card);
-      padding: 12px 18px;
-      border-radius: 12px;
-      border: 2px solid var(--sky);
-      box-shadow: 3px 3px 0 var(--sky-light);
-    }
-    button, select {
-      background: var(--navy);
-      color: var(--cream);
-      border: 2px solid var(--navy);
-      padding: 8px 18px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.85rem;
-      font-family: 'Georgia', serif;
-      font-weight: 600;
-      transition: all 0.15s;
-      box-shadow: 2px 2px 0 rgba(27,58,92,0.2);
-    }
-    button:hover, select:hover {
-      background: var(--sky);
-      color: var(--navy);
-      border-color: var(--navy);
-      transform: translateY(-1px);
-      box-shadow: 3px 3px 0 rgba(27,58,92,0.25);
-    }
-    button.rec {
-      background: var(--orange);
-      border-color: var(--orange);
-      box-shadow: 2px 2px 0 rgba(232,98,31,0.3);
-    }
-    button.rec:hover {
-      background: var(--orange-soft);
-      color: var(--white);
-      border-color: var(--orange);
-    }
-    button.rec.recording {
-      background: #C0392B;
-      border-color: #C0392B;
-      animation: pulse 1s infinite;
-    }
-    select optgroup { font-style: italic; color: var(--ink-soft); }
-    select option { font-style: normal; color: var(--ink); }
-    button.active {
-      background: var(--orange);
-      border-color: var(--orange);
-    }
-    button.active:hover {
-      background: var(--orange-soft);
-      border-color: var(--orange);
-      color: var(--white);
-    }
-    @keyframes pulse { 50% { opacity: 0.7; } }
-    .speed-control {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--navy);
-      font-size: 0.8rem;
-      font-weight: 600;
-    }
-    input[type="range"] {
-      width: 80px;
-      accent-color: var(--orange);
-    }
-    input[type="number"] {
-      width: 60px;
-      background: var(--navy);
-      color: var(--cream);
-      border: 2px solid var(--navy);
-      border-radius: 6px;
-      padding: 4px 6px;
-      font-family: 'Georgia', serif;
-      font-size: 0.85rem;
-      text-align: center;
+      overflow: hidden;
+      position: relative;
     }
     canvas {
-      border: 3px solid var(--navy);
-      border-radius: 10px;
-      max-height: 70vh;
-      box-shadow: 4px 4px 0 var(--sky);
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
     }
-    .status {
-      margin-top: 10px;
-      font-size: 0.8rem;
+
+    /* Panel de controles en bas — compact */
+    .panel {
+      background: var(--bg-card);
+      border-top: 1px solid var(--border);
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .panel-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    select, button {
+      background: var(--bg);
+      color: var(--ink);
+      border: 1px solid var(--border);
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      font-family: -apple-system, system-ui, sans-serif;
+      transition: all 0.1s;
+    }
+    select { flex: 1; min-width: 0; }
+    button:hover { background: var(--navy); border-color: var(--navy); }
+    button:active { transform: scale(0.96); }
+
+    button.rec { background: #CC0000; border-color: #CC0000; color: white; }
+    button.rec.recording { animation: pulse 1s infinite; }
+    button.active { background: var(--orange); border-color: var(--orange); color: white; }
+    @keyframes pulse { 50% { opacity: 0.6; } }
+
+    select optgroup { font-weight: 600; }
+
+    .ctrl-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.7rem;
       color: var(--ink-soft);
-      font-style: italic;
+    }
+    input[type="number"] {
+      width: 50px;
+      background: var(--bg);
+      color: var(--ink);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 4px;
+      font-size: 0.75rem;
+      text-align: center;
+    }
+
+    .status {
+      font-size: 0.65rem;
+      color: var(--ink-soft);
+      text-align: center;
     }
   </style>
 </head>
 <body>
-  <h1>GAZAIDEV</h1>
-  <div class="controls">
-    <select id="algo-select">
-      <optgroup label="Classiques O(n\u00B2)">
-        <option value="bubble">Bubble Sort</option>
-        <option value="selection">Selection Sort</option>
-        <option value="insertion">Insertion Sort</option>
-        <option value="cocktail">Cocktail Sort</option>
-        <option value="gnome">Gnome Sort</option>
-        <option value="oddEven">Odd-Even Sort</option>
-        <option value="cycle">Cycle Sort</option>
-        <option value="pancake">Pancake Sort</option>
-      </optgroup>
-      <optgroup label="Performants O(n log n)">
-        <option value="quick">Quick Sort</option>
-        <option value="merge">Merge Sort</option>
-        <option value="heap">Heap Sort</option>
-        <option value="shell">Shell Sort</option>
-        <option value="comb">Comb Sort</option>
-        <option value="tim">Tim Sort</option>
-        <option value="dualPivot">Dual Pivot QS</option>
-        <option value="bitonic">Bitonic Sort</option>
-        <option value="patience">Patience Sort</option>
-      </optgroup>
-      <optgroup label="Lineaires O(n)">
-        <option value="counting">Counting Sort</option>
-        <option value="radix">Radix Sort</option>
-        <option value="bucket">Bucket Sort</option>
-      </optgroup>
-      <optgroup label="Exotiques">
-        <option value="stooge">Stooge Sort</option>
-        <option value="slow">Slow Sort</option>
-        <option value="sleep">Sleep Sort</option>
-        <option value="strand">Strand Sort</option>
-        <option value="bogo">Bogo Sort</option>
-        <option value="unsort">Unsort</option>
-      </optgroup>
-      <optgroup label="Absurdes">
-        <option value="thanos">Thanos Sort</option>
-        <option value="stalin">Stalin Sort</option>
-        <option value="communism">Communism Sort</option>
-        <option value="sort67">67 Sort</option>
-        <option value="trump">Trump Sort</option>
-        <option value="hitler">Hitler Sort</option>
-        <option value="diddy">Diddy Sort</option>
-        <option value="epstein">Epstein Sort</option>
-        <option value="nineEleven">9/11 Sort</option>
-        <option value="unsort">Unsort</option>
-        <option value="bogo">Bogo Sort</option>
-        <option value="sigma">Sigma Sort</option>
-        <option value="gaza">Gaza Sort</option>
-        <option value="french">French Sort</option>
-        <option value="gamble">Gamble Sort</option>
-        <option value="adhd">ADHD Sort</option>
-        <option value="autism">Autism Sort</option>
-        <option value="magician">Magician Sort</option>
-        <option value="drug">Drug Sort</option>
-        <option value="pong">Pong Sort</option>
-        <option value="claude">Claude Sort</option>
-        <option value="chatgpt">ChatGPT Sort</option>
-      </optgroup>
-    </select>
-    <select id="mode-select">
-      <option value="single">Solo</option>
-      <option value="race">Race</option>
-    </select>
-    <button id="btn-start">Play</button>
-    <button id="btn-reset">Reset</button>
-    <button id="btn-rec" class="rec">REC</button>
-    <button id="btn-loop">Loop</button>
-    <button id="btn-rainbow">Rainbow</button>
-    <div class="speed-control">
-      <label for="speed">Vitesse</label>
-      <input type="number" id="speed" min="0.1" max="100" value="1" step="0.1">
-    </div>
-    <select id="speed-mode">
-      <option value="stable">Stable</option>
-      <option value="accelerate">Croissante</option>
-      <option value="decelerate">Decroissante</option>
-    </select>
-    <div class="speed-control">
-      <label for="bars">Barres</label>
-      <input type="number" id="bars" min="3" max="500" value="80" step="1">
-    </div>
+
+  <div class="canvas-wrap">
+    <canvas id="canvas" width="1080" height="1920"></canvas>
   </div>
-  <canvas id="canvas" width="1080" height="1920"></canvas>
-  <div class="status" id="status">Pret</div>
+
+  <div class="panel">
+    <div class="panel-row">
+      <select id="algo-select">
+        <optgroup label="O(n²) — Classiques">
+          <option value="bubble">Bubble Sort</option>
+          <option value="selection">Selection Sort</option>
+          <option value="insertion">Insertion Sort</option>
+          <option value="cocktail">Cocktail Sort</option>
+          <option value="gnome">Gnome Sort</option>
+          <option value="oddEven">Odd-Even Sort</option>
+          <option value="cycle">Cycle Sort</option>
+          <option value="pancake">Pancake Sort</option>
+        </optgroup>
+        <optgroup label="O(n log n) — Performants">
+          <option value="quick">Quick Sort</option>
+          <option value="merge">Merge Sort</option>
+          <option value="heap">Heap Sort</option>
+          <option value="shell">Shell Sort</option>
+          <option value="comb">Comb Sort</option>
+          <option value="tim">Tim Sort</option>
+          <option value="dualPivot">Dual Pivot QS</option>
+          <option value="bitonic">Bitonic Sort</option>
+          <option value="patience">Patience Sort</option>
+        </optgroup>
+        <optgroup label="O(n) — Lineaires">
+          <option value="counting">Counting Sort</option>
+          <option value="radix">Radix Sort</option>
+          <option value="bucket">Bucket Sort</option>
+        </optgroup>
+        <optgroup label="Exotiques">
+          <option value="stooge">Stooge Sort</option>
+          <option value="slow">Slow Sort</option>
+          <option value="sleep">Sleep Sort</option>
+          <option value="strand">Strand Sort</option>
+          <option value="bogo">Bogo Sort</option>
+          <option value="unsort">Unsort</option>
+        </optgroup>
+        <optgroup label="Absurdes">
+          <option value="thanos">Thanos Sort</option>
+          <option value="stalin">Stalin Sort</option>
+          <option value="communism">Communism Sort</option>
+          <option value="sort67">67 Sort</option>
+          <option value="trump">Trump Sort</option>
+          <option value="hitler">Hitler Sort</option>
+          <option value="diddy">Diddy Sort</option>
+          <option value="epstein">Epstein Sort</option>
+          <option value="nineEleven">9/11 Sort</option>
+          <option value="sigma">Sigma Sort</option>
+          <option value="gaza">Gaza Sort</option>
+          <option value="french">French Sort</option>
+          <option value="gamble">Gamble Sort</option>
+          <option value="adhd">ADHD Sort</option>
+          <option value="autism">Autism Sort</option>
+          <option value="magician">Magician Sort</option>
+          <option value="drug">Drug Sort</option>
+          <option value="pong">Pong Sort</option>
+          <option value="claude">Claude Sort</option>
+          <option value="chatgpt">ChatGPT Sort</option>
+        </optgroup>
+      </select>
+      <button id="btn-start">Play</button>
+      <button id="btn-reset">Reset</button>
+      <button id="btn-rec" class="rec">REC</button>
+    </div>
+    <div class="panel-row">
+      <button id="btn-loop">Loop</button>
+      <button id="btn-rainbow">Rainbow</button>
+      <select id="speed-mode">
+        <option value="stable">Stable</option>
+        <option value="accelerate">Accelere</option>
+        <option value="decelerate">Ralentit</option>
+      </select>
+      <div class="ctrl-group">
+        <label>Spd</label>
+        <input type="number" id="speed" min="0.1" max="100" value="1" step="0.1">
+      </div>
+      <div class="ctrl-group">
+        <label>Bars</label>
+        <input type="number" id="bars" min="3" max="500" value="80" step="1">
+      </div>
+    </div>
+    <div class="status" id="status">Pret</div>
+  </div>
+
+  <select id="mode-select" style="display:none">
+    <option value="single">Solo</option>
+    <option value="race">Race</option>
+  </select>
 
   <script type="module" src="src/main.js"></script>
 </body>
