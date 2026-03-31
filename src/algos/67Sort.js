@@ -29,10 +29,22 @@ export function* sort67(arr) {
   yield { type: 'swap', indices: [0], values: [6], meta: 'force' };
   yield { type: 'swap', indices: [1], values: [7], meta: 'force' };
 
-  // Phase 3 : echanger 6 et 7 quatre fois d'affilee
+  // Pause — contempler le 6 et le 7
+  for (let f = 0; f < 40; f++) {
+    yield { type: 'compare', indices: [0, 1], meta: 'admire' };
+  }
+
+  // Phase 3 : echanger 6 et 7 quatre fois d'affilee, lentement
   for (let round = 0; round < 4; round++) {
-    yield { type: 'compare', indices: [0, 1], meta: 'evaluate' };
+    // Pause avant chaque echange
+    for (let f = 0; f < 20; f++) {
+      yield { type: 'compare', indices: [0, 1], meta: 'evaluate' };
+    }
     [arr[0], arr[1]] = [arr[1], arr[0]];
     yield { type: 'swap', indices: [0, 1], values: [arr[0], arr[1]], meta: 'force' };
+    // Pause apres chaque echange
+    for (let f = 0; f < 15; f++) {
+      yield { type: 'compare', indices: [0, 1], meta: 'admire' };
+    }
   }
 }

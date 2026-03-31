@@ -1283,6 +1283,9 @@ export class Renderer {
       ctx.font = 'bold 48px "Segoe UI", sans-serif';
       ctx.fillStyle = '#FF4444';
       ctx.fillText('TOKEN LIMIT REACHED', width / 2, height * 0.55);
+      ctx.font = '26px "Segoe UI", sans-serif';
+      ctx.fillStyle = '#AA6644';
+      ctx.fillText('Please try again in 5 years', width / 2, height * 0.62);
     }
 
     ctx.restore();
