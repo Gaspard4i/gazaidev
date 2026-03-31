@@ -341,9 +341,8 @@ function animateSort() {
       break;
     }
 
-    // Si c'est un step d'animation et que la vitesse est basse,
-    // on s'arrete apres 1 step pour pas skipper l'animation
-    if (lastStep.meta && ANIMATION_METAS.has(lastStep.meta) && stepsPerFrame <= 1) {
+    // Les steps d'animation s'executent toujours 1 par 1 (jamais skippes)
+    if (lastStep.meta && ANIMATION_METAS.has(lastStep.meta)) {
       break;
     }
   }
@@ -438,8 +437,9 @@ function drawSpecialEffects(step) {
 
   // Claude: prompts et reponses
   if (key === 'claude') {
-    if (step.meta === 'claude_prompt') renderer.drawClaudePrompt(step.prompt, step.typingFrame);
-    if (step.meta === 'claude_response') renderer.drawClaudeResponse(step.response, step.typingFrame);
+    if (step.meta === 'claude_prompt') renderer.drawClaudePrompt(step.prompt, step.typingFrame, step.totalChars);
+    if (step.meta === 'claude_thinking') renderer.drawClaudePrompt(step.prompt, 9999, step.prompt ? step.prompt.length : 0);
+    if (step.meta === 'claude_response') renderer.drawClaudeResponse(step.prompt, step.response, step.typingFrame, step.totalChars);
     if (step.meta === 'claude_no_tokens') renderer.drawClaudeNoTokens(step.tokenFrame);
     if (step.meta === 'claude_done') renderer.drawClaudeDone();
   }

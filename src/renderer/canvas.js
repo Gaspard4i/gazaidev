@@ -1437,70 +1437,110 @@ export class Renderer {
   }
 
   // Claude Sort — prompt/reponse
-  drawClaudePrompt(prompt, frame) {
+  drawClaudePrompt(prompt, frame, totalChars) {
     const { ctx, width, height } = this;
     ctx.save();
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+    ctx.fillStyle = '#2A1A0A';
     ctx.fillRect(0, 0, width, height);
 
-    // Prompt (user)
-    ctx.fillStyle = 'rgba(210, 150, 100, 0.15)';
+    // Header Claude
+    ctx.fillStyle = '#3A2515';
+    ctx.fillRect(0, 0, width, 55);
+    ctx.font = 'bold 26px "Segoe UI", sans-serif';
+    ctx.fillStyle = '#DD8844';
+    ctx.textAlign = 'center';
+    ctx.fillText('Claude', width / 2, 36);
+
+    // Prompt (user) — lettre par lettre
+    ctx.fillStyle = 'rgba(210, 150, 100, 0.1)';
     ctx.beginPath();
-    ctx.roundRect(40, height * 0.3, width - 80, 80, 12);
+    ctx.roundRect(30, height * 0.35, width - 60, 80, 12);
     ctx.fill();
 
-    const chars = Math.min(prompt.length, Math.floor(frame / 15 * prompt.length));
-    ctx.font = '28px "Courier New", monospace';
-    ctx.fillStyle = '#DDBB88';
+    ctx.font = 'bold 18px "Segoe UI", sans-serif';
+    ctx.fillStyle = '#AA8866';
     ctx.textAlign = 'left';
-    ctx.fillText('> ' + prompt.slice(0, chars), 60, height * 0.3 + 45);
+    ctx.fillText('You', 50, height * 0.35 + 25);
 
-    // Cursor clignotant
-    if (frame % 10 < 5) {
-      const tw = ctx.measureText('> ' + prompt.slice(0, chars)).width;
-      ctx.fillRect(60 + tw + 2, height * 0.3 + 28, 12, 24);
+    const chars = Math.min(totalChars || prompt.length, frame * 2);
+    ctx.font = '26px "Courier New", monospace';
+    ctx.fillStyle = '#DDBB88';
+    ctx.fillText(prompt.slice(0, chars), 50, height * 0.35 + 58);
+
+    // Cursor
+    if (chars < (totalChars || prompt.length) && frame % 8 < 4) {
+      const tw = ctx.measureText(prompt.slice(0, chars)).width;
+      ctx.fillRect(50 + tw + 2, height * 0.35 + 40, 14, 22);
     }
 
     ctx.restore();
   }
 
-  drawClaudeResponse(response, frame) {
+  drawClaudeResponse(prompt, response, frame, totalChars) {
     const { ctx, width, height } = this;
     ctx.save();
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+    ctx.fillStyle = '#2A1A0A';
     ctx.fillRect(0, 0, width, height);
 
-    // Reponse (Claude)
-    ctx.fillStyle = 'rgba(200, 120, 60, 0.1)';
+    // Header
+    ctx.fillStyle = '#3A2515';
+    ctx.fillRect(0, 0, width, 55);
+    ctx.font = 'bold 26px "Segoe UI", sans-serif';
+    ctx.fillStyle = '#DD8844';
+    ctx.textAlign = 'center';
+    ctx.fillText('Claude', width / 2, 36);
+
+    // Prompt complet (en haut)
+    ctx.fillStyle = 'rgba(210, 150, 100, 0.08)';
     ctx.beginPath();
-    ctx.roundRect(40, height * 0.4, width - 80, 120, 12);
+    ctx.roundRect(30, 75, width - 60, 65, 10);
+    ctx.fill();
+    ctx.font = 'bold 16px "Segoe UI", sans-serif';
+    ctx.fillStyle = '#887766';
+    ctx.textAlign = 'left';
+    ctx.fillText('You', 50, 95);
+    ctx.font = '20px "Courier New", monospace';
+    ctx.fillStyle = '#AA9977';
+    ctx.fillText(prompt, 50, 120);
+
+    // Reponse Claude — lettre par lettre
+    ctx.fillStyle = 'rgba(200, 120, 60, 0.08)';
+    ctx.beginPath();
+    ctx.roundRect(30, 160, width - 60, 180, 12);
     ctx.fill();
 
-    // Logo Claude
-    ctx.font = 'bold 24px "Segoe UI", sans-serif';
+    ctx.font = 'bold 18px "Segoe UI", sans-serif';
     ctx.fillStyle = '#DD8844';
     ctx.textAlign = 'left';
-    ctx.fillText('Claude:', 60, height * 0.4 + 30);
+    ctx.fillText('Claude', 50, 185);
 
-    const chars = Math.min(response.length, Math.floor(frame / 20 * response.length));
-    ctx.font = '22px "Segoe UI", sans-serif';
+    const chars = Math.min(totalChars || response.length, frame * 2);
+    ctx.font = '24px "Segoe UI", sans-serif';
     ctx.fillStyle = '#CCAA88';
 
     // Word wrap
-    const words = response.slice(0, chars).split(' ');
+    const maxW = width - 100;
+    const text = response.slice(0, chars);
+    const words = text.split(' ');
     let line = '';
-    let y = height * 0.4 + 60;
+    let y = 215;
     for (const word of words) {
       const test = line ? line + ' ' + word : word;
-      if (ctx.measureText(test).width > width - 140) {
-        ctx.fillText(line, 60, y);
+      if (ctx.measureText(test).width > maxW) {
+        ctx.fillText(line, 50, y);
         line = word;
-        y += 28;
+        y += 30;
       } else {
         line = test;
       }
     }
-    if (line) ctx.fillText(line, 60, y);
+    if (line) ctx.fillText(line, 50, y);
+
+    // Cursor
+    if (chars < (totalChars || response.length) && frame % 6 < 3) {
+      ctx.fillStyle = '#DD8844';
+      ctx.fillRect(50, y + 8, 12, 20);
+    }
 
     ctx.restore();
   }
@@ -1508,35 +1548,36 @@ export class Renderer {
   drawClaudeNoTokens(frame) {
     const { ctx, width, height } = this;
     ctx.save();
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+    ctx.fillStyle = '#2A1A0A';
     ctx.fillRect(0, 0, width, height);
 
-    // Token counter qui descend
-    const tokens = Math.max(0, 100000 - frame * 3500);
+    // Token counter qui descend lentement
+    const tokens = Math.max(0, 100000 - frame * 1300);
     ctx.font = 'bold 36px "Courier New", monospace';
     ctx.textAlign = 'center';
-    ctx.fillStyle = tokens > 20000 ? '#888888' : tokens > 5000 ? '#FF8800' : '#FF0000';
-    ctx.fillText(`Tokens: ${tokens.toLocaleString()}`, width / 2, height * 0.35);
+    ctx.fillStyle = tokens > 30000 ? '#888877' : tokens > 10000 ? '#FF8800' : '#FF4444';
+    ctx.fillText(`Tokens: ${tokens.toLocaleString()}`, width / 2, height * 0.32);
 
     // Barre de tokens
-    const barW = width * 0.6;
+    const barW = width * 0.65;
     const progress = tokens / 100000;
-    ctx.fillStyle = 'rgba(255,255,255,0.1)';
+    ctx.fillStyle = 'rgba(255,255,255,0.08)';
     ctx.beginPath();
-    ctx.roundRect(width * 0.2, height * 0.4, barW, 16, 8);
+    ctx.roundRect(width * 0.175, height * 0.37, barW, 20, 10);
     ctx.fill();
-    ctx.fillStyle = tokens > 20000 ? '#666666' : '#FF4444';
+    ctx.fillStyle = tokens > 30000 ? '#665544' : tokens > 10000 ? '#CC6600' : '#CC3333';
     ctx.beginPath();
-    ctx.roundRect(width * 0.2, height * 0.4, barW * progress, 16, 8);
+    ctx.roundRect(width * 0.175, height * 0.37, barW * progress, 20, 10);
     ctx.fill();
 
     if (tokens === 0) {
-      ctx.font = 'bold 48px "Segoe UI", sans-serif';
+      ctx.font = 'bold 44px "Segoe UI", sans-serif';
       ctx.fillStyle = '#FF4444';
-      ctx.fillText('TOKEN LIMIT REACHED', width / 2, height * 0.55);
-      ctx.font = '26px "Segoe UI", sans-serif';
+      ctx.fillText('TOKEN LIMIT', width / 2, height * 0.50);
+      ctx.fillText('REACHED', width / 2, height * 0.56);
+      ctx.font = '28px "Segoe UI", sans-serif';
       ctx.fillStyle = '#AA6644';
-      ctx.fillText('Please try again in 5 years', width / 2, height * 0.62);
+      ctx.fillText('Please try again in 5 years', width / 2, height * 0.65);
     }
 
     ctx.restore();
@@ -1545,21 +1586,21 @@ export class Renderer {
   drawClaudeDone() {
     const { ctx, width, height } = this;
     ctx.save();
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+    ctx.fillStyle = '#2A1A0A';
     ctx.fillRect(0, 0, width, height);
 
-    ctx.font = 'bold 42px "Segoe UI", sans-serif';
+    ctx.font = 'bold 44px "Segoe UI", sans-serif';
     ctx.textAlign = 'center';
     ctx.fillStyle = '#DD8844';
-    ctx.fillText('Array is "sorted"', width / 2, height * 0.4);
+    ctx.fillText('Array is "sorted"', width / 2, height * 0.40);
 
-    ctx.font = '28px "Segoe UI", sans-serif';
+    ctx.font = '30px "Segoe UI", sans-serif';
     ctx.fillStyle = '#886644';
     ctx.fillText('(it\'s not)', width / 2, height * 0.48);
 
-    ctx.font = 'italic 22px "Segoe UI", sans-serif';
+    ctx.font = 'italic 24px "Segoe UI", sans-serif';
     ctx.fillStyle = '#554433';
-    ctx.fillText('- Claude, 2026', width / 2, height * 0.56);
+    ctx.fillText('— Claude, 2026', width / 2, height * 0.56);
 
     ctx.restore();
   }
