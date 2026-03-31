@@ -1544,23 +1544,6 @@ export class Renderer {
     ctx.fillText(`SWAP ${stats.swaps.toLocaleString()}`, 35, 270);
     ctx.fillText(`BARS ${stats.bars !== undefined ? stats.bars : '?'}`, 35, 308);
 
-    if (stats.progress !== undefined) {
-      // Safe zone: pas dans les 20% du bas (TikTok captions)
-      const barY = height * 0.78;
-      const barH = 6;
-      const margin = 30;
-      const totalW = width * 0.85 - margin; // pas dans les 10% a droite
-
-      ctx.fillStyle = COLORS.progressBg;
-      ctx.beginPath();
-      ctx.roundRect(margin, barY, totalW, barH, 3);
-      ctx.fill();
-
-      ctx.fillStyle = COLORS.progressFill;
-      ctx.beginPath();
-      ctx.roundRect(margin, barY, totalW * Math.min(stats.progress, 1), barH, 3);
-      ctx.fill();
-    }
 
     ctx.restore();
   }
