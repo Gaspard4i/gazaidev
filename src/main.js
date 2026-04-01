@@ -49,6 +49,18 @@ import { sleepSort } from './algos/sleepSort.js';
 import { strandSort } from './algos/strandSort.js';
 import { patienceSort } from './algos/patienceSort.js';
 import { manualSort } from './algos/manualSort.js';
+import { skibidiSort } from './algos/skibidiSort.js';
+import { hawkTuahSort } from './algos/hawkTuahSort.js';
+import { rizzSort } from './algos/rizzSort.js';
+import { mewingSort } from './algos/mewingSort.js';
+import { ohioSort } from './algos/ohioSort.js';
+import { brainrotSort } from './algos/brainrotSort.js';
+import { fanumTaxSort } from './algos/fanumTaxSort.js';
+import { northKoreaSort } from './algos/northKoreaSort.js';
+import { ukraineSort } from './algos/ukraineSort.js';
+import { elonSort } from './algos/elonSort.js';
+import { npcSort } from './algos/npcSort.js';
+import { diddyIslandSort } from './algos/diddyIslandSort.js';
 
 // Preload Inter pour le canvas
 document.fonts.ready.then(() => {});
@@ -86,6 +98,11 @@ const ALGOS = {
   tim: timSort, dualPivot: dualPivotQuickSort, slow: slowSort,
   sleep: sleepSort, strand: strandSort, patience: patienceSort,
   manual: manualSort,
+  skibidi: skibidiSort, hawkTuah: hawkTuahSort, rizz: rizzSort,
+  mewing: mewingSort, ohio: ohioSort, brainrot: brainrotSort,
+  fanumTax: fanumTaxSort, northKorea: northKoreaSort,
+  ukraine: ukraineSort, elon: elonSort, npc: npcSort,
+  diddyIsland: diddyIslandSort,
 };
 const META = {
   bubble: {
@@ -280,6 +297,54 @@ const META = {
     name: 'Manual Sort', complexity: 'O(n\u00B2 fingers)', desc: 'A hand grabs each bar and slides it into place. Human-powered.',
     code: ['function manualSort(arr) {', '  for (let i = 1; i < arr.length; i++) {', '    hand.grab(arr[i])', '    while (i > 0 && arr[i-1] > arr[i])', '      hand.slideLeft(arr, i--)', '    hand.drop()', '  }', '}'],
   },
+  skibidi: {
+    name: 'Skibidi Sort', complexity: 'O(skibidi)', desc: 'Skibidi dop dop dop yes yes. Toilets flush unsorted bars.',
+    code: ['function skibidiSort(arr) {', '  skibidi_dop_dop_dop()', '  while (!sorted(arr))', '    for (let i of arr)', '      if (wrong(i)) toilet.flush(i)', '  return arr // yes yes', '}'],
+  },
+  hawkTuah: {
+    name: 'Hawk Tuah Sort', complexity: 'O(tuah)', desc: 'Spit on that thang. Each bar slides into place.',
+    code: ['function hawkTuahSort(arr) {', '  for (let i = 1; i < arr.length; i++) {', '    hawkTuah(arr[i]) // spit on it', '    while (i > 0 && arr[i-1] > arr[i])', '      slide(arr, i--) // slippery', '  }', '}'],
+  },
+  rizz: {
+    name: 'Rizz Sort', complexity: 'O(rizz)', desc: 'Each bar tries to rizz its neighbor. W rizz = swap. L rizz = rejected.',
+    code: ['function rizzSort(arr) {', '  while (!sorted(arr))', '    for (let i = 0; i < arr.length - 1; i++)', '      if (arr[i] > arr[i+1])', '        rizz(arr[i], arr[i+1]) // W', '      else', '        rejected() // L', '}'],
+  },
+  mewing: {
+    name: 'Mewing Sort', complexity: 'O(jawline)', desc: 'Bars mew to improve their position. Normies stay at the bottom.',
+    code: ['function mewingSort(arr) {', '  for (let i = 0; i < arr.length; i++) {', '    let chad = findMin(arr, i)', '    chad.mew() // jawline +100', '    swap(arr, i, chad)', '  } // moggers only', '}'],
+  },
+  ohio: {
+    name: 'Ohio Sort', complexity: 'O(ohio)', desc: 'Only in Ohio. Pure chaos, then somehow sorted.',
+    code: ['function ohioSort(arr) {', '  // phase 1: ohio', '  for (let i = 0; i < n*2; i++)', '    teleport(arr, rand(), rand())', '  // phase 2: ???', '  sort(arr) // only in ohio', '}'],
+  },
+  brainrot: {
+    name: 'Brainrot Sort', complexity: 'O(braincells)', desc: 'Skibidi rizz sigma fanum. Sorts one step between memes.',
+    code: ['function brainrotSort(arr) {', '  while (!sorted(arr)) {', '    for (let i = 0; i < arr.length; i++)', '      meme(random_brainrot())', '      if (arr[i] > arr[i+1])', '        swap(arr, i, i+1)', '  } // no braincells left', '}'],
+  },
+  fanumTax: {
+    name: 'Fanum Tax Sort', complexity: 'O(tax%)', desc: 'Takes a tax from each bar. They all shrink equally.',
+    code: ['function fanumTaxSort(arr) {', '  sort(arr) // normal sort', '  for (let round = 0; round < 3; round++)', '    for (let i of arr)', '      if (i > avg) i *= 0.8 // taxed', '  return arr // all equal now', '}'],
+  },
+  northKorea: {
+    name: 'North Korea Sort', complexity: 'O(juche)', desc: 'Bars march in formation. Out of order? Executed.',
+    code: ['function northKoreaSort(arr) {', '  let max = arr[0]', '  for (let i = 1; i < arr.length; i++)', '    if (arr[i] < max)', '      execute(arr[i]) // bye', '    else max = arr[i]', '  applause() // glory to leader', '}'],
+  },
+  ukraine: {
+    name: 'Ukraine Sort', complexity: 'O(resilience)', desc: 'Small bars resist with drones. Big bars get pushed back.',
+    code: ['function ukraineSort(arr) {', '  for (let i of arr)', '    if (big(i)) tank(i)', '    else drone(i) // resistance', '  for (let i = 1; i < arr.length; i++)', '    while (arr[i-1] > arr[i])', '      droneStrike(arr, i--)', '}'],
+  },
+  elon: {
+    name: 'Elon Sort', complexity: 'O($44B)', desc: 'Buys the array, fires 80%, renames to X. Sorted.',
+    code: ['function elonSort(arr) {', '  buy(arr, "$44B")', '  fire(arr, 0.8) // efficiency', '  rename(arr, "X Sort")', '  sort(remaining(arr))', '  tweet("best sort ever")', '}'],
+  },
+  npc: {
+    name: 'NPC Sort', complexity: 'O(npc)', desc: '"Hmm." "That\'s crazy." Accidentally sorts things.',
+    code: ['function npcSort(arr) {', '  while (!sorted(arr))', '    for (let i of arr) {', '      say("hmm")', '      say("that\'s crazy")', '      if (random()) swap(arr, i, i+1)', '    } // "interesting"', '}'],
+  },
+  diddyIsland: {
+    name: 'Island Sort', complexity: 'O(blackbook)', desc: 'Party on the island. Young bars vanish. The list doesn\'t exist.',
+    code: ['function islandSort(arr) {', '  sendInvites(arr)', '  for (let x of arr)', '    if (x < 14) disappear(x)', '  sort(remaining(arr))', '  coverUp() // no list exists', '}'],
+  },
 };
 const NUM_BARS = 20;
 
@@ -364,7 +429,7 @@ function getStepsThisFrame() {
 function updateTheme() {
   const key = getAlgoKey();
   // Les tris absurdes ont leur propre theme, les classiques utilisent default
-  const absurdThemes = ['trump', 'thanos', 'communism', 'stalin', 'hitler', 'diddy', 'epstein', 'sort67', 'nineEleven', 'unsort', 'bogo', 'sigma', 'gaza', 'french', 'gamble', 'adhd', 'autism', 'magician', 'drug', 'pong', 'claude', 'chatgpt', 'hiroshima'];
+  const absurdThemes = ['trump', 'thanos', 'communism', 'stalin', 'hitler', 'diddy', 'epstein', 'sort67', 'nineEleven', 'unsort', 'bogo', 'sigma', 'gaza', 'french', 'gamble', 'adhd', 'autism', 'magician', 'drug', 'pong', 'claude', 'chatgpt', 'hiroshima', 'manual', 'skibidi', 'hawkTuah', 'rizz', 'mewing', 'ohio', 'brainrot', 'fanumTax', 'northKorea', 'ukraine', 'elon', 'npc', 'diddyIsland'];
   renderer.theme = absurdThemes.includes(key) ? key : 'default';
 }
 
@@ -468,6 +533,18 @@ const ANIMATION_METAS = new Set([
   'gpt_typing', 'gpt_pause', 'gpt_done', 'gpt_typing_indicator', 'gpt_message',
   'siren', 'bomber', 'nuke_falling', 'nuke_flash', 'mushroom_cloud', 'ashes',
   'hand_move', 'hand_grab', 'hand_compare', 'hand_slide', 'hand_drop',
+  'skibidi_intro', 'skibidi_scan', 'skibidi_flush', 'skibidi_victory',
+  'tuah_spit', 'tuah_slide', 'tuah_land',
+  'rizz_success', 'rizz_fail', 'rizz_swap', 'rizz_rejected',
+  'mewing_compare', 'mewing_glow', 'mewing_ascend', 'mewing_chad',
+  'ohio_chaos', 'ohio_swap', 'ohio_confused', 'ohio_wtf', 'ohio_finale',
+  'brainrot_meme', 'brainrot_swap', 'brainrot_pause',
+  'fanum_inspect', 'fanum_tax', 'fanum_steal',
+  'nk_inspect', 'nk_march', 'nk_execute', 'nk_executed', 'nk_applause', 'nk_glory',
+  'ukraine_tank', 'ukraine_defend', 'ukraine_drone', 'ukraine_push', 'ukraine_hold', 'ukraine_victory',
+  'elon_buying', 'elon_fire', 'elon_fired', 'elon_keep', 'elon_rename', 'elon_sort', 'elon_mars',
+  'npc_stare', 'npc_bump', 'npc_swap', 'npc_idle',
+  'island_invite', 'island_arrive', 'island_disappear', 'island_gone', 'island_witness', 'island_coverup',
 ]);
 
 function animateSort() {
@@ -675,6 +752,97 @@ function drawSpecialEffects(step) {
   // Manual Sort: main qui attrape les barres
   if (key === 'manual' && step.handIdx !== undefined) {
     renderer.drawHand(step.handIdx, data, step.handPhase, step.grabFrame || step.dropFrame || step.slideFrame || 0);
+  }
+
+  // Skibidi Sort
+  if (key === 'skibidi') {
+    if (step.meta === 'skibidi_intro') renderer.drawMemeText('SKIBIDI DOP DOP DOP', { color: '#FFD700', fontSize: 42 });
+    if (step.meta === 'skibidi_scan') renderer.drawSkibidiToilet(step.scanIdx, data);
+    if (step.meta === 'skibidi_flush') renderer.drawSkibidiToilet(step.flushIdx, data, step.flushFrame);
+    if (step.meta === 'skibidi_victory') renderer.drawMemeText('YES YES', { color: '#FFD700', fontSize: 56 });
+  }
+
+  // Hawk Tuah Sort
+  if (key === 'hawkTuah') {
+    if (step.meta === 'tuah_spit') {
+      renderer.drawSpit(step.spitIdx, data);
+      renderer.drawMemeText('HAWK TUAH', { color: '#87CEEB', fontSize: 36, y: 700 });
+    }
+    if (step.meta === 'tuah_land') renderer.drawMemeText('spit on that thang', { color: '#87CEEB', fontSize: 28, y: 700 });
+  }
+
+  // Rizz Sort
+  if (key === 'rizz') {
+    if (step.meta === 'rizz_success') renderer.drawRizzResult(step.rizzIdx, data, true);
+    if (step.meta === 'rizz_fail' || step.meta === 'rizz_rejected') renderer.drawRizzResult(step.rizzIdx, data, false);
+    if (step.meta === 'rizz_success') renderer.drawMemeText('W RIZZ', { color: '#FF69B4', fontSize: 36, y: 700 });
+    if (step.meta === 'rizz_rejected') renderer.drawMemeText('L RIZZ', { color: '#888888', fontSize: 36, y: 700 });
+  }
+
+  // Mewing Sort
+  if (key === 'mewing') {
+    if (step.meta === 'mewing_glow') renderer.drawMewingGlow(step.mewIdx, data, step.mewFrame);
+    if (step.meta === 'mewing_ascend') renderer.drawMemeText('MOGGER', { color: '#FFD700', fontSize: 36, y: 700 });
+    if (step.meta === 'mewing_chad') renderer.drawMemeText('CHAD', { color: '#FFD700', fontSize: 36, y: 700 });
+  }
+
+  // Ohio Sort
+  if (key === 'ohio') {
+    if (step.meta === 'ohio_chaos' || step.meta === 'ohio_swap') renderer.drawOhioGlitch(Date.now());
+    if (step.meta === 'ohio_chaos') renderer.drawMemeText('ONLY IN OHIO', { color: '#FF4444', fontSize: 42 });
+    if (step.meta === 'ohio_wtf') renderer.drawMemeText('BRO WHAT', { color: '#FF4444', fontSize: 36, y: 700 });
+    if (step.meta === 'ohio_finale') renderer.drawMemeText('ONLY IN OHIO', { color: '#FF4444', fontSize: 56 });
+  }
+
+  // Brainrot Sort
+  if (key === 'brainrot') {
+    if (step.memeText) renderer.drawMemeText(step.memeText.toUpperCase(), { color: '#FF69B4', fontSize: 38 });
+    if (step.meta === 'brainrot_pause') renderer.drawMemeText(step.memeText ? step.memeText.toUpperCase() : 'BRAINROT', { color: '#FF00FF', fontSize: 52, bg: 'rgba(0,0,0,0.8)' });
+  }
+
+  // Fanum Tax Sort
+  if (key === 'fanumTax') {
+    if (step.meta === 'fanum_tax') renderer.drawMemeText('FANUM TAX', { color: '#00FF00', fontSize: 40 });
+    if (step.meta === 'fanum_steal') renderer.drawMemeText(`-${step.taxAmount || '?'}`, { color: '#FF4444', fontSize: 48 });
+  }
+
+  // North Korea Sort
+  if (key === 'northKorea') {
+    renderer.drawNKFlag();
+    if (step.meta === 'nk_execute') renderer.drawMemeText('EXECUTED', { color: '#FF0000', fontSize: 48 });
+    if (step.meta === 'nk_applause') renderer.drawMemeText('\uD83D\uDC4F', { color: '#FFFFFF', fontSize: 48, bg: 'rgba(0,0,0,0.3)' });
+    if (step.meta === 'nk_glory') renderer.drawMemeText('GLORY TO THE LEADER', { color: '#FFD700', fontSize: 42 });
+  }
+
+  // Ukraine Sort
+  if (key === 'ukraine') {
+    renderer.drawUkraineFlag();
+    if (step.meta === 'ukraine_drone') renderer.drawDrone(step.droneTarget, data);
+    if (step.meta === 'ukraine_victory') renderer.drawMemeText('SLAVA UKRAINI', { color: '#FFD700', fontSize: 48, bg: 'rgba(0, 87, 183, 0.7)' });
+    if (step.meta === 'ukraine_hold') renderer.drawMemeText('\uD83C\uDDFA\uD83C\uDDE6', { color: '#FFFFFF', fontSize: 40, y: 700, bg: 'rgba(0,0,0,0.3)' });
+  }
+
+  // Elon Sort
+  if (key === 'elon') {
+    if (step.meta === 'elon_buying') renderer.drawMemeText('ACQUIRING ARRAY FOR $44B', { color: '#1DA1F2', fontSize: 32 });
+    if (step.meta === 'elon_fire') renderer.drawMemeText("YOU'RE FIRED", { color: '#FF4444', fontSize: 48 });
+    if (step.meta === 'elon_rename') renderer.drawElonX(step.frame);
+    if (step.meta === 'elon_mars') renderer.drawMemeText('MARS NEXT \uD83D\uDE80', { color: '#FF6B35', fontSize: 48 });
+  }
+
+  // NPC Sort
+  if (key === 'npc') {
+    if (step.npcText && step.indices && step.indices.length > 0) {
+      renderer.drawNpcBubble(step.indices[0], data, step.npcText);
+    }
+    if (step.meta === 'npc_idle') renderer.drawMemeText('...', { color: '#888888', fontSize: 36, bg: 'rgba(0,0,0,0.3)' });
+  }
+
+  // Diddy Island Sort
+  if (key === 'diddyIsland') {
+    if (step.meta === 'island_invite') renderer.drawMemeText('\uD83C\uDFDD\uFE0F ISLAND PARTY \uD83C\uDFDD\uFE0F', { color: '#FFD700', fontSize: 40 });
+    if (step.meta === 'island_disappear') renderer.drawMemeText('VANISHED', { color: '#FF0000', fontSize: 48, bg: 'rgba(0,0,0,0.7)' });
+    if (step.meta === 'island_coverup') renderer.drawMemeText('THE LIST DOESN\'T EXIST', { color: '#FF0000', fontSize: 36, bg: 'rgba(0,0,0,0.8)' });
   }
 }
 

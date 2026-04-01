@@ -2180,6 +2180,262 @@ export class Renderer {
     ctx.restore();
   }
 
+  // Meme text overlay — affiche un gros texte meme au centre
+  drawMemeText(text, options = {}) {
+    const { ctx, width } = this;
+    const {
+      y = 750,
+      fontSize = 48,
+      color = '#FFFFFF',
+      bg = 'rgba(0,0,0,0.6)',
+      font = `bold ${fontSize}px Inter, -apple-system, sans-serif`,
+    } = options;
+
+    ctx.save();
+    ctx.font = font;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    const centerX = LAYOUT.barsLeftPad + (width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad) / 2;
+    const textW = ctx.measureText(text).width + 40;
+    const textH = fontSize + 20;
+
+    // Fond pill
+    ctx.fillStyle = bg;
+    ctx.beginPath();
+    ctx.roundRect(centerX - textW / 2, y - textH / 2, textW, textH, textH / 2);
+    ctx.fill();
+
+    ctx.fillStyle = color;
+    ctx.fillText(text, centerX, y);
+    ctx.restore();
+  }
+
+  // Skibidi — toilette emoji au-dessus d'une barre
+  drawSkibidiToilet(idx, data, frame) {
+    if (idx === undefined || !data || data.length === 0) return;
+    const { ctx, width } = this;
+    const n = data.length;
+    const usableW = width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad;
+    const barWidth = usableW / n;
+    const maxVal = Math.max(...data);
+    const barH = idx < n ? (data[idx] / maxVal) * LAYOUT.barsMaxH : 0;
+    const x = LAYOUT.barsLeftPad + idx * barWidth + barWidth / 2;
+    const y = LAYOUT.barsBottom - barH - 30;
+
+    ctx.save();
+    ctx.font = `${Math.min(barWidth * 0.8, 40)}px serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+
+    // Rotation flush
+    if (frame !== undefined) {
+      ctx.translate(x, y);
+      ctx.rotate((frame / 5) * Math.PI * 0.3);
+      ctx.fillText('\uD83D\uDEBD', 0, 0);
+    } else {
+      ctx.fillText('\uD83D\uDEBD', x, y);
+    }
+    ctx.restore();
+  }
+
+  // Hawk Tuah — spit effect
+  drawSpit(idx, data) {
+    if (idx === undefined || !data || data.length === 0) return;
+    const { ctx, width } = this;
+    const n = data.length;
+    const usableW = width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad;
+    const barWidth = usableW / n;
+    const maxVal = Math.max(...data);
+    const barH = idx < n ? (data[idx] / maxVal) * LAYOUT.barsMaxH : 0;
+    const x = LAYOUT.barsLeftPad + idx * barWidth + barWidth / 2;
+    const y = LAYOUT.barsBottom - barH - 20;
+
+    ctx.save();
+    // Spit droplets
+    for (let d = 0; d < 5; d++) {
+      const dx = (Math.random() - 0.5) * barWidth * 1.5;
+      const dy = (Math.random() - 0.5) * 30;
+      const r = 3 + Math.random() * 5;
+      ctx.fillStyle = `rgba(150, 200, 255, ${0.6 + Math.random() * 0.4})`;
+      ctx.beginPath();
+      ctx.ellipse(x + dx, y + dy, r, r * 0.6, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // Rizz — coeur ou X au dessus des barres
+  drawRizzResult(idx, data, success) {
+    if (idx === undefined || !data || data.length === 0) return;
+    const { ctx, width } = this;
+    const n = data.length;
+    const usableW = width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad;
+    const barWidth = usableW / n;
+    const maxVal = Math.max(...data);
+    const barH = idx < n ? (data[idx] / maxVal) * LAYOUT.barsMaxH : 0;
+    const x = LAYOUT.barsLeftPad + idx * barWidth + barWidth;
+    const y = LAYOUT.barsBottom - Math.max(barH, (data[Math.min(idx + 1, n - 1)] / maxVal) * LAYOUT.barsMaxH) - 35;
+
+    ctx.save();
+    ctx.font = '32px serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(success ? '\u2764\uFE0F' : '\uD83D\uDC94', x, y);
+    ctx.restore();
+  }
+
+  // Mewing — glow jawline effect
+  drawMewingGlow(idx, data, frame) {
+    if (idx === undefined || !data || data.length === 0) return;
+    const { ctx, width } = this;
+    const n = data.length;
+    const usableW = width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad;
+    const barWidth = usableW / n;
+    const maxVal = Math.max(...data);
+    const barH = idx < n ? (data[idx] / maxVal) * LAYOUT.barsMaxH : 0;
+    const x = LAYOUT.barsLeftPad + idx * barWidth;
+    const y = LAYOUT.barsBottom - barH;
+
+    ctx.save();
+    const glow = ctx.createLinearGradient(x, y, x, LAYOUT.barsBottom);
+    const intensity = Math.sin((frame || 0) * 0.5) * 0.3 + 0.5;
+    glow.addColorStop(0, `rgba(255, 215, 0, ${intensity})`);
+    glow.addColorStop(1, `rgba(255, 215, 0, 0)`);
+    ctx.fillStyle = glow;
+    ctx.fillRect(x, y, barWidth - 2, barH);
+    ctx.restore();
+  }
+
+  // Ohio — glitch effect sur tout l'ecran
+  drawOhioGlitch(frame) {
+    const { ctx, width, height } = this;
+    ctx.save();
+    // Glitch bars horizontaux
+    for (let g = 0; g < 5; g++) {
+      const gy = Math.random() * height;
+      const gh = 5 + Math.random() * 15;
+      const offset = (Math.random() - 0.5) * 40;
+      ctx.drawImage(ctx.canvas, offset, gy, width, gh, 0, gy, width, gh);
+    }
+    // Color shift
+    ctx.globalCompositeOperation = 'multiply';
+    ctx.fillStyle = `rgba(255, 0, ${(frame * 30) % 255}, 0.1)`;
+    ctx.fillRect(0, 0, width, height);
+    ctx.restore();
+  }
+
+  // NPC — speech bubble
+  drawNpcBubble(idx, data, text) {
+    if (idx === undefined || !data || data.length === 0) return;
+    const { ctx, width } = this;
+    const n = data.length;
+    const usableW = width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad;
+    const barWidth = usableW / n;
+    const maxVal = Math.max(...data);
+    const barH = idx < n ? (data[idx] / maxVal) * LAYOUT.barsMaxH : 0;
+    const x = LAYOUT.barsLeftPad + idx * barWidth + barWidth / 2;
+    const y = LAYOUT.barsBottom - barH - 50;
+
+    ctx.save();
+    ctx.font = '18px Inter, -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    const textW = ctx.measureText(text).width + 16;
+    const textH = 28;
+
+    // Bulle
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.roundRect(x - textW / 2, y - textH / 2, textW, textH, 8);
+    ctx.fill();
+    ctx.strokeStyle = '#CCCCCC';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Fleche
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.moveTo(x - 5, y + textH / 2);
+    ctx.lineTo(x, y + textH / 2 + 8);
+    ctx.lineTo(x + 5, y + textH / 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#2A2A2A';
+    ctx.fillText(text, x, y + 1);
+    ctx.restore();
+  }
+
+  // Elon — X logo
+  drawElonX(frame) {
+    const { ctx, width } = this;
+    const centerX = LAYOUT.barsLeftPad + (width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad) / 2;
+    const y = 800;
+    const size = 60 + (frame || 0) * 3;
+
+    ctx.save();
+    ctx.font = `bold ${size}px Inter, -apple-system, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText('𝕏', centerX, y);
+    ctx.restore();
+  }
+
+  // Ukraine — drapeau ukrainien derriere les barres
+  drawUkraineFlag() {
+    const { ctx, width } = this;
+    ctx.save();
+    ctx.globalAlpha = 0.15;
+    // Bleu
+    ctx.fillStyle = '#0057B7';
+    ctx.fillRect(LAYOUT.barsLeftPad, LAYOUT.barsTop, width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad, LAYOUT.barsMaxH / 2);
+    // Jaune
+    ctx.fillStyle = '#FFD700';
+    ctx.fillRect(LAYOUT.barsLeftPad, LAYOUT.barsTop + LAYOUT.barsMaxH / 2, width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad, LAYOUT.barsMaxH / 2);
+    ctx.restore();
+  }
+
+  // Drone emoji
+  drawDrone(targetIdx, data) {
+    if (targetIdx === undefined || !data || data.length === 0) return;
+    const { ctx, width } = this;
+    const n = data.length;
+    const usableW = width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad;
+    const barWidth = usableW / n;
+    const maxVal = Math.max(...data);
+    const barH = targetIdx < n ? (data[targetIdx] / maxVal) * LAYOUT.barsMaxH : 0;
+    const x = LAYOUT.barsLeftPad + targetIdx * barWidth + barWidth / 2;
+    const y = LAYOUT.barsBottom - barH - 45;
+
+    ctx.save();
+    ctx.font = '30px serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('\uD83D\uDEE9\uFE0F', x, y);
+    // Explosion spark
+    ctx.fillStyle = 'rgba(255, 150, 0, 0.5)';
+    ctx.beginPath();
+    ctx.arc(x, y + 25, 12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // North Korea — drapeau + Kim portrait simplifie
+  drawNKFlag() {
+    const { ctx, width } = this;
+    const centerX = LAYOUT.barsLeftPad + (width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad) / 2;
+    ctx.save();
+    ctx.globalAlpha = 0.12;
+    // Rouge
+    ctx.fillStyle = '#EF4234';
+    ctx.fillRect(LAYOUT.barsLeftPad, LAYOUT.barsTop, width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad, LAYOUT.barsMaxH);
+    // Bande blanche + bleu
+    const h3 = LAYOUT.barsMaxH / 5;
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(LAYOUT.barsLeftPad, LAYOUT.barsTop + h3 * 1.5, width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad, h3 * 2);
+    ctx.fillStyle = '#024FA2';
+    ctx.fillRect(LAYOUT.barsLeftPad, LAYOUT.barsTop + h3 * 1.8, width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad, h3 * 1.4);
+    ctx.restore();
+  }
+
   _drawWatermark() {
     const { ctx } = this;
     ctx.save();
