@@ -17,18 +17,22 @@ const COLORS = {
 };
 
 // Layout zones for 1080x1920 (9:16 portrait)
-// Header descend pour eviter le notch iPhone 15-17
+// Safe zones: evite les overlays des plateformes (IG, YT, TikTok)
+// Top ~240px: status bar + tabs plateforme
+// Right ~150px: icones like/comment/share
+// Bottom ~470px: username, caption, music, nav bar
 const LAYOUT = {
-  titleY: 140,
-  subtitleY: 215,
-  pillY: 270,
-  barsTop: 340,
-  barsBottom: 1300,
-  barsMaxH: 960,
-  labelsY: 1315,
-  codeTop: 1390,
-  codeBottom: 1700,
-  codePadX: 45,
+  titleY: 275,
+  subtitleY: 350,
+  pillY: 405,
+  barsTop: 465,
+  barsBottom: 1170,
+  barsMaxH: 705,
+  barsRightPad: 150,
+  labelsY: 1185,
+  codeTop: 1240,
+  codeBottom: 1430,
+  codePadX: 40,
 };
 
 // Themes visuels par algo absurde
@@ -472,7 +476,8 @@ export class Renderer {
     const theme = this._getTheme();
     const n = data.length;
     if (n === 0) return;
-    const barWidth = width / n;
+    const usableW = width - LAYOUT.barsRightPad;
+    const barWidth = usableW / n;
     const maxVal = Math.max(...data);
 
     // Fond
@@ -516,7 +521,8 @@ export class Renderer {
     const theme = this._getTheme();
     const n = data.length;
     if (n === 0) return;
-    const barWidth = width / n;
+    const usableW = width - LAYOUT.barsRightPad;
+    const barWidth = usableW / n;
     const maxVal = Math.max(...data);
 
     ctx.fillStyle = theme.bg;
@@ -759,7 +765,7 @@ export class Renderer {
     if (index === undefined || !data || data.length === 0) return;
     const { ctx, width, height } = this;
     const n = data.length;
-    const barWidth = width / n;
+    const barWidth = (width - LAYOUT.barsRightPad) / n;
     const maxVal = Math.max(...data);
     const x = index * barWidth + barWidth / 2;
     const barH = (data[index] / maxVal) * LAYOUT.barsMaxH;
@@ -874,7 +880,7 @@ export class Renderer {
     if (!data || data.length === 0) return;
     const { ctx, width, height } = this;
     const n = data.length;
-    const barWidth = width / n;
+    const barWidth = (width - LAYOUT.barsRightPad) / n;
     const maxVal = Math.max(...data);
 
     ctx.save();
@@ -917,7 +923,7 @@ export class Renderer {
     if (!data || data.length === 0 || index >= data.length) return;
     const { ctx, width, height } = this;
     const n = data.length;
-    const barWidth = width / n;
+    const barWidth = (width - LAYOUT.barsRightPad) / n;
     const x = index * barWidth + barWidth / 2;
     const baseY = height * 0.2;
 
@@ -941,7 +947,7 @@ export class Renderer {
     if (index === undefined || !data || data.length === 0 || index >= data.length) return;
     const { ctx, width, height } = this;
     const n = data.length;
-    const barWidth = width / n;
+    const barWidth = (width - LAYOUT.barsRightPad) / n;
     const maxVal = Math.max(...data);
     const barH = (data[index] / maxVal) * LAYOUT.barsMaxH;
     const x = index * barWidth + barWidth / 2;
@@ -967,7 +973,7 @@ export class Renderer {
     if (!data || data.length === 0) return;
     const { ctx, width, height } = this;
     const n = data.length;
-    const barWidth = width / n;
+    const barWidth = (width - LAYOUT.barsRightPad) / n;
     const x = (index < n ? index * barWidth + barWidth / 2 : width / 2);
     const y = height * 0.7;
     const radius = 20 + frame * 25;
@@ -1781,7 +1787,7 @@ export class Renderer {
     // Barres qui ondulent
     const n = data.length;
     if (n === 0) { ctx.restore(); return; }
-    const barWidth = width / n;
+    const barWidth = (width - LAYOUT.barsRightPad) / n;
     const maxVal = Math.max(...data);
 
     for (let i = 0; i < n; i++) {
@@ -1843,7 +1849,7 @@ export class Renderer {
 
     const n = data.length;
     if (n > 0) {
-      const barWidth = width / n;
+      const barWidth = (width - LAYOUT.barsRightPad) / n;
       const maxVal = Math.max(...data);
       for (let i = 0; i < n; i++) {
         const barH = (data[i] / maxVal) * (LAYOUT.barsMaxH * 0.85);
@@ -1871,7 +1877,7 @@ export class Renderer {
 
     const n = data.length;
     if (n > 0) {
-      const barWidth = width / n;
+      const barWidth = (width - LAYOUT.barsRightPad) / n;
       const maxVal = Math.max(...data);
       for (let i = 0; i < n; i++) {
         const barH = (data[i] / maxVal) * (LAYOUT.barsMaxH * 0.9);
@@ -1902,49 +1908,50 @@ export class Renderer {
 
   _drawHeader(stats) {
     const { ctx, width } = this;
+    const centerX = (width - LAYOUT.barsRightPad) / 2;
     ctx.save();
 
     // Titre — bold serif, encre sombre
     if (stats.algoName) {
-      ctx.font = 'bold 64px Georgia, Palatino, serif';
+      ctx.font = 'bold 58px Georgia, Palatino, serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
       ctx.fillStyle = COLORS.overlayText;
-      ctx.fillText(stats.algoName, width / 2, LAYOUT.titleY);
+      ctx.fillText(stats.algoName, centerX, LAYOUT.titleY);
     }
 
     // Sous-titre / description
     if (stats.desc) {
-      ctx.font = '28px Georgia, Palatino, serif';
+      ctx.font = '24px Georgia, Palatino, serif';
       ctx.fillStyle = COLORS.overlaySubtext;
       ctx.textAlign = 'center';
-      // Word wrap sur 2 lignes max
+      const usableW = width - LAYOUT.barsRightPad;
       const words = stats.desc.split(' ');
       let line = '';
       let lineY = LAYOUT.subtitleY;
       for (const word of words) {
         const test = line ? line + ' ' + word : word;
-        if (ctx.measureText(test).width > width - 120) {
-          ctx.fillText(line, width / 2, lineY);
+        if (ctx.measureText(test).width > usableW - 80) {
+          ctx.fillText(line, centerX, lineY);
           line = word;
-          lineY += 34;
-          if (lineY > LAYOUT.subtitleY + 40) break;
+          lineY += 30;
+          if (lineY > LAYOUT.subtitleY + 35) break;
         } else {
           line = test;
         }
       }
-      if (line) ctx.fillText(line, width / 2, lineY);
+      if (line) ctx.fillText(line, centerX, lineY);
     }
 
     // Badge complexite — pill avec bordure
     if (stats.complexity) {
-      ctx.font = '24px "Courier New", monospace';
+      ctx.font = '22px "Courier New", monospace';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       const pillText = stats.complexity;
-      const pillW = ctx.measureText(pillText).width + 36;
-      const pillH = 38;
-      const pillX = (width - pillW) / 2;
+      const pillW = ctx.measureText(pillText).width + 32;
+      const pillH = 34;
+      const pillX = centerX - pillW / 2;
       const pillY = LAYOUT.pillY;
 
       ctx.strokeStyle = '#2A2A2A';
@@ -1954,7 +1961,7 @@ export class Renderer {
       ctx.stroke();
 
       ctx.fillStyle = '#2A2A2A';
-      ctx.fillText(pillText, width / 2, pillY + pillH / 2);
+      ctx.fillText(pillText, centerX, pillY + pillH / 2);
     }
 
     ctx.restore();
@@ -1995,11 +2002,11 @@ export class Renderer {
     ctx.roundRect(padX, LAYOUT.codeTop, blockW, blockH, 16);
     ctx.fill();
 
-    // Lignes de code
-    const fontSize = 26;
-    const lineH = 38;
+    // Lignes de code (compact pour safe zone)
+    const fontSize = 21;
+    const lineH = 28;
     ctx.textBaseline = 'top';
-    const codeX = padX + 60;
+    const codeX = padX + 48;
     let codeY = LAYOUT.codeTop + padY;
 
     for (let i = 0; i < code.length && codeY + lineH < LAYOUT.codeBottom; i++) {
@@ -2007,7 +2014,7 @@ export class Renderer {
       ctx.font = `${fontSize}px "Courier New", monospace`;
       ctx.fillStyle = '#9CA3AF';
       ctx.textAlign = 'right';
-      ctx.fillText(`${i + 1}`, padX + 42, codeY);
+      ctx.fillText(`${i + 1}`, padX + 34, codeY);
 
       // Code avec coloration syntaxique
       ctx.textAlign = 'left';
