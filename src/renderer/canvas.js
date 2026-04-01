@@ -17,18 +17,18 @@ const COLORS = {
 };
 
 // Layout zones for 1080x1920 (9:16 portrait)
+// Header descend pour eviter le notch iPhone 15-17
 const LAYOUT = {
-  titleY: 80,
-  subtitleY: 150,
-  pillY: 205,
-  barsTop: 270,
-  barsBottom: 1330,
-  barsMaxH: 1060,
-  labelsY: 1350,
-  codeTop: 1420,
-  codeBottom: 1730,
+  titleY: 140,
+  subtitleY: 215,
+  pillY: 270,
+  barsTop: 340,
+  barsBottom: 1300,
+  barsMaxH: 960,
+  labelsY: 1315,
+  codeTop: 1390,
+  codeBottom: 1700,
   codePadX: 45,
-  commentTop: 1775,
 };
 
 // Themes visuels par algo absurde
@@ -506,7 +506,7 @@ export class Renderer {
     if (stats && stats.code) this._drawCodeBlock(stats.code);
 
     // Barre commentaire
-    this._drawCommentBar();
+
 
     this._drawWatermark();
   }
@@ -551,7 +551,7 @@ export class Renderer {
 
     this._drawValueLabels(data, null, n, barWidth);
     if (stats && stats.code) this._drawCodeBlock(stats.code);
-    this._drawCommentBar();
+
     this._drawWatermark();
   }
 
@@ -2088,13 +2088,13 @@ export class Renderer {
   }
 
   _drawWatermark() {
-    const { ctx, width } = this;
+    const { ctx } = this;
     ctx.save();
-    ctx.fillStyle = 'rgba(27, 58, 92, 0.6)';
-    ctx.font = 'bold italic 36px Georgia, Palatino, serif';
-    ctx.textAlign = 'right';
+    ctx.fillStyle = 'rgba(27, 58, 92, 0.5)';
+    ctx.font = 'bold italic 28px Georgia, Palatino, serif';
+    ctx.textAlign = 'left';
     ctx.textBaseline = 'bottom';
-    ctx.fillText('GAZAIDEV', width - 30, LAYOUT.commentTop - 10);
+    ctx.fillText('gazaidev', LAYOUT.codePadX + 16, LAYOUT.codeBottom - 12);
     ctx.restore();
   }
 
