@@ -49,6 +49,9 @@ import { sleepSort } from './algos/sleepSort.js';
 import { strandSort } from './algos/strandSort.js';
 import { patienceSort } from './algos/patienceSort.js';
 
+// Preload Inter pour le canvas
+document.fonts.ready.then(() => {});
+
 const canvas = document.getElementById('canvas');
 const statusEl = document.getElementById('status');
 const algoSelect = document.getElementById('algo-select');

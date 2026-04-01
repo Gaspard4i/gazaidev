@@ -602,7 +602,7 @@ export class Renderer {
 
     const parts = theme.endMessage;
     const fontSize = 64;
-    ctx.font = `bold ${fontSize}px "Segoe UI", system-ui, sans-serif`;
+    ctx.font = `bold ${fontSize}px Inter, -apple-system, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
@@ -640,7 +640,7 @@ export class Renderer {
   }
 
   _drawMessageLine(ctx, parts, centerX, y, fontSize) {
-    ctx.font = `bold ${fontSize}px "Segoe UI", system-ui, sans-serif`;
+    ctx.font = `bold ${fontSize}px Inter, -apple-system, sans-serif`;
     const fullText = parts.map(p => p.text).join('  ');
     const totalW = ctx.measureText(fullText).width;
     let curX = centerX - totalW / 2;
@@ -652,9 +652,9 @@ export class Renderer {
       ctx.fillStyle = part.color;
 
       if (part.style === 'italic') {
-        ctx.font = `italic bold ${fontSize}px "Segoe UI", system-ui, sans-serif`;
+        ctx.font = `italic bold ${fontSize}px Inter, -apple-system, sans-serif`;
       } else {
-        ctx.font = `bold ${fontSize}px "Segoe UI", system-ui, sans-serif`;
+        ctx.font = `bold ${fontSize}px Inter, -apple-system, sans-serif`;
       }
 
       if (part.style === 'strikethrough') {
@@ -811,7 +811,7 @@ export class Renderer {
     }
 
     // Texte AWOOO
-    ctx.font = 'bold 52px "Segoe UI", system-ui, sans-serif';
+    ctx.font = 'bold 52px Inter, -apple-system, sans-serif';
     ctx.textAlign = 'center';
     // Ombre
     ctx.fillStyle = 'rgba(0,0,0,0.5)';
@@ -859,7 +859,7 @@ export class Renderer {
 
     // Texte FREE PALESTINE
     const textY = flagY + flagH + 60;
-    ctx.font = 'bold 80px "Segoe UI", system-ui, sans-serif';
+    ctx.font = 'bold 80px Inter, -apple-system, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
@@ -1072,7 +1072,7 @@ export class Renderer {
 
     // WIN/LOSE flash au centre
     if (isWin !== undefined) {
-      ctx.font = 'bold 72px "Segoe UI", system-ui, sans-serif';
+      ctx.font = 'bold 72px Inter, -apple-system, sans-serif';
       ctx.textAlign = 'center';
       if (isWin) {
         ctx.fillStyle = '#00FF00';
@@ -1090,7 +1090,7 @@ export class Renderer {
   drawDistraction() {
     const { ctx, width, height } = this;
     ctx.save();
-    ctx.font = 'bold 48px "Segoe UI", system-ui, sans-serif';
+    ctx.font = 'bold 48px Inter, -apple-system, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillStyle = 'rgba(0,0,0,0.6)';
     ctx.beginPath();
@@ -1115,7 +1115,7 @@ export class Renderer {
 
     // Texte HIGH IQ qui pulse
     const scale = 1 + Math.sin(frame * 0.3) * 0.1;
-    ctx.font = `bold ${Math.round(80 * scale)}px "Segoe UI", system-ui, sans-serif`;
+    ctx.font = `bold ${Math.round(80 * scale)}px Inter, -apple-system, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = '#FFD700';
@@ -1212,7 +1212,7 @@ export class Renderer {
     // TADAA!
     if (frame < 40) {
       const scale = Math.min(1, frame / 10);
-      ctx.font = `bold ${Math.round(90 * scale)}px "Segoe UI", system-ui, sans-serif`;
+      ctx.font = `bold ${Math.round(90 * scale)}px Inter, -apple-system, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillStyle = 'rgba(0,0,0,0.4)';
@@ -1462,14 +1462,14 @@ export class Renderer {
       ctx.shadowBlur = 0;
 
       // Label
-      ctx.font = 'bold 24px "Segoe UI", sans-serif';
+      ctx.font = 'bold 24px Inter, -apple-system, sans-serif';
       ctx.fillStyle = `rgba(255,255,255,${0.8 - morph * 0.3})`;
       ctx.textAlign = 'center';
       ctx.fillText(`${pos.label} (${pos.size})`, x, currentY - 15);
     }
 
     // Texte "Sorting..."
-    ctx.font = 'italic 32px "Segoe UI", sans-serif';
+    ctx.font = 'italic 32px Inter, -apple-system, sans-serif';
     ctx.fillStyle = 'rgba(255,255,255,0.5)';
     ctx.textAlign = 'center';
     ctx.fillText('Sorting entities by size...', width / 2, height * 0.15);
@@ -1491,11 +1491,11 @@ export class Renderer {
     ctx.fillText(`${scoreL} - ${scoreR}`, width / 2, height * 0.4);
 
     // Gagnant
-    ctx.font = 'bold 48px "Segoe UI", sans-serif';
+    ctx.font = 'bold 48px Inter, -apple-system, sans-serif';
     ctx.fillStyle = '#FFD700';
     ctx.fillText(winner === 'left' ? 'LEFT WINS!' : 'RIGHT WINS!', width / 2, height * 0.52);
 
-    ctx.font = '32px "Segoe UI", sans-serif';
+    ctx.font = '32px Inter, -apple-system, sans-serif';
     ctx.fillStyle = 'rgba(255,255,255,0.5)';
     ctx.fillText('Now sorting the 3 entities...', width / 2, height * 0.6);
 
@@ -1512,7 +1512,7 @@ export class Renderer {
     // Header Claude
     ctx.fillStyle = '#3A2515';
     ctx.fillRect(0, 0, width, 55);
-    ctx.font = 'bold 26px "Segoe UI", sans-serif';
+    ctx.font = 'bold 26px Inter, -apple-system, sans-serif';
     ctx.fillStyle = '#DD8844';
     ctx.textAlign = 'center';
     ctx.fillText('Claude', width / 2, 36);
@@ -1523,7 +1523,7 @@ export class Renderer {
     ctx.roundRect(30, height * 0.35, width - 60, 80, 12);
     ctx.fill();
 
-    ctx.font = 'bold 18px "Segoe UI", sans-serif';
+    ctx.font = 'bold 18px Inter, -apple-system, sans-serif';
     ctx.fillStyle = '#AA8866';
     ctx.textAlign = 'left';
     ctx.fillText('You', 50, height * 0.35 + 25);
@@ -1551,7 +1551,7 @@ export class Renderer {
     // Header
     ctx.fillStyle = '#3A2515';
     ctx.fillRect(0, 0, width, 55);
-    ctx.font = 'bold 26px "Segoe UI", sans-serif';
+    ctx.font = 'bold 26px Inter, -apple-system, sans-serif';
     ctx.fillStyle = '#DD8844';
     ctx.textAlign = 'center';
     ctx.fillText('Claude', width / 2, 36);
@@ -1561,7 +1561,7 @@ export class Renderer {
     ctx.beginPath();
     ctx.roundRect(30, 75, width - 60, 65, 10);
     ctx.fill();
-    ctx.font = 'bold 16px "Segoe UI", sans-serif';
+    ctx.font = 'bold 16px Inter, -apple-system, sans-serif';
     ctx.fillStyle = '#887766';
     ctx.textAlign = 'left';
     ctx.fillText('You', 50, 95);
@@ -1575,13 +1575,13 @@ export class Renderer {
     ctx.roundRect(30, 160, width - 60, 180, 12);
     ctx.fill();
 
-    ctx.font = 'bold 18px "Segoe UI", sans-serif';
+    ctx.font = 'bold 18px Inter, -apple-system, sans-serif';
     ctx.fillStyle = '#DD8844';
     ctx.textAlign = 'left';
     ctx.fillText('Claude', 50, 185);
 
     const chars = Math.min(totalChars || response.length, frame * 2);
-    ctx.font = '24px "Segoe UI", sans-serif';
+    ctx.font = '24px Inter, -apple-system, sans-serif';
     ctx.fillStyle = '#CCAA88';
 
     // Word wrap
@@ -1637,11 +1637,11 @@ export class Renderer {
     ctx.fill();
 
     if (tokens === 0) {
-      ctx.font = 'bold 44px "Segoe UI", sans-serif';
+      ctx.font = 'bold 44px Inter, -apple-system, sans-serif';
       ctx.fillStyle = '#FF4444';
       ctx.fillText('TOKEN LIMIT', width / 2, height * 0.50);
       ctx.fillText('REACHED', width / 2, height * 0.56);
-      ctx.font = '28px "Segoe UI", sans-serif';
+      ctx.font = '28px Inter, -apple-system, sans-serif';
       ctx.fillStyle = '#AA6644';
       ctx.fillText('Please try again in 5 years', width / 2, height * 0.65);
     }
@@ -1655,16 +1655,16 @@ export class Renderer {
     ctx.fillStyle = '#2A1A0A';
     ctx.fillRect(0, 0, width, height);
 
-    ctx.font = 'bold 44px "Segoe UI", sans-serif';
+    ctx.font = 'bold 44px Inter, -apple-system, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillStyle = '#DD8844';
     ctx.fillText('Array is "sorted"', width / 2, height * 0.40);
 
-    ctx.font = '30px "Segoe UI", sans-serif';
+    ctx.font = '30px Inter, -apple-system, sans-serif';
     ctx.fillStyle = '#886644';
     ctx.fillText('(it\'s not)', width / 2, height * 0.48);
 
-    ctx.font = 'italic 24px "Segoe UI", sans-serif';
+    ctx.font = 'italic 24px Inter, -apple-system, sans-serif';
     ctx.fillStyle = '#554433';
     ctx.fillText('— Claude, 2026', width / 2, height * 0.56);
 
@@ -1684,14 +1684,14 @@ export class Renderer {
     // Header
     ctx.fillStyle = '#444654';
     ctx.fillRect(0, 0, width, 60);
-    ctx.font = 'bold 26px "Segoe UI", sans-serif';
+    ctx.font = 'bold 26px Inter, -apple-system, sans-serif';
     ctx.fillStyle = '#FFFFFF';
     ctx.textAlign = 'center';
     ctx.fillText('ChatGPT 4o', width / 2, 38);
 
     // Messages — afficher les derniers qui tiennent a l'ecran
     ctx.textAlign = 'left';
-    const msgFont = '22px "Segoe UI", sans-serif';
+    const msgFont = '22px Inter, -apple-system, sans-serif';
     ctx.font = msgFont;
     const maxW = width - 100;
     const lineH = 28;
@@ -1725,7 +1725,7 @@ export class Renderer {
         ctx.fillRect(0, y, width, blockH);
 
         // Icone
-        ctx.font = 'bold 18px "Segoe UI", sans-serif';
+        ctx.font = 'bold 18px Inter, -apple-system, sans-serif';
         ctx.fillStyle = isUser ? '#8E8EA0' : '#19C37D';
         ctx.fillText(isUser ? 'You' : 'GPT', 25, y + 22);
 
@@ -1743,7 +1743,7 @@ export class Renderer {
     if (typingRole) {
       ctx.fillStyle = typingRole === 'user' ? '#2b2c37' : '#444654';
       ctx.fillRect(0, Math.max(y, height - 50), width, 50);
-      ctx.font = '22px "Segoe UI", sans-serif';
+      ctx.font = '22px Inter, -apple-system, sans-serif';
       ctx.fillStyle = '#8E8EA0';
       ctx.fillText(
         typingRole === 'user' ? `You typing${typingDots || ''}` : `ChatGPT typing${typingDots || ''}`,
@@ -1819,7 +1819,7 @@ export class Renderer {
     }
 
     // Texte flottant
-    ctx.font = 'bold 36px "Segoe UI", system-ui, sans-serif';
+    ctx.font = 'bold 36px Inter, -apple-system, sans-serif';
     ctx.textAlign = 'center';
     const msgs = ['woooah', 'dude...', 'the colors', 'i can taste sounds', 'bro...', 'is this real?'];
     const msg = msgs[Math.floor(frame / 30) % msgs.length];
@@ -1892,7 +1892,7 @@ export class Renderer {
 
     // Texte "sorted... I think?"
     ctx.save();
-    ctx.font = 'italic 36px "Segoe UI", system-ui, sans-serif';
+    ctx.font = 'italic 36px Inter, -apple-system, sans-serif';
     ctx.fillStyle = 'rgba(255,255,255,0.5)';
     ctx.textAlign = 'center';
     ctx.fillText('sorted... I think?', width / 2, height * 0.1);
@@ -1913,7 +1913,7 @@ export class Renderer {
 
     // Titre — bold serif, encre sombre
     if (stats.algoName) {
-      ctx.font = 'bold 58px Georgia, Palatino, serif';
+      ctx.font = 'bold 58px Inter, -apple-system, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
       ctx.fillStyle = COLORS.overlayText;
@@ -1922,7 +1922,7 @@ export class Renderer {
 
     // Sous-titre / description
     if (stats.desc) {
-      ctx.font = '24px Georgia, Palatino, serif';
+      ctx.font = '24px Inter, -apple-system, sans-serif';
       ctx.fillStyle = COLORS.overlaySubtext;
       ctx.textAlign = 'center';
       const usableW = width - LAYOUT.barsRightPad;
@@ -1971,7 +1971,7 @@ export class Renderer {
     if (n > 30) return; // trop de barres = illisible
     const { ctx, width } = this;
     ctx.save();
-    ctx.font = '22px Georgia, Palatino, serif';
+    ctx.font = '22px Inter, -apple-system, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
 
@@ -1979,7 +1979,7 @@ export class Renderer {
       const x = i * barWidth + barWidth / 2;
       const isActive = step && step.indices && step.indices.includes(i);
       ctx.fillStyle = isActive ? '#E8621F' : '#888888';
-      ctx.font = isActive ? 'bold 22px Georgia, Palatino, serif' : '22px Georgia, Palatino, serif';
+      ctx.font = isActive ? 'bold 22px Inter, -apple-system, sans-serif' : '22px Inter, -apple-system, sans-serif';
       ctx.fillText(data[i], x, LAYOUT.labelsY);
     }
 
@@ -2098,7 +2098,7 @@ export class Renderer {
     const { ctx } = this;
     ctx.save();
     ctx.fillStyle = 'rgba(27, 58, 92, 0.5)';
-    ctx.font = 'bold italic 28px Georgia, Palatino, serif';
+    ctx.font = 'bold italic 28px Inter, -apple-system, sans-serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'bottom';
     ctx.fillText('gazaidev', LAYOUT.codePadX + 16, LAYOUT.codeBottom - 12);
