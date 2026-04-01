@@ -28,6 +28,7 @@ const LAYOUT = {
   barsTop: 465,
   barsBottom: 1170,
   barsMaxH: 705,
+  barsLeftPad: 150,
   barsRightPad: 150,
   labelsY: 1185,
   codeTop: 1240,
@@ -476,7 +477,7 @@ export class Renderer {
     const theme = this._getTheme();
     const n = data.length;
     if (n === 0) return;
-    const usableW = width - LAYOUT.barsRightPad;
+    const usableW = width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad;
     const barWidth = usableW / n;
     const maxVal = Math.max(...data);
 
@@ -496,7 +497,7 @@ export class Renderer {
     // Barres
     for (let i = 0; i < n; i++) {
       const barHeight = (data[i] / maxVal) * LAYOUT.barsMaxH;
-      const x = i * barWidth;
+      const x = LAYOUT.barsLeftPad + i * barWidth;
       const y = LAYOUT.barsBottom - barHeight;
       const ratio = data[i] / maxVal;
 
@@ -521,7 +522,7 @@ export class Renderer {
     const theme = this._getTheme();
     const n = data.length;
     if (n === 0) return;
-    const usableW = width - LAYOUT.barsRightPad;
+    const usableW = width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad;
     const barWidth = usableW / n;
     const maxVal = Math.max(...data);
 
@@ -537,7 +538,7 @@ export class Renderer {
 
     for (let i = 0; i < n; i++) {
       const barHeight = (data[i] / maxVal) * LAYOUT.barsMaxH;
-      const x = i * barWidth;
+      const x = LAYOUT.barsLeftPad + i * barWidth;
       const y = LAYOUT.barsBottom - barHeight;
 
       if (i < sweepIndex) {
@@ -765,9 +766,9 @@ export class Renderer {
     if (index === undefined || !data || data.length === 0) return;
     const { ctx, width, height } = this;
     const n = data.length;
-    const barWidth = (width - LAYOUT.barsRightPad) / n;
+    const barWidth = (width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad) / n;
     const maxVal = Math.max(...data);
-    const x = index * barWidth + barWidth / 2;
+    const x = LAYOUT.barsLeftPad + index * barWidth + barWidth / 2;
     const barH = (data[index] / maxVal) * LAYOUT.barsMaxH;
     const y = LAYOUT.barsBottom - barH;
 
@@ -880,13 +881,13 @@ export class Renderer {
     if (!data || data.length === 0) return;
     const { ctx, width, height } = this;
     const n = data.length;
-    const barWidth = (width - LAYOUT.barsRightPad) / n;
+    const barWidth = (width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad) / n;
     const maxVal = Math.max(...data);
 
     ctx.save();
     for (const idx of markedIndices) {
       if (idx >= n) continue;
-      const x = idx * barWidth + barWidth / 2;
+      const x = LAYOUT.barsLeftPad + idx * barWidth + barWidth / 2;
       const barH = (data[idx] / maxVal) * LAYOUT.barsMaxH;
       const y = LAYOUT.barsBottom - barH - 15;
 
@@ -923,8 +924,8 @@ export class Renderer {
     if (!data || data.length === 0 || index >= data.length) return;
     const { ctx, width, height } = this;
     const n = data.length;
-    const barWidth = (width - LAYOUT.barsRightPad) / n;
-    const x = index * barWidth + barWidth / 2;
+    const barWidth = (width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad) / n;
+    const x = LAYOUT.barsLeftPad + index * barWidth + barWidth / 2;
     const baseY = height * 0.2;
 
     ctx.save();
@@ -947,10 +948,10 @@ export class Renderer {
     if (index === undefined || !data || data.length === 0 || index >= data.length) return;
     const { ctx, width, height } = this;
     const n = data.length;
-    const barWidth = (width - LAYOUT.barsRightPad) / n;
+    const barWidth = (width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad) / n;
     const maxVal = Math.max(...data);
     const barH = (data[index] / maxVal) * LAYOUT.barsMaxH;
-    const x = index * barWidth + barWidth / 2;
+    const x = LAYOUT.barsLeftPad + index * barWidth + barWidth / 2;
     const targetY = LAYOUT.barsBottom - barH;
     const startY = 50;
     const progress = frame / 6;
@@ -973,8 +974,8 @@ export class Renderer {
     if (!data || data.length === 0) return;
     const { ctx, width, height } = this;
     const n = data.length;
-    const barWidth = (width - LAYOUT.barsRightPad) / n;
-    const x = (index < n ? index * barWidth + barWidth / 2 : width / 2);
+    const barWidth = (width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad) / n;
+    const x = (index < n ? LAYOUT.barsLeftPad + index * barWidth + barWidth / 2 : width / 2);
     const y = height * 0.7;
     const radius = 20 + frame * 25;
 
@@ -1787,14 +1788,14 @@ export class Renderer {
     // Barres qui ondulent
     const n = data.length;
     if (n === 0) { ctx.restore(); return; }
-    const barWidth = (width - LAYOUT.barsRightPad) / n;
+    const barWidth = (width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad) / n;
     const maxVal = Math.max(...data);
 
     for (let i = 0; i < n; i++) {
       const barH = (data[i] / maxVal) * (LAYOUT.barsMaxH * 0.85);
       const wave = Math.sin(frame * 0.05 + i * 0.3) * 30 * intensity;
       const xWave = Math.sin(frame * 0.03 + i * 0.5) * 15 * intensity;
-      const x = i * barWidth + xWave;
+      const x = LAYOUT.barsLeftPad + i * barWidth + xWave;
       const y = LAYOUT.barsBottom - barH + wave;
 
       const barHue = (i / n * 360 + frame * 5) % 360;
@@ -1849,13 +1850,13 @@ export class Renderer {
 
     const n = data.length;
     if (n > 0) {
-      const barWidth = (width - LAYOUT.barsRightPad) / n;
+      const barWidth = (width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad) / n;
       const maxVal = Math.max(...data);
       for (let i = 0; i < n; i++) {
         const barH = (data[i] / maxVal) * (LAYOUT.barsMaxH * 0.85);
         const barHue = (i / n * 360 + frame * 10) % 360;
         ctx.fillStyle = `hsl(${barHue}, 100%, 55%)`;
-        ctx.fillRect(i * barWidth, LAYOUT.barsBottom - barH, barWidth - 1, barH);
+        ctx.fillRect(LAYOUT.barsLeftPad + i * barWidth, LAYOUT.barsBottom - barH, barWidth - 1, barH);
       }
     }
 
@@ -1877,14 +1878,14 @@ export class Renderer {
 
     const n = data.length;
     if (n > 0) {
-      const barWidth = (width - LAYOUT.barsRightPad) / n;
+      const barWidth = (width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad) / n;
       const maxVal = Math.max(...data);
       for (let i = 0; i < n; i++) {
         const barH = (data[i] / maxVal) * (LAYOUT.barsMaxH * 0.9);
         const ratio = data[i] / maxVal;
         const hue = ratio * 120 + 200; // bleu-violet
         ctx.fillStyle = `hsl(${hue}, 50%, 55%)`;
-        ctx.fillRect(i * barWidth, LAYOUT.barsBottom - barH, barWidth - 1, barH);
+        ctx.fillRect(LAYOUT.barsLeftPad + i * barWidth, LAYOUT.barsBottom - barH, barWidth - 1, barH);
       }
     }
 
@@ -1908,7 +1909,7 @@ export class Renderer {
 
   _drawHeader(stats) {
     const { ctx, width } = this;
-    const centerX = (width - LAYOUT.barsRightPad) / 2;
+    const centerX = LAYOUT.barsLeftPad + (width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad) / 2;
     ctx.save();
 
     // Titre — bold serif, encre sombre
@@ -1925,7 +1926,7 @@ export class Renderer {
       ctx.font = '24px Inter, -apple-system, sans-serif';
       ctx.fillStyle = COLORS.overlaySubtext;
       ctx.textAlign = 'center';
-      const usableW = width - LAYOUT.barsRightPad;
+      const usableW = width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad;
       const words = stats.desc.split(' ');
       let line = '';
       let lineY = LAYOUT.subtitleY;
@@ -1976,7 +1977,7 @@ export class Renderer {
     ctx.textBaseline = 'top';
 
     for (let i = 0; i < n; i++) {
-      const x = i * barWidth + barWidth / 2;
+      const x = LAYOUT.barsLeftPad + i * barWidth + barWidth / 2;
       const isActive = step && step.indices && step.indices.includes(i);
       ctx.fillStyle = isActive ? '#E8621F' : '#888888';
       ctx.font = isActive ? 'bold 22px Inter, -apple-system, sans-serif' : '22px Inter, -apple-system, sans-serif';
