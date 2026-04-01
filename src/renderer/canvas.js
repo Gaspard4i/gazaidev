@@ -33,7 +33,7 @@ const LAYOUT = {
   labelsY: 1185,
   codeTop: 1240,
   codeBottom: 1430,
-  codePadX: 40,
+  codePadX: 150,
 };
 
 // Themes visuels par algo absurde
