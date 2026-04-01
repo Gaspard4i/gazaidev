@@ -421,10 +421,10 @@ function animate() {
 
 function animateShuffle() {
   shuffleFrame++;
-  if (shuffleFrame % 3 === 0) sonifier.playShuffle();
+  if (shuffleFrame % 4 === 0) sonifier.playShuffle();
   renderer.draw(data, null, getStats());
 
-  if (shuffleFrame >= 20) {
+  if (shuffleFrame >= 60) {
     phase = 'sorting';
     generator = ALGOS[getAlgoKey()](data);
     statusEl.textContent = `${getMeta().name} en cours...`;
@@ -660,14 +660,19 @@ function drawPersistentOverlays() {
   }
 }
 
+let sweepHold = 0;
 function animateSweep() {
-  sonifier.playSweep(sweepIndex, data.length);
   const statsObj = getStats();
   statsObj.progress = 1;
   renderer.drawSweep(data, sweepIndex, statsObj);
   drawPersistentOverlays();
 
-  sweepIndex++;
+  sweepHold++;
+  if (sweepHold >= 3) {
+    sweepHold = 0;
+    sonifier.playSweep(sweepIndex, data.length);
+    sweepIndex++;
+  }
   if (sweepIndex >= data.length) {
     phase = 'flashing';
     flashOpacity = 0.5;
@@ -683,7 +688,7 @@ function animateFlash() {
   drawPersistentOverlays();
   renderer.drawEndMessage();
   renderer.drawFlash(flashOpacity);
-  flashOpacity -= 0.03;
+  flashOpacity -= 0.015;
 
   if (flashOpacity <= 0) {
     if (loopEnabled) {
