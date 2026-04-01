@@ -275,7 +275,7 @@ const META = {
     code: ['function patienceSort(arr) {', '  let piles = []', '  for (let card of arr)', '    placeOnPile(piles, card)', '  return mergePiles(piles)', '}'],
   },
 };
-const NUM_BARS = 15;
+const NUM_BARS = 20;
 
 const renderer = new Renderer(canvas);
 const sonifier = new Sonifier();
