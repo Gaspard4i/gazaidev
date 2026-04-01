@@ -2095,6 +2095,91 @@ export class Renderer {
     // supprime — plus de barre commentaire
   }
 
+  // Manual Sort — main/curseur qui attrape les barres
+  drawHand(handIdx, data, phase, frame) {
+    if (handIdx === undefined || !data || data.length === 0) return;
+    const { ctx, width } = this;
+    const n = data.length;
+    const usableW = width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad;
+    const barWidth = usableW / n;
+    const maxVal = Math.max(...data);
+    const barH = handIdx < n ? (data[handIdx] / maxVal) * LAYOUT.barsMaxH : 0;
+    const x = LAYOUT.barsLeftPad + handIdx * barWidth + barWidth / 2;
+    const barTop = LAYOUT.barsBottom - barH;
+
+    ctx.save();
+
+    // Barre surlignee (glow)
+    if (phase === 'grabbing' || phase === 'sliding' || phase === 'comparing') {
+      ctx.shadowColor = 'rgba(232, 98, 31, 0.6)';
+      ctx.shadowBlur = 20;
+      ctx.fillStyle = '#E8621F';
+      ctx.fillRect(LAYOUT.barsLeftPad + handIdx * barWidth, barTop, barWidth - 2, barH);
+      ctx.shadowBlur = 0;
+    }
+
+    // La main (curseur pointeur stylise)
+    const handY = phase === 'dropping'
+      ? barTop - 20 - (frame || 0) * 8
+      : phase === 'grabbing'
+        ? barTop - 20 + Math.max(0, (3 - (frame || 0))) * 6
+        : barTop - 20;
+
+    // Bras/tige
+    ctx.strokeStyle = '#2A2A2A';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(x, handY - 40);
+    ctx.lineTo(x, handY);
+    ctx.stroke();
+
+    // Main (poing/pince)
+    const handSize = phase === 'grabbing' || phase === 'sliding' ? 18 : 14;
+    ctx.fillStyle = '#F5C6A0';
+    ctx.strokeStyle = '#C49070';
+    ctx.lineWidth = 2;
+
+    // Paume
+    ctx.beginPath();
+    ctx.ellipse(x, handY, handSize, handSize * 0.8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Doigts (pince fermee si grab/slide, ouverte sinon)
+    if (phase === 'grabbing' || phase === 'sliding') {
+      // Pince fermee
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#C49070';
+      // Doigt gauche
+      ctx.beginPath();
+      ctx.moveTo(x - 8, handY + 6);
+      ctx.lineTo(x - 5, handY + 16);
+      ctx.stroke();
+      // Doigt droit
+      ctx.beginPath();
+      ctx.moveTo(x + 8, handY + 6);
+      ctx.lineTo(x + 5, handY + 16);
+      ctx.stroke();
+      // Pouce
+      ctx.beginPath();
+      ctx.moveTo(x - 14, handY);
+      ctx.lineTo(x - 10, handY + 10);
+      ctx.stroke();
+    } else {
+      // Doigts ouverts
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#C49070';
+      for (let d = -2; d <= 2; d++) {
+        ctx.beginPath();
+        ctx.moveTo(x + d * 6, handY + 8);
+        ctx.lineTo(x + d * 8, handY + 22);
+        ctx.stroke();
+      }
+    }
+
+    ctx.restore();
+  }
+
   _drawWatermark() {
     const { ctx } = this;
     ctx.save();

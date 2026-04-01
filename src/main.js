@@ -48,6 +48,7 @@ import { slowSort } from './algos/slowSort.js';
 import { sleepSort } from './algos/sleepSort.js';
 import { strandSort } from './algos/strandSort.js';
 import { patienceSort } from './algos/patienceSort.js';
+import { manualSort } from './algos/manualSort.js';
 
 // Preload Inter pour le canvas
 document.fonts.ready.then(() => {});
@@ -84,6 +85,7 @@ const ALGOS = {
   pancake: pancakeSort, stooge: stoogeSort, bitonic: bitonicSort,
   tim: timSort, dualPivot: dualPivotQuickSort, slow: slowSort,
   sleep: sleepSort, strand: strandSort, patience: patienceSort,
+  manual: manualSort,
 };
 const META = {
   bubble: {
@@ -274,6 +276,10 @@ const META = {
     name: 'Patience Sort', complexity: 'O(n log n)', desc: 'Like dealing cards into piles, then merging.',
     code: ['function patienceSort(arr) {', '  let piles = []', '  for (let card of arr)', '    placeOnPile(piles, card)', '  return mergePiles(piles)', '}'],
   },
+  manual: {
+    name: 'Manual Sort', complexity: 'O(n\u00B2 fingers)', desc: 'A hand grabs each bar and slides it into place. Human-powered.',
+    code: ['function manualSort(arr) {', '  for (let i = 1; i < arr.length; i++) {', '    hand.grab(arr[i])', '    while (i > 0 && arr[i-1] > arr[i])', '      hand.slideLeft(arr, i--)', '    hand.drop()', '  }', '}'],
+  },
 };
 const NUM_BARS = 20;
 
@@ -461,6 +467,7 @@ const ANIMATION_METAS = new Set([
   'claude_prompt', 'claude_response', 'claude_thinking', 'claude_no_tokens', 'claude_done',
   'gpt_typing', 'gpt_pause', 'gpt_done', 'gpt_typing_indicator', 'gpt_message',
   'siren', 'bomber', 'nuke_falling', 'nuke_flash', 'mushroom_cloud', 'ashes',
+  'hand_move', 'hand_grab', 'hand_compare', 'hand_slide', 'hand_drop',
 ]);
 
 function animateSort() {
@@ -663,6 +670,11 @@ function drawSpecialEffects(step) {
         renderer.drawEndMessage();
       }
     }
+  }
+
+  // Manual Sort: main qui attrape les barres
+  if (key === 'manual' && step.handIdx !== undefined) {
+    renderer.drawHand(step.handIdx, data, step.handPhase, step.grabFrame || step.dropFrame || step.slideFrame || 0);
   }
 }
 
