@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gazaidev — Preview Simulateur</title>
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --bg-card: #161616;
+      --orange: #E8621F;
+      --cream: #F5F0E8;
+      --ink: #E0E0E0;
+      --ink-soft: #888888;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    h1 {
+      font-family: Georgia, serif;
+      color: var(--cream);
+      margin-bottom: 8px;
+      font-size: 28px;
+    }
+    .subtitle {
+      color: var(--ink-soft);
+      margin-bottom: 24px;
+      font-size: 14px;
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .controls label {
+      color: var(--ink-soft);
+      font-size: 13px;
+    }
+    .controls select, .controls input[type="file"] {
+      background: var(--bg-card);
+      color: var(--ink);
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .controls select:hover { border-color: var(--orange); }
+
+    .file-btn {
+      background: var(--orange);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .file-btn:hover { opacity: 0.85; }
+
+    .hidden-input { display: none; }
+
+    /* Phone frame */
+    .phone-frame {
+      position: relative;
+      width: 375px;
+      height: 812px;
+      background: #000;
+      border-radius: 44px;
+      overflow: hidden;
+      border: 4px solid #333;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      flex-shrink: 0;
+    }
+
+    /* Video */
+    .phone-frame video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Placeholder */
+    .placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #111;
+      color: var(--ink-soft);
+      gap: 12px;
+      font-size: 15px;
+    }
+    .placeholder .icon { font-size: 48px; opacity: 0.3; }
+
+    /* ============================================ */
+    /*  OVERLAYS - shared                           */
+    /* ============================================ */
+    .overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: none;
+    }
+    .overlay.active { display: block; }
+
+    /* Status bar (faux) */
+    .status-bar {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 24px 0;
+      font-size: 13px;
+      font-weight: 600;
+      color: white;
+      z-index: 10;
+    }
+    .status-bar .time { font-size: 15px; font-weight: 700; }
+    .status-bar .icons { display: flex; gap: 5px; font-size: 12px; }
+
+    /* Right sidebar icons */
+    .side-icons {
+      position: absolute;
+      right: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      z-index: 5;
+    }
+    .side-icon {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
+    .side-icon svg {
+      width: 28px;
+      height: 28px;
+      fill: white;
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+    }
+    .side-icon .count {
+      font-size: 11px;
+      color: white;
+      font-weight: 600;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+    }
+
+    /* Bottom info */
+    .bottom-info {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 16px;
+      z-index: 5;
+    }
+    .bottom-info .username {
+      font-weight: 700;
+      font-size: 14px;
+      color: white;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+      margin-bottom: 6px;
+    }
+    .bottom-info .caption {
+      font-size: 13px;
+      color: rgba(255,255,255,0.9);
+      text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+      line-height: 1.4;
+      margin-bottom: 10px;
+    }
+    .bottom-info .music-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.8);
+      text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+    }
+    .music-row svg {
+      width: 12px; height: 12px;
+      fill: rgba(255,255,255,0.8);
+    }
+
+    /* Bottom gradient */
+    .bottom-gradient {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 250px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.6));
+      z-index: 2;
+    }
+
+    /* ============================================ */
+    /*  INSTAGRAM REELS                             */
+    /* ============================================ */
+    #ig-overlay .side-icons { bottom: 180px; }
+    #ig-overlay .ig-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      border: 2px solid white;
+      background: linear-gradient(135deg, #E8621F, #F09A56);
+      margin-bottom: 4px;
+    }
+    #ig-overlay .ig-top {
+      position: absolute;
+      top: 52px; left: 0; right: 0;
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      font-size: 15px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.6);
+      z-index: 10;
+    }
+    #ig-overlay .ig-top .active-tab { color: white; border-bottom: 2px solid white; padding-bottom: 8px; }
+    #ig-overlay .bottom-info { padding-bottom: 24px; }
+    #ig-overlay .ig-bottom-bar {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 50px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 10;
+    }
+    #ig-overlay .ig-bottom-bar svg { width: 24px; height: 24px; fill: white; }
+    #ig-overlay .ig-bottom-bar .active-tab svg { fill: white; }
+
+    /* Spinning music disc */
+    .music-disc {
+      position: absolute;
+      bottom: 64px;
+      right: 14px;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      border: 2px solid #555;
+      background: linear-gradient(135deg, #333, #111);
+      animation: spin 3s linear infinite;
+      z-index: 5;
+    }
+    .music-disc .inner {
+      width: 10px; height: 10px;
+      background: #222;
+      border-radius: 50%;
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      border: 2px solid #444;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ============================================ */
+    /*  YOUTUBE SHORTS                              */
+    /* ============================================ */
+    #yt-overlay .side-icons { bottom: 120px; }
+    #yt-overlay .yt-subscribe {
+      position: absolute;
+      bottom: 80px; right: 8px;
+      background: #FF0000;
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 4px;
+      z-index: 5;
+    }
+    #yt-overlay .yt-channel {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    #yt-overlay .yt-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #E8621F, #F09A56);
+      flex-shrink: 0;
+    }
+    #yt-overlay .yt-channel-name { font-weight: 600; font-size: 14px; color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.7); }
+    #yt-overlay .yt-sub-btn {
+      background: white;
+      color: black;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 20px;
+      margin-left: 10px;
+    }
+    #yt-overlay .bottom-info { padding-bottom: 20px; }
+    #yt-overlay .yt-bottom-bar {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 50px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      background: #0d0d0d;
+      z-index: 10;
+    }
+    #yt-overlay .yt-bottom-bar .tab {
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      font-size: 9px; color: rgba(255,255,255,0.6);
+    }
+    #yt-overlay .yt-bottom-bar .tab.active { color: white; }
+    #yt-overlay .yt-bottom-bar .tab svg { width: 22px; height: 22px; fill: currentColor; }
+    #yt-overlay .yt-bottom-bar .shorts-btn {
+      width: 36px; height: 36px;
+      background: white;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #yt-overlay .yt-bottom-bar .shorts-btn svg { fill: #FF0000; width: 20px; height: 20px; }
+
+    /* ============================================ */
+    /*  TIKTOK                                      */
+    /* ============================================ */
+    #tt-overlay .side-icons { bottom: 160px; }
+    #tt-overlay .tt-avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      border: 2px solid white;
+      background: linear-gradient(135deg, #E8621F, #F09A56);
+      position: relative;
+    }
+    #tt-overlay .tt-avatar-plus {
+      position: absolute;
+      bottom: -6px; left: 50%;
+      transform: translateX(-50%);
+      width: 16px; height: 16px;
+      background: #FE2C55;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: white;
+      line-height: 1;
+    }
+    #tt-overlay .tt-top {
+      position: absolute;
+      top: 52px; left: 0; right: 0;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      font-size: 16px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.5);
+      z-index: 10;
+    }
+    #tt-overlay .tt-top .active-tab { color: white; }
+    #tt-overlay .bottom-info { padding-bottom: 20px; }
+    #tt-overlay .tt-bottom-bar {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 50px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      background: #000;
+      z-index: 10;
+    }
+    #tt-overlay .tt-bottom-bar .tab {
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      font-size: 10px; color: rgba(255,255,255,0.5);
+    }
+    #tt-overlay .tt-bottom-bar .tab.active { color: white; }
+    #tt-overlay .tt-bottom-bar .tab svg { width: 24px; height: 24px; fill: currentColor; }
+    #tt-overlay .tt-bottom-bar .create-btn {
+      width: 42px; height: 28px;
+      background: linear-gradient(90deg, #25F4EE, #FE2C55);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+    }
+    #tt-overlay .tt-bottom-bar .create-btn .inner {
+      width: 36px; height: 22px;
+      background: white;
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #tt-overlay .tt-bottom-bar .create-btn .inner svg { fill: black; width: 16px; height: 16px; }
+    #tt-overlay .tt-music-disc {
+      position: absolute;
+      bottom: 64px; right: 14px;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: #333;
+      animation: spin 3s linear infinite;
+      z-index: 5;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #tt-overlay .tt-music-disc .inner-disc {
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #E8621F, #F09A56);
+    }
+
+    /* Home indicator */
+    .home-indicator {
+      position: absolute;
+      bottom: 6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 134px;
+      height: 5px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 3px;
+      z-index: 20;
+    }
+
+    /* Link back */
+    .back-link {
+      margin-top: 24px;
+      color: var(--orange);
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .back-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <h1>Preview Simulateur</h1>
+  <p class="subtitle">Importe ta video et visualise le rendu sur Instagram, YouTube Shorts ou TikTok</p>
+
+  <div class="controls">
+    <button class="file-btn" onclick="document.getElementById('videoInput').click()">Choisir une video</button>
+    <input type="file" id="videoInput" class="hidden-input" accept="video/*">
+    <select id="platform">
+      <option value="instagram">Instagram Reels</option>
+      <option value="youtube">YouTube Shorts</option>
+      <option value="tiktok">TikTok</option>
+    </select>
+  </div>
+
+  <div class="phone-frame" id="phone">
+    <video id="video" loop muted playsinline></video>
+
+    <div class="placeholder" id="placeholder">
+      <div class="icon">&#9654;</div>
+      <div>Importe une video pour commencer</div>
+    </div>
+
+    <!-- ====== INSTAGRAM REELS ====== -->
+    <div class="overlay" id="ig-overlay">
+      <div class="status-bar">
+        <span class="time">18:58</span>
+        <span class="icons">
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="white"><path d="M1 5.5c2.7-3.3 8.3-3.3 11 0" stroke="white" stroke-width="1.5" fill="none"/><path d="M3.5 8c1.8-2 5.2-2 7 0" stroke="white" stroke-width="1.5" fill="none"/><circle cx="7" cy="10" r="1.2" fill="white"/></svg>
+          <svg width="18" height="12" viewBox="0 0 18 12" fill="white"><rect x="1" y="1" width="14" height="10" rx="2" stroke="white" stroke-width="1.5" fill="none"/><rect x="3" y="3" width="10" height="6" rx="1" fill="white"/></svg>
+        </span>
+      </div>
+
+      <div class="ig-top">
+        <span>Trending</span>
+        <span class="active-tab">Reels</span>
+      </div>
+
+      <div class="bottom-gradient"></div>
+
+      <div class="side-icons">
+        <!-- Heart -->
+        <div class="side-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+          <span class="count">42.1K</span>
+        </div>
+        <!-- Comment -->
+        <div class="side-icon">
+          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span class="count">839</span>
+        </div>
+        <!-- Send/Share -->
+        <div class="side-icon">
+          <svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+          <span class="count">1.2K</span>
+        </div>
+        <!-- Save -->
+        <div class="side-icon">
+          <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" fill="none" stroke="white" stroke-width="2"/></svg>
+        </div>
+        <!-- More -->
+        <div class="side-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+        </div>
+      </div>
+
+      <div class="music-disc"><div class="inner"></div></div>
+
+      <div class="bottom-info">
+        <div class="username">gazaidev</div>
+        <div class="caption">Sorting algorithms but they're unhinged #coding #sort #algorithm</div>
+        <div class="music-row">
+          <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13M9 18c0 1.66-1.34 3-3 3s-3-1.34-3-3 1.34-3 3-3 3 1.34 3 3zm12-2c0 1.66-1.34 3-3 3s-3-1.34-3-3 1.34-3 3-3 3 1.34 3 3z"/></svg>
+          <span>Original audio - gazaidev</span>
+        </div>
+      </div>
+
+      <div class="ig-bottom-bar">
+        <!-- Home -->
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="none" stroke="white" stroke-width="2"/></svg>
+        <!-- Search -->
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" fill="none" stroke="white" stroke-width="2"/><path d="M21 21l-4.35-4.35" stroke="white" stroke-width="2"/></svg>
+        <!-- Add -->
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="white" stroke-width="2"/><path d="M12 8v8M8 12h8" stroke="white" stroke-width="2"/></svg>
+        <!-- Reels (active) -->
+        <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="3" fill="none" stroke="white" stroke-width="2"/><path d="M10 8l6 4-6 4V8z" fill="white"/></svg>
+        <!-- Profile -->
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="none" stroke="white" stroke-width="2"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7" fill="none" stroke="white" stroke-width="2"/></svg>
+      </div>
+
+      <div class="home-indicator"></div>
+    </div>
+
+    <!-- ====== YOUTUBE SHORTS ====== -->
+    <div class="overlay" id="yt-overlay">
+      <div class="status-bar">
+        <span class="time">18:58</span>
+        <span class="icons">
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="white"><path d="M1 5.5c2.7-3.3 8.3-3.3 11 0" stroke="white" stroke-width="1.5" fill="none"/><path d="M3.5 8c1.8-2 5.2-2 7 0" stroke="white" stroke-width="1.5" fill="none"/><circle cx="7" cy="10" r="1.2" fill="white"/></svg>
+          <svg width="18" height="12" viewBox="0 0 18 12" fill="white"><rect x="1" y="1" width="14" height="10" rx="2" stroke="white" stroke-width="1.5" fill="none"/><rect x="3" y="3" width="10" height="6" rx="1" fill="white"/></svg>
+        </span>
+      </div>
+
+      <div class="bottom-gradient"></div>
+
+      <div class="side-icons">
+        <!-- Like -->
+        <div class="side-icon">
+          <svg viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z" fill="none" stroke="white" stroke-width="2"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" fill="none" stroke="white" stroke-width="2"/></svg>
+          <span class="count">42K</span>
+        </div>
+        <!-- Dislike -->
+        <div class="side-icon">
+          <svg viewBox="0 0 24 24" style="transform: rotate(180deg)"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z" fill="none" stroke="white" stroke-width="2"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" fill="none" stroke="white" stroke-width="2"/></svg>
+          <span class="count">Dislike</span>
+        </div>
+        <!-- Comment -->
+        <div class="side-icon">
+          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" fill="none" stroke="white" stroke-width="2"/></svg>
+          <span class="count">839</span>
+        </div>
+        <!-- Share -->
+        <div class="side-icon">
+          <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13" fill="none" stroke="white" stroke-width="2"/></svg>
+          <span class="count">Share</span>
+        </div>
+        <!-- Remix -->
+        <div class="side-icon">
+          <svg viewBox="0 0 24 24"><path d="M17 1l4 4-4 4" fill="none" stroke="white" stroke-width="2"/><path d="M3 11V9a4 4 0 0 1 4-4h14" fill="none" stroke="white" stroke-width="2"/><path d="M7 23l-4-4 4-4" fill="none" stroke="white" stroke-width="2"/><path d="M21 13v2a4 4 0 0 1-4 4H3" fill="none" stroke="white" stroke-width="2"/></svg>
+          <span class="count">Remix</span>
+        </div>
+        <!-- Menu -->
+        <div class="side-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+        </div>
+      </div>
+
+      <div class="bottom-info">
+        <div class="yt-channel">
+          <div class="yt-avatar"></div>
+          <span class="yt-channel-name">@gazaidev</span>
+          <span class="yt-sub-btn">Subscribe</span>
+        </div>
+        <div class="caption">Sorting algorithms but they're unhinged #coding #shorts</div>
+        <div class="music-row">
+          <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13M9 18c0 1.66-1.34 3-3 3s-3-1.34-3-3 1.34-3 3-3 3 1.34 3 3zm12-2c0 1.66-1.34 3-3 3s-3-1.34-3-3 1.34-3 3-3 3 1.34 3 3z"/></svg>
+          <span>Original audio</span>
+        </div>
+      </div>
+
+      <div class="yt-bottom-bar">
+        <div class="tab"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Home</span></div>
+        <div class="tab active">
+          <div class="shorts-btn"><svg viewBox="0 0 24 24"><path d="M10 8l6 4-6 4V8z"/></svg></div>
+          <span>Shorts</span>
+        </div>
+        <div class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="2"/></svg><span></span></div>
+        <div class="tab"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span>Subs</span></div>
+        <div class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></svg><span>You</span></div>
+      </div>
+
+      <div class="home-indicator"></div>
+    </div>
+
+    <!-- ====== TIKTOK ====== -->
+    <div class="overlay" id="tt-overlay">
+      <div class="status-bar">
+        <span class="time">18:58</span>
+        <span class="icons">
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="white"><path d="M1 5.5c2.7-3.3 8.3-3.3 11 0" stroke="white" stroke-width="1.5" fill="none"/><path d="M3.5 8c1.8-2 5.2-2 7 0" stroke="white" stroke-width="1.5" fill="none"/><circle cx="7" cy="10" r="1.2" fill="white"/></svg>
+          <svg width="18" height="12" viewBox="0 0 18 12" fill="white"><rect x="1" y="1" width="14" height="10" rx="2" stroke="white" stroke-width="1.5" fill="none"/><rect x="3" y="3" width="10" height="6" rx="1" fill="white"/></svg>
+        </span>
+      </div>
+
+      <div class="tt-top">
+        <span>Following</span>
+        <span>|</span>
+        <span class="active-tab">For You</span>
+      </div>
+
+      <div class="bottom-gradient"></div>
+
+      <div class="side-icons">
+        <!-- Avatar + follow -->
+        <div class="side-icon">
+          <div class="tt-avatar">
+            <div class="tt-avatar-plus">+</div>
+          </div>
+        </div>
+        <!-- Heart -->
+        <div class="side-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+          <span class="count">42.1K</span>
+        </div>
+        <!-- Comment -->
+        <div class="side-icon">
+          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span class="count">839</span>
+        </div>
+        <!-- Bookmark -->
+        <div class="side-icon">
+          <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          <span class="count">2.4K</span>
+        </div>
+        <!-- Share -->
+        <div class="side-icon">
+          <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13" fill="none" stroke="white" stroke-width="2"/></svg>
+          <span class="count">1.2K</span>
+        </div>
+      </div>
+
+      <div class="tt-music-disc"><div class="inner-disc"></div></div>
+
+      <div class="bottom-info">
+        <div class="username">@gazaidev</div>
+        <div class="caption">Sorting algorithms but they're unhinged #coding #sort #fyp</div>
+        <div class="music-row">
+          <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13M9 18c0 1.66-1.34 3-3 3s-3-1.34-3-3 1.34-3 3-3 3 1.34 3 3zm12-2c0 1.66-1.34 3-3 3s-3-1.34-3-3 1.34-3 3-3 3 1.34 3 3z"/></svg>
+          <span>Son original - gazaidev</span>
+        </div>
+      </div>
+
+      <div class="tt-bottom-bar">
+        <div class="tab active"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Home</span></div>
+        <div class="tab"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2"/></svg><span>Discover</span></div>
+        <div class="tab">
+          <div class="create-btn"><div class="inner"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div></div>
+          <span></span>
+        </div>
+        <div class="tab"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Inbox</span></div>
+        <div class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></svg><span>Profile</span></div>
+      </div>
+
+      <div class="home-indicator"></div>
+    </div>
+  </div>
+
+  <a href="index.html" class="back-link">&larr; Retour au visualiseur</a>
+
+  <script>
+    const videoInput = document.getElementById('videoInput');
+    const video = document.getElementById('video');
+    const placeholder = document.getElementById('placeholder');
+    const platformSelect = document.getElementById('platform');
+
+    const overlays = {
+      instagram: document.getElementById('ig-overlay'),
+      youtube: document.getElementById('yt-overlay'),
+      tiktok: document.getElementById('tt-overlay'),
+    };
+
+    function showOverlay(platform) {
+      Object.values(overlays).forEach(o => o.classList.remove('active'));
+      if (overlays[platform]) overlays[platform].classList.add('active');
+    }
+
+    platformSelect.addEventListener('change', () => {
+      showOverlay(platformSelect.value);
+    });
+
+    videoInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const url = URL.createObjectURL(file);
+      video.src = url;
+      video.play();
+      placeholder.style.display = 'none';
+      showOverlay(platformSelect.value);
+    });
+
+    // Init
+    showOverlay('instagram');
+  </script>
+</body>
+</html>
