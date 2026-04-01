@@ -57,10 +57,8 @@ const THEMES = {
       deported: '#FF0000',
     },
     endMessage: [
-      { text: 'MAKE AMERICA', style: 'normal', color: '#FF0000' },
-      { text: 'GREAT', style: 'strikethrough', color: '#FF0000' },
-      { text: 'WHITE', style: 'bold', color: '#FFFFFF' },
-      { text: 'AGAIN', style: 'normal', color: '#FF0000' },
+      { text: 'It was the best sort ever', style: 'normal', color: '#FFD700' },
+      { text: 'hm hmm', style: 'italic', color: '#FFFFFF' },
     ],
   },
   thanos: {
@@ -557,6 +555,31 @@ export class Renderer {
     this._drawWatermark();
   }
 
+  drawThresholdLine(threshold, data, label) {
+    if (!data || data.length === 0) return;
+    const { ctx, width } = this;
+    const maxVal = Math.max(...data);
+    const barH = (threshold / maxVal) * LAYOUT.barsMaxH;
+    const y = LAYOUT.barsBottom - barH;
+
+    ctx.save();
+    ctx.setLineDash([12, 8]);
+    ctx.strokeStyle = '#FF4444';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(width, y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.font = 'bold 20px "Courier New", monospace';
+    ctx.fillStyle = '#FF4444';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(label, 16, y - 8);
+    ctx.restore();
+  }
+
   drawEndMessage() {
     const theme = this._getTheme();
     if (!theme.endMessage) return;
@@ -621,6 +644,12 @@ export class Renderer {
       const px = curX + w / 2;
 
       ctx.fillStyle = part.color;
+
+      if (part.style === 'italic') {
+        ctx.font = `italic bold ${fontSize}px "Segoe UI", system-ui, sans-serif`;
+      } else {
+        ctx.font = `bold ${fontSize}px "Segoe UI", system-ui, sans-serif`;
+      }
 
       if (part.style === 'strikethrough') {
         ctx.globalAlpha = 0.5;

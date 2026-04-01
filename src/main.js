@@ -124,8 +124,8 @@ const META = {
     code: ['function diddySort(arr) {', '  let party = arr.filter(x => x < 18)', '  arr = arr.filter(x => x >= 18)', '  party = [] // they vanished', '  return arr.sort()', '}'],
   },
   epstein: {
-    name: 'Epstein Sort', complexity: 'O(under 18)', desc: 'Only keeps values under 18. The rest are "too old".',
-    code: ['function epsteinSort(arr) {', '  for (let i = arr.length - 1; i >= 0; i--)', '    if (arr[i] >= 18)', '      arr.splice(i, 1) // too old', '  return arr.sort()', '}'],
+    name: 'Epstein Sort', complexity: 'O(under 14)', desc: 'Only keeps values under 14. The rest are "too old".',
+    code: ['function epsteinSort(arr) {', '  for (let i = arr.length - 1; i >= 0; i--)', '    if (arr[i] >= 14)', '      arr.splice(i, 1) // too old', '  return arr.sort()', '}'],
   },
   nineEleven: {
     name: '9/11 Sort', complexity: 'O(2 towers)', desc: 'Finds 2 equal tall bars. Then a plane comes.',
@@ -457,14 +457,18 @@ function animateSort() {
   sortFrameCount++;
   const stepsPerFrame = getStepsThisFrame();
 
-  // Toujours avancer d'au moins 1 step pour les animations
-  const minSteps = Math.max(stepsPerFrame, 1);
+  // Si vitesse trop basse, skip cette frame (redessiner sans avancer)
+  if (stepsPerFrame === 0) {
+    renderer.draw(data, null, getStats());
+    drawPersistentOverlays();
+    return;
+  }
 
   let lastStep = null;
   let done = false;
   let stepsExecuted = 0;
 
-  for (let i = 0; i < minSteps; i++) {
+  for (let i = 0; i < stepsPerFrame; i++) {
     const result = generator.next();
     if (result.done) {
       done = true;
@@ -576,6 +580,11 @@ function drawSpecialEffects(step) {
     if (step.meta === 'pong_transform') {
       renderer.drawPongTransform(step.positions);
     }
+  }
+
+  // Epstein: ligne de seuil a 14
+  if (key === 'epstein') {
+    renderer.drawThresholdLine(14, data, 'SEUIL: 14 ANS');
   }
 
   // Claude: prompts et reponses
