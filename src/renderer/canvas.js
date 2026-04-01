@@ -2100,9 +2100,9 @@ export class Renderer {
     ctx.save();
     ctx.fillStyle = 'rgba(27, 58, 92, 0.5)';
     ctx.font = 'bold italic 28px Inter, -apple-system, sans-serif';
-    ctx.textAlign = 'left';
+    ctx.textAlign = 'right';
     ctx.textBaseline = 'bottom';
-    ctx.fillText('gazaidev', LAYOUT.codePadX + 16, LAYOUT.codeBottom - 12);
+    ctx.fillText('gazaidev', this.width - LAYOUT.codePadX - 16, LAYOUT.codeBottom - 12);
     ctx.restore();
   }
 

@@ -296,6 +296,7 @@ let shuffleFrame = 0;
 let smokeFrame = 0;
 let sortFrameCount = 0;
 let lastGambleBalance = 0;
+let lastRenderedStep = null;
 
 function generateData(n) {
   const arr = Array.from({ length: n }, (_, i) => i + 1);
@@ -397,6 +398,7 @@ function start() {
   sortFrameCount = 0;
   speedAccumulator = 0;
   lastGambleBalance = 0;
+  lastRenderedStep = null;
   running = true;
   btnStart.textContent = 'Pause';
   recorder.start();
@@ -465,9 +467,10 @@ function animateSort() {
   sortFrameCount++;
   const stepsPerFrame = getStepsThisFrame();
 
-  // Si vitesse trop basse, skip cette frame (redessiner sans avancer)
+  // Si vitesse trop basse, skip cette frame (redessiner le dernier step pour eviter le clignotement)
   if (stepsPerFrame === 0) {
-    renderer.draw(data, null, getStats());
+    renderer.draw(data, lastRenderedStep, getStats());
+    if (lastRenderedStep) drawSpecialEffects(lastRenderedStep);
     drawPersistentOverlays();
     return;
   }
@@ -502,6 +505,7 @@ function animateSort() {
     }
   }
 
+  lastRenderedStep = lastStep;
   renderer.draw(data, lastStep, getStats());
   if (lastStep) drawSpecialEffects(lastStep);
 
