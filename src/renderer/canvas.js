@@ -2180,6 +2180,187 @@ export class Renderer {
     ctx.restore();
   }
 
+  // Chess Sort — rendu echiquier avec pieces
+  drawChess(data, step, stats) {
+    const { ctx, width, height } = this;
+    const n = data.length;
+    if (n === 0) return;
+    const usableW = width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad;
+    const barWidth = usableW / n;
+    const maxVal = Math.max(...data);
+
+    // Fond bois
+    const woodGrad = ctx.createLinearGradient(0, 0, 0, height);
+    woodGrad.addColorStop(0, '#3e2723');
+    woodGrad.addColorStop(0.5, '#4e342e');
+    woodGrad.addColorStop(1, '#3e2723');
+    ctx.fillStyle = woodGrad;
+    ctx.fillRect(0, 0, width, height);
+
+    // Header
+    if (stats) this._drawHeader(stats);
+
+    // Echiquier sous les barres
+    const gridH = LAYOUT.barsMaxH;
+    const gridY = LAYOUT.barsBottom - gridH;
+    const cellW = barWidth;
+    const cellH = gridH / 8;
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < n; col++) {
+        const isLight = (row + col) % 2 === 0;
+        ctx.fillStyle = isLight ? '#f0d9b5' : '#b58863';
+        ctx.fillRect(LAYOUT.barsLeftPad + col * cellW, gridY + row * cellH, cellW, cellH);
+      }
+    }
+
+    // Bordure echiquier
+    ctx.strokeStyle = '#2a1a0a';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(LAYOUT.barsLeftPad, gridY, usableW, gridH);
+
+    // Pieces d'echecs — assigner selon la valeur relative
+    const sortedVals = [...new Set(data)].filter(v => v > 0).sort((a, b) => a - b);
+    const pieceMap = this._getPieceForValue(sortedVals, maxVal);
+
+    // Dessiner les barres comme des pieces d'echecs
+    for (let i = 0; i < n; i++) {
+      if (data[i] === 0) continue;
+      const barH = (data[i] / maxVal) * LAYOUT.barsMaxH;
+      const bx = LAYOUT.barsLeftPad + i * barWidth;
+      const by = LAYOUT.barsBottom - barH;
+      const bw = barWidth - 3;
+      const isWhite = i % 2 === 0;
+      const isActive = step && step.indices && step.indices.includes(i);
+
+      // Couleur de la piece
+      let pieceColor, pieceShadow, pieceHighlight;
+      if (isWhite) {
+        pieceColor = '#f5f5f0';
+        pieceShadow = '#c0b8a8';
+        pieceHighlight = '#ffffff';
+      } else {
+        pieceColor = '#2a2a2a';
+        pieceShadow = '#111111';
+        pieceHighlight = '#4a4a4a';
+      }
+
+      // Glow si actif
+      if (isActive) {
+        ctx.save();
+        ctx.shadowColor = step.quality === 'brilliant' ? '#00e676' :
+                          step.quality === 'blunder' ? '#ff1744' :
+                          step.quality === 'risky' ? '#ff9100' : '#ffd740';
+        ctx.shadowBlur = 25;
+        ctx.fillStyle = ctx.shadowColor;
+        ctx.fillRect(bx + 2, by + 2, bw - 4, barH - 4);
+        ctx.restore();
+      }
+
+      // Corps de la piece (barre avec socle)
+      // Socle
+      ctx.fillStyle = pieceShadow;
+      ctx.beginPath();
+      ctx.ellipse(bx + bw / 2, LAYOUT.barsBottom - 4, bw / 2, 8, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Colonne principale
+      const colW = bw * 0.55;
+      const colX = bx + (bw - colW) / 2;
+      ctx.fillStyle = pieceColor;
+      ctx.fillRect(colX, by + 20, colW, barH - 24);
+
+      // Highlight cote gauche
+      ctx.fillStyle = pieceHighlight;
+      ctx.fillRect(colX, by + 20, 3, barH - 24);
+
+      // Shadow cote droit
+      ctx.fillStyle = pieceShadow;
+      ctx.fillRect(colX + colW - 3, by + 20, 3, barH - 24);
+
+      // Tete de la piece (forme selon le type)
+      const headY = by;
+      const headSize = Math.min(bw * 0.8, 42);
+      const piece = pieceMap[data[i]] || '♟';
+      ctx.font = `${headSize}px serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillStyle = isWhite ? '#f5f5f0' : '#2a2a2a';
+      ctx.strokeStyle = isWhite ? '#888' : '#555';
+      ctx.lineWidth = 1;
+      ctx.fillText(piece, bx + bw / 2, headY - 5);
+      ctx.strokeText(piece, bx + bw / 2, headY - 5);
+    }
+
+    // Annotation du move
+    if (step && step.quality && step.indices && step.indices.length > 0) {
+      const qi = step.indices[0];
+      const qx = LAYOUT.barsLeftPad + qi * barWidth + barWidth / 2;
+      const barH = data[qi] ? (data[qi] / maxVal) * LAYOUT.barsMaxH : 200;
+      const qy = LAYOUT.barsBottom - barH - 55;
+
+      let icon, color;
+      if (step.quality === 'brilliant') { icon = '!!'; color = '#00e676'; }
+      else if (step.quality === 'good' || step.quality === 'already') { icon = '✓'; color = '#a5d6a7'; }
+      else if (step.quality === 'risky') { icon = '?!'; color = '#ff9100'; }
+      else if (step.quality === 'blunder') { icon = '??'; color = '#ff1744'; }
+      else { icon = ''; color = '#888'; }
+
+      if (icon) {
+        ctx.font = 'bold 32px Inter, -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        // Cercle de fond
+        const tw = ctx.measureText(icon).width + 16;
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.beginPath();
+        ctx.arc(qx, qy, Math.max(tw / 2, 22), 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = color;
+        ctx.fillText(icon, qx, qy);
+      }
+    }
+
+    // Checkmate text
+    if (step && step.meta === 'chess_checkmate') {
+      const centerX = LAYOUT.barsLeftPad + usableW / 2;
+      const frame = step.frame || 0;
+      ctx.save();
+      ctx.font = `bold ${48 + frame}px Inter, -apple-system, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = `rgba(255,215,0,${Math.min(1, frame / 5)})`;
+      ctx.fillText('CHECKMATE', centerX, 800);
+      // Couronne
+      ctx.font = `${60 + frame * 2}px serif`;
+      ctx.fillText('♚', centerX, 730);
+      ctx.restore();
+    }
+
+    // Value labels & code
+    this._drawValueLabels(data, step, n, barWidth);
+    if (stats && stats.code) this._drawCodeBlock(stats.code);
+    this._drawWatermark();
+  }
+
+  // Assigner une piece d'echecs selon la valeur relative
+  _getPieceForValue(sortedVals, maxVal) {
+    const map = {};
+    const n = sortedVals.length;
+    const whitePieces = ['♙', '♙', '♘', '♗', '♖', '♕', '♔'];
+    const blackPieces = ['♟', '♟', '♞', '♝', '♜', '♛', '♚'];
+
+    for (let i = 0; i < n; i++) {
+      const rank = Math.floor((i / n) * 6); // 0-6
+      const val = sortedVals[i];
+      // Alterner blanc/noir par position dans le sorted (pas par index)
+      const pieces = i % 2 === 0 ? whitePieces : blackPieces;
+      map[val] = pieces[Math.min(rank, pieces.length - 1)];
+    }
+    return map;
+  }
+
   // Minecraft Sort — rendu complet style pixel art
   drawMinecraft(data, step, stats) {
     const { ctx, width, height } = this;

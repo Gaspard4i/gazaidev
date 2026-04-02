@@ -532,6 +532,8 @@ function drawFrame(data, step, stats) {
   const key = getAlgoKey();
   if (key === 'seaweed') {
     renderer.drawSeaweed(data, step, stats);
+  } else if (key === 'chess') {
+    renderer.drawChess(data, step, stats);
   } else if (key === 'minecraft') {
     renderer.drawMinecraft(data, step, stats);
   } else {
@@ -690,7 +692,7 @@ const ANIMATION_METAS = new Set([
   'liberty_free', 'liberty_search', 'liberty_move', 'liberty_home', 'liberty_flag',
   'prison_lock', 'prison_review', 'prison_release', 'prison_free', 'prison_good', 'prison_riot', 'prison_escape',
   'bb_cook', 'bb_crystal', 'bb_pure', 'bb_heisenberg',
-  'chess_move', 'chess_capture', 'chess_take', 'chess_checkmate',
+  'chess_think', 'chess_move', 'chess_capture', 'chess_placed', 'chess_checkmate',
   'mono_dice', 'mono_inspect', 'mono_buy', 'mono_bankrupt', 'mono_trade', 'mono_jail',
   'tetris_fall', 'tetris_slide', 'tetris_move', 'tetris_lock', 'tetris_clear', 'tetris_win',
   'gta_drive', 'gta_steal', 'gta_escape', 'gta_wanted', 'gta_wasted',
