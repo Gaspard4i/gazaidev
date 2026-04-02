@@ -2180,6 +2180,118 @@ export class Renderer {
     ctx.restore();
   }
 
+  // Seaweed Sort — dessine les barres comme des algues ondulantes
+  drawSeaweed(data, step, stats) {
+    const { ctx, width, height } = this;
+    const n = data.length;
+    if (n === 0) return;
+    const usableW = width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad;
+    const barWidth = usableW / n;
+    const maxVal = Math.max(...data);
+    const t = Date.now() * 0.003;
+
+    // Fond sous-marin
+    const grad = ctx.createLinearGradient(0, 0, 0, height);
+    grad.addColorStop(0, '#0a3d5c');
+    grad.addColorStop(0.5, '#0c4a5e');
+    grad.addColorStop(1, '#1a2a3a');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, width, height);
+
+    // Rayons de lumiere sous l'eau
+    ctx.save();
+    ctx.globalAlpha = 0.04;
+    for (let r = 0; r < 5; r++) {
+      const rx = width * 0.2 + r * width * 0.15;
+      ctx.fillStyle = '#88ccee';
+      ctx.beginPath();
+      ctx.moveTo(rx - 30, 0);
+      ctx.lineTo(rx + 30, 0);
+      ctx.lineTo(rx + 80 + Math.sin(t + r) * 20, height);
+      ctx.lineTo(rx - 80 + Math.sin(t + r) * 20, height);
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // Bulles
+    ctx.save();
+    for (let b = 0; b < 8; b++) {
+      const bx = LAYOUT.barsLeftPad + ((b * 137 + t * 40) % usableW);
+      const by = LAYOUT.barsBottom - ((t * 30 + b * 200) % (LAYOUT.barsMaxH + 100));
+      const br = 3 + (b % 3) * 2;
+      ctx.fillStyle = `rgba(180, 220, 255, ${0.15 + Math.sin(t + b) * 0.1})`;
+      ctx.beginPath();
+      ctx.arc(bx, by, br, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // Header
+    if (stats) this._drawHeader(stats);
+
+    // Dessiner les algues (barres ondulantes)
+    for (let i = 0; i < n; i++) {
+      const barH = (data[i] / maxVal) * LAYOUT.barsMaxH;
+      const baseX = LAYOUT.barsLeftPad + i * barWidth + barWidth / 2;
+      const baseY = LAYOUT.barsBottom;
+      const ratio = data[i] / maxVal;
+
+      // Couleur algue — vert qui varie
+      const isActive = step && step.indices && step.indices.includes(i);
+      const hue = isActive ? 40 : 110 + ratio * 30;
+      const sat = isActive ? 90 : 60 + ratio * 20;
+      const light = isActive ? 55 : 30 + ratio * 20;
+
+      // Amplitude d'ondulation — plus grande pour les grandes algues
+      const amplitude = 8 + barH * 0.02;
+      const frequency = 2 + i * 0.3;
+      const segments = Math.max(8, Math.floor(barH / 10));
+      const segH = barH / segments;
+      const halfW = (barWidth - 4) / 2;
+
+      ctx.save();
+      ctx.beginPath();
+
+      // Cote gauche (bas vers haut)
+      for (let s = 0; s <= segments; s++) {
+        const sy = baseY - s * segH;
+        const progress = s / segments; // 0 = base, 1 = sommet
+        const sway = Math.sin(t * 1.5 + frequency + progress * 3) * amplitude * progress * progress;
+        const narrowing = 1 - progress * 0.3;
+        const sx = baseX + sway - halfW * narrowing;
+        if (s === 0) ctx.moveTo(sx, sy);
+        else ctx.lineTo(sx, sy);
+      }
+
+      // Cote droit (haut vers bas)
+      for (let s = segments; s >= 0; s--) {
+        const sy = baseY - s * segH;
+        const progress = s / segments;
+        const sway = Math.sin(t * 1.5 + frequency + progress * 3) * amplitude * progress * progress;
+        const narrowing = 1 - progress * 0.3;
+        const sx = baseX + sway + halfW * narrowing;
+        ctx.lineTo(sx, sy);
+      }
+
+      ctx.closePath();
+      ctx.fillStyle = `hsl(${hue}, ${sat}%, ${light}%)`;
+      ctx.fill();
+
+      // Bord plus clair
+      ctx.strokeStyle = `hsl(${hue}, ${sat}%, ${light + 15}%)`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Value labels
+    this._drawValueLabels(data, step, n, barWidth);
+
+    // Code block
+    if (stats && stats.code) this._drawCodeBlock(stats.code);
+    this._drawWatermark();
+  }
+
   // Meme text overlay — affiche un gros texte meme au centre
   drawMemeText(text, options = {}) {
     const { ctx, width } = this;

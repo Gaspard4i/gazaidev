@@ -83,6 +83,7 @@ import { tinderSort } from './algos/tinderSort.js';
 import { coffeeSort } from './algos/coffeeSort.js';
 import { ikeaSort } from './algos/ikeaSort.js';
 import { wifiSort } from './algos/wifiSort.js';
+import { seaweedSort } from './algos/seaweedSort.js';
 
 // Preload Inter pour le canvas
 document.fonts.ready.then(() => {});
@@ -132,6 +133,7 @@ const ALGOS = {
   gta: gtaSort, fortnite: fortniteSort, amongUs: amongUsSort,
   uno: unoSort, netflix: netflixSort, tinder: tinderSort,
   coffee: coffeeSort, ikea: ikeaSort, wifi: wifiSort,
+  seaweed: seaweedSort,
 };
 const META = {
   bubble: {
@@ -462,6 +464,10 @@ const META = {
     name: 'WiFi Sort', complexity: 'O(signal)', desc: 'Connection drops, bars freeze, lag, reconnect.',
     code: ['function wifiSort(arr) {', '  while (!sorted(arr)) {', '    if (signal == 0)', '      disconnect(); reconnect()', '    else if (signal < 2)', '      lag() // buffering...', '    else sort1step(arr)', '  }', '}'],
   },
+  seaweed: {
+    name: 'Seaweed Sort', complexity: 'O(n\u00B2 waves)', desc: 'Bars sway like seaweed underwater. Bubbles rise.',
+    code: ['function seaweedSort(arr) {', '  while (!sorted(arr))', '    for (let algae of arr)', '      algae.sway(current)', '      if (algae > neighbor)', '        bubble.swap(algae)', '  return arr // ocean floor', '}'],
+  },
 };
 const NUM_BARS = 20;
 
@@ -521,6 +527,16 @@ function getStats() {
   };
 }
 
+// Dispatch draw vers le bon renderer selon l'algo
+function drawFrame(data, step, stats) {
+  const key = getAlgoKey();
+  if (key === 'seaweed') {
+    renderer.drawSeaweed(data, step, stats);
+  } else {
+    drawFrame(data,step, stats);
+  }
+}
+
 let speedAccumulator = 0;
 
 function getRawSpeed() {
@@ -546,7 +562,7 @@ function getStepsThisFrame() {
 function updateTheme() {
   const key = getAlgoKey();
   // Les tris absurdes ont leur propre theme, les classiques utilisent default
-  const absurdThemes = ['trump', 'thanos', 'communism', 'stalin', 'hitler', 'diddy', 'epstein', 'sort67', 'nineEleven', 'unsort', 'bogo', 'sigma', 'gaza', 'french', 'gamble', 'adhd', 'autism', 'magician', 'drug', 'pong', 'claude', 'chatgpt', 'hiroshima', 'manual', 'skibidi', 'hawkTuah', 'rizz', 'mewing', 'ohio', 'brainrot', 'fanumTax', 'northKorea', 'ukraine', 'elon', 'npc', 'diddyIsland', 'minecraft', 'valorant', 'rocketLeague', 'pokemon', 'plane', 'boat', 'car', 'liberty', 'prison', 'breakingBad', 'chess', 'monopoly', 'tetris', 'gta', 'fortnite', 'amongUs', 'uno', 'netflix', 'tinder', 'coffee', 'ikea', 'wifi'];
+  const absurdThemes = ['trump', 'thanos', 'communism', 'stalin', 'hitler', 'diddy', 'epstein', 'sort67', 'nineEleven', 'unsort', 'bogo', 'sigma', 'gaza', 'french', 'gamble', 'adhd', 'autism', 'magician', 'drug', 'pong', 'claude', 'chatgpt', 'hiroshima', 'manual', 'skibidi', 'hawkTuah', 'rizz', 'mewing', 'ohio', 'brainrot', 'fanumTax', 'northKorea', 'ukraine', 'elon', 'npc', 'diddyIsland', 'minecraft', 'valorant', 'rocketLeague', 'pokemon', 'plane', 'boat', 'car', 'liberty', 'prison', 'breakingBad', 'chess', 'monopoly', 'tetris', 'gta', 'fortnite', 'amongUs', 'uno', 'netflix', 'tinder', 'coffee', 'ikea', 'wifi', 'seaweed'];
   renderer.theme = absurdThemes.includes(key) ? key : 'default';
 }
 
@@ -567,7 +583,7 @@ function reset() {
   generator = null;
   stats = { compares: 0, swaps: 0 };
   updateTheme();
-  renderer.draw(data, null, getStats());
+  drawFrame(data,null, getStats());
   statusEl.textContent = 'Pret';
   btnStart.textContent = 'Play';
 }
@@ -620,7 +636,7 @@ function animate() {
 function animateShuffle() {
   shuffleFrame++;
   if (shuffleFrame % 4 === 0) sonifier.playShuffle();
-  renderer.draw(data, null, getStats());
+  drawFrame(data,null, getStats());
 
   if (shuffleFrame >= 60) {
     phase = 'sorting';
@@ -684,6 +700,7 @@ const ANIMATION_METAS = new Set([
   'coffee_sleepy', 'coffee_yawn', 'coffee_drink', 'coffee_wired', 'coffee_zoom',
   'ikea_open', 'ikea_confused', 'ikea_build', 'ikea_wrong', 'ikea_realize', 'ikea_rebuild', 'ikea_fix', 'ikea_leftover',
   'wifi_scan', 'wifi_lost', 'wifi_reconnect', 'wifi_lag', 'wifi_swap',
+  'seaweed_sway',
 ]);
 
 function animateSort() {
@@ -692,7 +709,7 @@ function animateSort() {
 
   // Si vitesse trop basse, skip cette frame (redessiner le dernier step pour eviter le clignotement)
   if (stepsPerFrame === 0) {
-    renderer.draw(data, lastRenderedStep, getStats());
+    drawFrame(data,lastRenderedStep, getStats());
     if (lastRenderedStep) drawSpecialEffects(lastRenderedStep);
     drawPersistentOverlays();
     return;
@@ -729,14 +746,14 @@ function animateSort() {
   }
 
   lastRenderedStep = lastStep;
-  renderer.draw(data, lastStep, getStats());
+  drawFrame(data,lastStep, getStats());
   if (lastStep) drawSpecialEffects(lastStep);
 
   if (done) {
     phase = 'sweeping';
     sweepIndex = 0;
     statusEl.textContent = 'Sweep...';
-    renderer.draw(data, null, getStats());
+    drawFrame(data,null, getStats());
   }
 }
 
@@ -1010,7 +1027,7 @@ function animateLoop() {
   }
 
   if (shuffleFrame < 25) {
-    renderer.draw(data, null, getStats());
+    drawFrame(data,null, getStats());
     if (shuffleFrame % 3 === 0) sonifier.playShuffle();
     return;
   }
@@ -1039,7 +1056,7 @@ btnRainbow.addEventListener('click', () => {
   renderer.rainbow = !renderer.rainbow;
   btnRainbow.classList.toggle('active', renderer.rainbow);
   btnRainbow.textContent = renderer.rainbow ? 'Rainbow ON' : 'Rainbow';
-  if (phase === 'idle') renderer.draw(data, null, getStats());
+  if (phase === 'idle') drawFrame(data,null, getStats());
 });
 
 reset();
