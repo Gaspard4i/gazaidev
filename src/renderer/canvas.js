@@ -2180,6 +2180,208 @@ export class Renderer {
     ctx.restore();
   }
 
+  // Minecraft Sort — rendu complet style pixel art
+  drawMinecraft(data, step, stats) {
+    const { ctx, width, height } = this;
+    const n = data.length;
+    if (n === 0) return;
+    const usableW = width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad;
+    const barWidth = usableW / n;
+    const maxVal = Math.max(...data);
+    const creeperVal = step && step.creeperVal;
+    const mineIdx = step && step.meta === 'mc_mining' ? step.mineIdx : -1;
+    const crackStage = step ? (step.crackStage || 0) : 0;
+    const isExplosion = step && step.meta === 'mc_explosion';
+    const explosionFrame = step ? (step.explosionFrame || 0) : 0;
+
+    // Fond cave / nuit minecraft
+    ctx.fillStyle = '#0d1117';
+    ctx.fillRect(0, 0, width, height);
+
+    // Grille de pierre en fond (texture grossiere)
+    ctx.strokeStyle = '#1a1f2a';
+    ctx.lineWidth = 1;
+    const gridSize = 48;
+    for (let gx = 0; gx < width; gx += gridSize) {
+      ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, height); ctx.stroke();
+    }
+    for (let gy = 0; gy < height; gy += gridSize) {
+      ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(width, gy); ctx.stroke();
+    }
+
+    // Header
+    if (stats) this._drawHeader(stats);
+
+    // Dessiner les blocs
+    for (let i = 0; i < n; i++) {
+      if (data[i] === 0) continue; // barre detruite par l'explosion
+      const barH = (data[i] / maxVal) * LAYOUT.barsMaxH;
+      const bx = LAYOUT.barsLeftPad + i * barWidth;
+      const by = LAYOUT.barsBottom - barH;
+      const bw = barWidth - 3;
+      const ratio = data[i] / maxVal;
+
+      const isCreeper = creeperVal && data[i] === creeperVal;
+      const isActive = step && step.indices && step.indices.includes(i);
+      const isMining = mineIdx === i;
+
+      // Couleurs du bloc
+      let face, light, dark;
+      if (isCreeper) {
+        face = '#3d8b3d'; light = '#5dab5d'; dark = '#1d5b1d';
+      } else if (isActive) {
+        face = '#c8963c'; light = '#e8b65c'; dark = '#885a18';
+      } else {
+        // Pierre: grise, plus claire pour les hautes barres
+        const g = Math.round(80 + ratio * 70);
+        face = `rgb(${g},${g},${g})`;
+        light = `rgb(${Math.min(255,g+40)},${Math.min(255,g+40)},${Math.min(255,g+40)})`;
+        dark = `rgb(${Math.max(0,g-40)},${Math.max(0,g-40)},${Math.max(0,g-40)})`;
+      }
+
+      // Face principale
+      ctx.fillStyle = face;
+      ctx.fillRect(bx, by, bw, barH);
+
+      // Highlight top-left (effet 3D bloc)
+      ctx.fillStyle = light;
+      ctx.fillRect(bx, by, bw, 3);
+      ctx.fillRect(bx, by, 3, barH);
+
+      // Shadow bottom-right
+      ctx.fillStyle = dark;
+      ctx.fillRect(bx, by + barH - 3, bw, 3);
+      ctx.fillRect(bx + bw - 3, by, 3, barH);
+
+      // Lignes de grille (blocs empiles)
+      const blockH = Math.max(20, Math.round(bw));
+      ctx.strokeStyle = dark;
+      ctx.lineWidth = 1;
+      ctx.globalAlpha = 0.35;
+      for (let lineY = by + blockH; lineY < by + barH; lineY += blockH) {
+        ctx.beginPath(); ctx.moveTo(bx, lineY); ctx.lineTo(bx + bw, lineY); ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+
+      // Face creeper pixel art
+      if (isCreeper) {
+        this._drawCreeperFace(bx + bw / 2, by + 18, Math.min(bw * 0.75, 50));
+      }
+
+      // Fissures de minage
+      if (isMining && crackStage >= 0) {
+        this._drawBlockCracks(bx, by, bw, barH, crackStage);
+      }
+    }
+
+    // Explosion
+    if (isExplosion) {
+      const ci = step.explosionIdx || 0;
+      const ex = LAYOUT.barsLeftPad + ci * barWidth + barWidth / 2;
+      const ey = LAYOUT.barsBottom - (data[ci] || 0) / maxVal * LAYOUT.barsMaxH / 2;
+      this._drawMcExplosion(ex, ey, explosionFrame);
+    }
+
+    // Value labels & code block
+    this._drawValueLabels(data, step, n, barWidth);
+    if (stats && stats.code) this._drawCodeBlock(stats.code);
+    this._drawWatermark();
+  }
+
+  _drawCreeperFace(cx, cy, size) {
+    const { ctx } = this;
+    const p = size / 8; // taille d'un "pixel"
+    ctx.fillStyle = '#0d2b0d';
+
+    // Yeux — 2 carres separes
+    ctx.fillRect(cx - p * 2.5, cy - p * 0.5, p * 2, p * 2);
+    ctx.fillRect(cx + p * 0.5, cy - p * 0.5, p * 2, p * 2);
+
+    // Bouche — forme caracteristique creeper (N inversee)
+    ctx.fillRect(cx - p * 1.5, cy + p * 1.5, p, p * 2);
+    ctx.fillRect(cx - p * 0.5, cy + p * 2.5, p * 3, p);
+    ctx.fillRect(cx + p * 1.5, cy + p * 1.5, p, p * 2);
+    ctx.fillRect(cx - p * 0.5, cy + p * 1.5, p, p);
+  }
+
+  _drawBlockCracks(x, y, w, h, stage) {
+    const { ctx } = this;
+    const cx = x + w / 2;
+    const cy = y + h / 2;
+    ctx.save();
+
+    // Overlay noir progressif
+    ctx.fillStyle = `rgba(0,0,0,${0.1 + stage * 0.12})`;
+    ctx.fillRect(x, y, w, h);
+
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2;
+
+    const len = Math.min(w, h) * 0.35;
+    // Fissures qui rayonnent depuis le centre, plus nombreuses a chaque stage
+    const crackDirs = [
+      [0, -1], [0.7, -0.7], [1, 0], [0.7, 0.7],
+      [0, 1], [-0.7, 0.7], [-1, 0], [-0.7, -0.7],
+    ];
+    for (let c = 0; c <= stage * 2; c++) {
+      const d = crackDirs[c % crackDirs.length];
+      const cracLen = len * (0.4 + (c % 3) * 0.3);
+      ctx.globalAlpha = 0.7;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + d[0] * cracLen, cy + d[1] * cracLen);
+      ctx.stroke();
+      // Petite branche
+      if (stage >= 2) {
+        const mid = 0.6;
+        ctx.beginPath();
+        ctx.moveTo(cx + d[0] * cracLen * mid, cy + d[1] * cracLen * mid);
+        ctx.lineTo(cx + d[0] * cracLen * mid + d[1] * cracLen * 0.3,
+                   cy + d[1] * cracLen * mid - d[0] * cracLen * 0.3);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+
+  _drawMcExplosion(ex, ey, frame) {
+    const { ctx, width } = this;
+    ctx.save();
+
+    // Flash blanc au debut
+    if (frame < 3) {
+      ctx.fillStyle = `rgba(255,255,255,${0.9 - frame * 0.3})`;
+      ctx.fillRect(0, 0, width, this.height);
+    }
+
+    // Boule de feu
+    const r = 40 + frame * 55;
+    const grad = ctx.createRadialGradient(ex, ey, 0, ex, ey, r);
+    grad.addColorStop(0, `rgba(255,230,80,${Math.max(0, 0.95 - frame * 0.08)})`);
+    grad.addColorStop(0.4, `rgba(255,120,0,${Math.max(0, 0.8 - frame * 0.07)})`);
+    grad.addColorStop(1, 'rgba(80,20,0,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(ex, ey, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Debris pixels (blocs brises)
+    const colors = ['#4a4a4a', '#6b6b6b', '#3d8b3d', '#8B6914'];
+    for (let d = 0; d < 18; d++) {
+      const angle = (d / 18) * Math.PI * 2 + frame * 0.1;
+      const dist = 30 + frame * 35 + (d % 5) * 20;
+      const dx = ex + Math.cos(angle) * dist;
+      const dy = ey + Math.sin(angle) * dist + frame * frame * 1.5; // gravite
+      const ds = 10 + (d % 4) * 6;
+      const alpha = Math.max(0, 1 - frame / 10);
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = colors[d % colors.length];
+      ctx.fillRect(dx - ds / 2, dy - ds / 2, ds, ds);
+    }
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+
   // Seaweed Sort — dessine les barres comme des algues ondulantes
   drawSeaweed(data, step, stats) {
     const { ctx, width, height } = this;

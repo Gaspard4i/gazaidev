@@ -532,8 +532,10 @@ function drawFrame(data, step, stats) {
   const key = getAlgoKey();
   if (key === 'seaweed') {
     renderer.drawSeaweed(data, step, stats);
+  } else if (key === 'minecraft') {
+    renderer.drawMinecraft(data, step, stats);
   } else {
-    drawFrame(data,step, stats);
+    renderer.draw(data, step, stats);
   }
 }
 
@@ -678,7 +680,7 @@ const ANIMATION_METAS = new Set([
   'elon_buying', 'elon_fire', 'elon_fired', 'elon_keep', 'elon_rename', 'elon_sort', 'elon_mars',
   'npc_stare', 'npc_bump', 'npc_swap', 'npc_idle',
   'island_invite', 'island_arrive', 'island_disappear', 'island_gone', 'island_witness', 'island_coverup',
-  'mc_scan', 'mc_mine', 'mc_place', 'mc_diamond', 'mc_creeper',
+  'mc_scan', 'mc_mining', 'mc_place', 'mc_creeper_idle', 'mc_creeper_hiss', 'mc_explosion', 'mc_blast_remove',
   'valo_peek', 'valo_aim', 'valo_headshot', 'valo_kill', 'valo_ace',
   'rl_boost', 'rl_bump', 'rl_goal', 'rl_whs',
   'poke_wild', 'poke_battle', 'poke_catch', 'poke_caught', 'poke_master',
@@ -908,6 +910,13 @@ function drawSpecialEffects(step) {
   // Manual Sort: main qui attrape les barres
   if (key === 'manual' && step.handIdx !== undefined) {
     renderer.drawHand(step.handIdx, data, step.handPhase, step.grabFrame || step.dropFrame || step.slideFrame || 0);
+  }
+
+  // Minecraft Sort — sons uniquement (le rendu est dans drawMinecraft)
+  if (key === 'minecraft') {
+    if (step.meta === 'mc_mining' && step.crackStage === 0) sonifier.playMining();
+    if (step.meta === 'mc_creeper_hiss' && step.frame === 0) sonifier.playCreeper();
+    if (step.meta === 'mc_explosion' && step.explosionFrame === 0) sonifier.playExplosion();
   }
 
   // Skibidi Sort — toilettes

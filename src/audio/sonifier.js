@@ -130,6 +130,90 @@ export class Sonifier {
     osc.stop(startTime + duration + 0.01);
   }
 
+  // Son de minage Minecraft — bruit sourd + impact
+  playMining() {
+    if (!this.enabled) return;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    const t = this.ctx.currentTime;
+    const bufSize = Math.round(this.ctx.sampleRate * 0.12);
+    const buf = this.ctx.createBuffer(1, bufSize, this.ctx.sampleRate);
+    const out = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) {
+      // Bruit grave avec decay
+      out[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufSize * 0.3)) * 0.6;
+    }
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = buf;
+    const lpf = this.ctx.createBiquadFilter();
+    lpf.type = 'lowpass';
+    lpf.frequency.value = 400;
+    const gain = this.ctx.createGain();
+    gain.gain.setValueAtTime(0.5, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+    noise.connect(lpf);
+    lpf.connect(gain);
+    gain.connect(this.masterGain);
+    noise.start(t);
+  }
+
+  // Sifflement creeper — ssssss (bruit blanc avec montee)
+  playCreeper() {
+    if (!this.enabled) return;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    const t = this.ctx.currentTime;
+    const bufSize = Math.round(this.ctx.sampleRate * 0.35);
+    const buf = this.ctx.createBuffer(1, bufSize, this.ctx.sampleRate);
+    const out = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) {
+      const env = i / bufSize; // montee
+      out[i] = (Math.random() * 2 - 1) * env * 0.4;
+    }
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = buf;
+    const hpf = this.ctx.createBiquadFilter();
+    hpf.type = 'highpass';
+    hpf.frequency.value = 3000;
+    const gain = this.ctx.createGain();
+    gain.gain.setValueAtTime(0.3, t);
+    noise.connect(hpf);
+    hpf.connect(gain);
+    gain.connect(this.masterGain);
+    noise.start(t);
+  }
+
+  // Explosion Minecraft — boom grave + debris
+  playExplosion() {
+    if (!this.enabled) return;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    const t = this.ctx.currentTime;
+    // Boom grave
+    const osc = this.ctx.createOscillator();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(120, t);
+    osc.frequency.exponentialRampToValueAtTime(25, t + 0.3);
+    const oscGain = this.ctx.createGain();
+    oscGain.gain.setValueAtTime(0.5, t);
+    oscGain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+    osc.connect(oscGain);
+    oscGain.connect(this.masterGain);
+    osc.start(t); osc.stop(t + 0.45);
+    // Bruit d'explosion
+    const bufSize = Math.round(this.ctx.sampleRate * 0.4);
+    const buf = this.ctx.createBuffer(1, bufSize, this.ctx.sampleRate);
+    const out = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) {
+      out[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufSize * 0.25));
+    }
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = buf;
+    const nGain = this.ctx.createGain();
+    nGain.gain.setValueAtTime(0.8, t);
+    nGain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+    noise.connect(nGain);
+    nGain.connect(this.masterGain);
+    noise.start(t);
+  }
+
   toggle() {
     this.enabled = !this.enabled;
     return this.enabled;
