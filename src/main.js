@@ -536,6 +536,10 @@ function drawFrame(data, step, stats) {
     renderer.drawChess(data, step, stats);
   } else if (key === 'minecraft') {
     renderer.drawMinecraft(data, step, stats);
+  } else if (key === 'tetris') {
+    renderer.drawTetris(data, step, stats);
+  } else if (key === 'amongUs') {
+    renderer.drawAmongUs(data, step, stats);
   } else {
     renderer.draw(data, step, stats);
   }
@@ -694,10 +698,10 @@ const ANIMATION_METAS = new Set([
   'bb_cook', 'bb_crystal', 'bb_pure', 'bb_heisenberg',
   'chess_think', 'chess_move', 'chess_capture', 'chess_placed', 'chess_checkmate',
   'mono_dice', 'mono_inspect', 'mono_buy', 'mono_bankrupt', 'mono_trade', 'mono_jail',
-  'tetris_fall', 'tetris_slide', 'tetris_move', 'tetris_lock', 'tetris_clear', 'tetris_win',
+  'tetris_fall', 'tetris_compare', 'tetris_slide', 'tetris_lock', 'tetris_clear', 'tetris_shrink', 'tetris_win',
   'gta_drive', 'gta_steal', 'gta_escape', 'gta_wanted', 'gta_wasted',
   'fn_storm', 'fn_loot', 'fn_build', 'fn_elim', 'fn_victory',
-  'among_task', 'among_fix', 'among_sabotage', 'among_meeting', 'among_eject',
+  'among_spawn', 'among_task', 'among_kill', 'among_meeting', 'among_vote', 'among_eject', 'among_victory',
   'uno_play', 'uno_swap', 'uno_reverse', 'uno_skip', 'uno_plus4', 'uno_win',
   'netflix_play', 'netflix_watch', 'netflix_pause', 'netflix_continue', 'netflix_credits',
   'tinder_look', 'tinder_left', 'tinder_right', 'tinder_match', 'tinder_super', 'tinder_love',
@@ -919,6 +923,20 @@ function drawSpecialEffects(step) {
     if (step.meta === 'mc_mining' && step.crackStage === 0) sonifier.playMining();
     if (step.meta === 'mc_creeper_hiss' && step.frame === 0) sonifier.playCreeper();
     if (step.meta === 'mc_explosion' && step.explosionFrame === 0) sonifier.playExplosion();
+  }
+
+  // Tetris Sort — sons (rendu dans drawTetris)
+  if (key === 'tetris') {
+    if (step.meta === 'tetris_fall' && step.fallFrame === 0) sonifier.playTetrisFall();
+    if (step.meta === 'tetris_lock') sonifier.playTetrisLock();
+    if (step.meta === 'tetris_clear' && step.clearFrame === 0) sonifier.playTetrisClear();
+  }
+
+  // Among Us Sort — sons (rendu dans drawAmongUs)
+  if (key === 'amongUs') {
+    if (step.meta === 'among_kill' && step.frame === 0) sonifier.playAmongKill();
+    if (step.meta === 'among_meeting' && step.frame === 0) sonifier.playAmongMeeting();
+    if (step.meta === 'among_eject' && step.frame === 0) sonifier.playAmongEject();
   }
 
   // Skibidi Sort — toilettes

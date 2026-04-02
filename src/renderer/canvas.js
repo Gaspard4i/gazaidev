@@ -2180,6 +2180,363 @@ export class Renderer {
     ctx.restore();
   }
 
+  // Tetris Sort — rendu style Tetris avec couleurs des 7 pieces
+  drawTetris(data, step, stats) {
+    const { ctx, width, height } = this;
+    const n = data.length;
+    if (n === 0) return;
+    const usableW = width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad;
+    const barWidth = usableW / n;
+    const maxVal = Math.max(...data);
+
+    // Couleurs des 7 pieces Tetris
+    const TETRIS_COLORS = ['#00f0f0', '#f0f000', '#a000f0', '#00f000', '#f00000', '#0000f0', '#f0a000'];
+    const TETRIS_DARK = ['#00b0b0', '#b0b000', '#7000b0', '#00b000', '#b00000', '#0000b0', '#b07000'];
+    const TETRIS_LIGHT = ['#60ffff', '#ffff60', '#c060ff', '#60ff60', '#ff6060', '#6060ff', '#ffc060'];
+
+    // Fond noir Tetris
+    ctx.fillStyle = '#0a0a0a';
+    ctx.fillRect(0, 0, width, height);
+
+    // Grille de jeu
+    ctx.strokeStyle = '#1a1a2a';
+    ctx.lineWidth = 1;
+    for (let gx = LAYOUT.barsLeftPad; gx <= LAYOUT.barsLeftPad + usableW; gx += barWidth) {
+      ctx.beginPath(); ctx.moveTo(gx, LAYOUT.barsTop - 50); ctx.lineTo(gx, LAYOUT.barsBottom + 10); ctx.stroke();
+    }
+    const cellH = barWidth;
+    for (let gy = LAYOUT.barsBottom; gy >= LAYOUT.barsTop - 50; gy -= cellH) {
+      ctx.beginPath(); ctx.moveTo(LAYOUT.barsLeftPad, gy); ctx.lineTo(LAYOUT.barsLeftPad + usableW, gy); ctx.stroke();
+    }
+
+    // Bordure du champ de jeu
+    ctx.strokeStyle = '#4a4a6a';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(LAYOUT.barsLeftPad - 2, LAYOUT.barsTop - 52, usableW + 4, LAYOUT.barsBottom - LAYOUT.barsTop + 62);
+
+    // Header
+    if (stats) this._drawHeader(stats);
+
+    // Line clear flash
+    if (step && step.meta === 'tetris_clear') {
+      const f = step.clearFrame || 0;
+      ctx.fillStyle = `rgba(255,255,255,${0.5 - f * 0.08})`;
+      ctx.fillRect(LAYOUT.barsLeftPad, LAYOUT.barsTop, usableW, LAYOUT.barsMaxH);
+    }
+
+    // Dessiner les barres comme des blocs Tetris
+    for (let i = 0; i < n; i++) {
+      if (data[i] <= 0) continue;
+      const barH = (data[i] / maxVal) * LAYOUT.barsMaxH;
+      let bx = LAYOUT.barsLeftPad + i * barWidth;
+      let by = LAYOUT.barsBottom - barH;
+      const bw = barWidth - 2;
+
+      // Animation de chute
+      if (step && step.meta === 'tetris_fall' && step.fallIdx === i) {
+        const progress = (step.fallFrame || 0) / (step.totalFall || 6);
+        const startY = LAYOUT.barsTop - 80;
+        by = startY + (LAYOUT.barsBottom - barH - startY) * progress;
+      }
+
+      const colorIdx = i % 7;
+      const face = TETRIS_COLORS[colorIdx];
+      const dark = TETRIS_DARK[colorIdx];
+      const light = TETRIS_LIGHT[colorIdx];
+      const isActive = step && step.indices && step.indices.includes(i);
+
+      // Glow si actif
+      if (isActive) {
+        ctx.save();
+        ctx.shadowColor = face;
+        ctx.shadowBlur = 15;
+      }
+
+      // Dessiner le bloc empile (cellules Tetris)
+      const cellSize = Math.max(15, Math.min(bw, cellH));
+      const rows = Math.max(1, Math.ceil(barH / cellSize));
+      const actualCellH = barH / rows;
+
+      for (let r = 0; r < rows; r++) {
+        const cy = by + r * actualCellH;
+        // Face
+        ctx.fillStyle = face;
+        ctx.fillRect(bx, cy, bw, actualCellH);
+        // Highlight haut + gauche
+        ctx.fillStyle = light;
+        ctx.fillRect(bx, cy, bw, 2);
+        ctx.fillRect(bx, cy, 2, actualCellH);
+        // Shadow bas + droit
+        ctx.fillStyle = dark;
+        ctx.fillRect(bx, cy + actualCellH - 2, bw, 2);
+        ctx.fillRect(bx + bw - 2, cy, 2, actualCellH);
+      }
+
+      if (isActive) ctx.restore();
+    }
+
+    // Tetris win
+    if (step && step.meta === 'tetris_win') {
+      const centerX = LAYOUT.barsLeftPad + usableW / 2;
+      const f = step.frame || 0;
+      ctx.save();
+      // Rainbow flash
+      const hue = (f * 25) % 360;
+      ctx.fillStyle = `hsla(${hue}, 100%, 60%, ${Math.min(0.8, f / 8)})`;
+      ctx.font = `bold ${48 + f * 2}px Inter, -apple-system, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('TETRIS!', centerX, 800);
+      ctx.restore();
+    }
+
+    // Value labels & code
+    this._drawValueLabels(data, step, n, barWidth);
+    if (stats && stats.code) this._drawCodeBlock(stats.code);
+    this._drawWatermark();
+  }
+
+  // Among Us Sort — rendu crewmates
+  drawAmongUs(data, step, stats) {
+    const { ctx, width, height } = this;
+    const n = data.length;
+    if (n === 0) return;
+    const usableW = width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad;
+    const barWidth = usableW / n;
+    const maxVal = Math.max(...data);
+
+    // Couleurs crewmate
+    const CREW_COLORS = ['#c51111', '#132ed1', '#117f2d', '#ed54ba', '#ef7d0e', '#f5f557', '#3f474e', '#d6e0f0', '#6b2fbc', '#71491e', '#38fedc', '#50ef39'];
+    const impostorSet = new Set(step ? step.impostors || [] : []);
+    const deadSet = new Set(step ? step.dead || [] : []);
+    const ejectedSet = new Set(step ? step.ejected || [] : []);
+
+    // Fond — The Skeld (noir espace)
+    ctx.fillStyle = '#0a0a12';
+    ctx.fillRect(0, 0, width, height);
+
+    // Etoiles
+    for (let s = 0; s < 30; s++) {
+      const sx = (s * 137 + 50) % width;
+      const sy = (s * 97 + 20) % (LAYOUT.barsTop - 50);
+      ctx.fillStyle = `rgba(255,255,255,${0.3 + (s % 3) * 0.2})`;
+      ctx.fillRect(sx, sy, 2, 2);
+    }
+
+    // Header
+    if (stats) this._drawHeader(stats);
+
+    // Emergency meeting flash
+    if (step && step.meta === 'among_meeting') {
+      const f = step.frame || 0;
+      if (f < 4) {
+        ctx.fillStyle = `rgba(255,0,0,${0.4 - f * 0.1})`;
+        ctx.fillRect(0, 0, width, height);
+      }
+      // Bouton rouge
+      const centerX = LAYOUT.barsLeftPad + usableW / 2;
+      ctx.fillStyle = '#ff0000';
+      ctx.beginPath();
+      ctx.arc(centerX, 800, 60 - f * 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 20px Inter, -apple-system, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('EMERGENCY', centerX, 795);
+      ctx.fillText('MEETING', centerX, 815);
+    }
+
+    // Dessiner chaque crewmate
+    for (let i = 0; i < n; i++) {
+      if (ejectedSet.has(i)) continue; // ejected = gone
+      const barH = data[i] > 0 ? (data[i] / maxVal) * LAYOUT.barsMaxH : 0;
+      const bx = LAYOUT.barsLeftPad + i * barWidth + barWidth / 2;
+      const by = LAYOUT.barsBottom;
+      const color = CREW_COLORS[i % CREW_COLORS.length];
+      const crewH = Math.max(barH, 30);
+      const crewW = barWidth * 0.75;
+      const isActive = step && step.indices && step.indices.includes(i);
+
+      if (deadSet.has(i)) {
+        // Dead body — half crewmate + bone
+        this._drawDeadCrewmate(bx, by, crewW, color);
+        continue;
+      }
+
+      // Crewmate body
+      this._drawCrewmate(bx, by, crewW, crewH, color, isActive, impostorSet.has(i));
+    }
+
+    // Kill animation
+    if (step && step.meta === 'among_kill') {
+      const ki = step.killerIdx;
+      const vi = step.victimIdx;
+      const f = step.frame || 0;
+      const kx = LAYOUT.barsLeftPad + ki * barWidth + barWidth / 2;
+      const vx = LAYOUT.barsLeftPad + vi * barWidth + barWidth / 2;
+      const vy = LAYOUT.barsBottom - 40;
+
+      // Langue/tentacule de l'imposteur
+      ctx.strokeStyle = '#ff0000';
+      ctx.lineWidth = 6;
+      const tongueLen = f * 12;
+      const dir = vx > kx ? 1 : -1;
+      ctx.beginPath();
+      ctx.moveTo(kx + dir * barWidth * 0.3, vy);
+      ctx.lineTo(kx + dir * tongueLen, vy);
+      ctx.stroke();
+
+      // Flash rouge
+      if (f > 4) {
+        ctx.fillStyle = `rgba(255,0,0,${0.3 - (f - 4) * 0.05})`;
+        ctx.fillRect(0, 0, width, height);
+      }
+    }
+
+    // Vote animation
+    if (step && step.meta === 'among_vote') {
+      const si = step.suspectIdx;
+      const sx = LAYOUT.barsLeftPad + si * barWidth + barWidth / 2;
+      const f = step.frame || 0;
+
+      // Fleches pointant vers le suspect
+      ctx.fillStyle = `rgba(255,0,0,${0.5 + Math.sin(f * 0.5) * 0.3})`;
+      for (let ai = 0; ai < n; ai++) {
+        if (ai === si || ejectedSet.has(ai) || deadSet.has(ai)) continue;
+        const ax = LAYOUT.barsLeftPad + ai * barWidth + barWidth / 2;
+        const ay = LAYOUT.barsBottom - 60;
+        const dir = sx > ax ? 1 : -1;
+        ctx.beginPath();
+        ctx.moveTo(ax + dir * 15, ay);
+        ctx.lineTo(ax + dir * 30, ay - 5);
+        ctx.lineTo(ax + dir * 30, ay + 5);
+        ctx.fill();
+      }
+    }
+
+    // Eject animation
+    if (step && step.meta === 'among_eject') {
+      const ei = step.ejectIdx;
+      const f = step.frame || 0;
+      const color = CREW_COLORS[ei % CREW_COLORS.length];
+      const centerX = LAYOUT.barsLeftPad + usableW / 2;
+
+      // Crewmate qui flotte dans l'espace
+      const ex = centerX + (f - 7) * 40;
+      const ey = 800 - f * 15;
+      const angle = f * 0.3;
+
+      ctx.save();
+      ctx.translate(ex, ey);
+      ctx.rotate(angle);
+      this._drawCrewmate(0, 0, 35, 50, color, false, false);
+      ctx.restore();
+
+      // Texte d'ejection
+      if (f > 5) {
+        ctx.font = 'bold 28px Inter, -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#ffffff';
+        const text = step.wasImpostor ? 'was An Impostor.' : 'was not An Impostor.';
+        ctx.fillText(text, centerX, 850);
+      }
+    }
+
+    // Victory screen
+    if (step && step.meta === 'among_victory') {
+      const centerX = LAYOUT.barsLeftPad + usableW / 2;
+      const f = step.frame || 0;
+      ctx.font = `bold ${40 + f}px Inter, -apple-system, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.fillStyle = step.victory === 'crew' ? '#4fc3f7' : '#ff1744';
+      const text = step.victory === 'crew' ? 'CREWMATES WIN' : 'IMPOSTORS WIN';
+      ctx.fillText(text, centerX, 800);
+    }
+
+    // Value labels & code
+    this._drawValueLabels(data, step, n, barWidth);
+    if (stats && stats.code) this._drawCodeBlock(stats.code);
+    this._drawWatermark();
+  }
+
+  // Dessiner un crewmate Among Us
+  _drawCrewmate(cx, baseY, w, h, color, isActive, isImpostor) {
+    const { ctx } = this;
+    const halfW = w / 2;
+    ctx.save();
+
+    if (isActive) {
+      ctx.shadowColor = isImpostor ? '#ff0000' : '#ffffff';
+      ctx.shadowBlur = 15;
+    }
+
+    // Corps (rectangle arrondi)
+    const bodyTop = baseY - h;
+    const bodyH = h * 0.7;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.roundRect(cx - halfW, bodyTop, w, bodyH, [halfW, halfW, 5, 5]);
+    ctx.fill();
+
+    // Visiere (backpack cote gauche)
+    ctx.fillStyle = color;
+    ctx.fillRect(cx - halfW - 6, bodyTop + bodyH * 0.3, 8, bodyH * 0.4);
+
+    // Visiere bleue
+    const visorW = w * 0.55;
+    const visorH = bodyH * 0.3;
+    const visorY = bodyTop + bodyH * 0.2;
+    ctx.fillStyle = '#88d7f7';
+    ctx.beginPath();
+    ctx.roundRect(cx - halfW * 0.1, visorY, visorW, visorH, [2, visorH / 2, visorH / 2, 2]);
+    ctx.fill();
+
+    // Reflet visiere
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.fillRect(cx + visorW * 0.2, visorY + 3, visorW * 0.2, visorH * 0.3);
+
+    // Jambes (2 rectangles separes)
+    const legTop = bodyTop + bodyH;
+    const legH = h * 0.3;
+    const legW = w * 0.35;
+    const legGap = w * 0.1;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.roundRect(cx - halfW, legTop, legW, legH, [0, 0, 3, 3]);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.roundRect(cx - halfW + legW + legGap, legTop, legW, legH, [0, 0, 3, 3]);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  // Dead crewmate — demi corps + os
+  _drawDeadCrewmate(cx, baseY, w, color) {
+    const { ctx } = this;
+    const halfW = w / 2;
+    ctx.save();
+
+    // Demi corps couche
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.6;
+    ctx.beginPath();
+    ctx.ellipse(cx, baseY - 12, halfW, 12, 0, Math.PI, 0);
+    ctx.fill();
+
+    // Os
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.ellipse(cx, baseY - 18, 4, 8, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(cx + 8, baseY - 15, 4, 8, 0.3, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
   // Chess Sort — rendu echiquier avec pieces
   drawChess(data, step, stats) {
     const { ctx, width, height } = this;

@@ -214,6 +214,111 @@ export class Sonifier {
     noise.start(t);
   }
 
+  // Tetris — son de lock de piece (boop grave)
+  playTetrisLock() {
+    if (!this.enabled) return;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(200, t);
+    osc.frequency.exponentialRampToValueAtTime(100, t + 0.08);
+    const gain = this.ctx.createGain();
+    gain.gain.setValueAtTime(0.25, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+    osc.connect(gain); gain.connect(this.masterGain);
+    osc.start(t); osc.stop(t + 0.12);
+  }
+
+  // Tetris — line clear (ascending arpeggio rapide)
+  playTetrisClear() {
+    if (!this.enabled) return;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    const t = this.ctx.currentTime;
+    [400, 500, 600, 800].forEach((freq, i) => {
+      this._beepAt(freq, t + i * 0.04, 0.08, 0.3);
+    });
+  }
+
+  // Tetris — chute de piece (descente rapide)
+  playTetrisFall() {
+    if (!this.enabled) return;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(800, t);
+    osc.frequency.exponentialRampToValueAtTime(150, t + 0.15);
+    const gain = this.ctx.createGain();
+    gain.gain.setValueAtTime(0.15, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+    osc.connect(gain); gain.connect(this.masterGain);
+    osc.start(t); osc.stop(t + 0.17);
+  }
+
+  // Among Us — kill sound (bruit de couteau / stab)
+  playAmongKill() {
+    if (!this.enabled) return;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    const t = this.ctx.currentTime;
+    // Impact tranchant
+    const osc = this.ctx.createOscillator();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(800, t);
+    osc.frequency.exponentialRampToValueAtTime(80, t + 0.15);
+    const gain = this.ctx.createGain();
+    gain.gain.setValueAtTime(0.4, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+    osc.connect(gain); gain.connect(this.masterGain);
+    osc.start(t); osc.stop(t + 0.22);
+    // Bruit de chair
+    const bufSize = Math.round(this.ctx.sampleRate * 0.1);
+    const buf = this.ctx.createBuffer(1, bufSize, this.ctx.sampleRate);
+    const out = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) out[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufSize * 0.2)) * 0.3;
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = buf;
+    const ng = this.ctx.createGain();
+    ng.gain.setValueAtTime(0.3, t + 0.05);
+    ng.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+    noise.connect(ng); ng.connect(this.masterGain);
+    noise.start(t + 0.05);
+  }
+
+  // Among Us — emergency meeting (alarm double-beep)
+  playAmongMeeting() {
+    if (!this.enabled) return;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    const t = this.ctx.currentTime;
+    // Double beep aigu urgent
+    [0, 0.15, 0.3].forEach((delay) => {
+      const osc = this.ctx.createOscillator();
+      osc.type = 'square';
+      osc.frequency.value = 880;
+      const gain = this.ctx.createGain();
+      gain.gain.setValueAtTime(0.3, t + delay);
+      gain.gain.setValueAtTime(0, t + delay + 0.08);
+      osc.connect(gain); gain.connect(this.masterGain);
+      osc.start(t + delay); osc.stop(t + delay + 0.1);
+    });
+  }
+
+  // Among Us — eject (woooosh descendant)
+  playAmongEject() {
+    if (!this.enabled) return;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(600, t);
+    osc.frequency.exponentialRampToValueAtTime(50, t + 0.6);
+    const gain = this.ctx.createGain();
+    gain.gain.setValueAtTime(0.25, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
+    osc.connect(gain); gain.connect(this.masterGain);
+    osc.start(t); osc.stop(t + 0.65);
+  }
+
   toggle() {
     this.enabled = !this.enabled;
     return this.enabled;
