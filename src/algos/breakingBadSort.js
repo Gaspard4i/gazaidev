@@ -1,26 +1,29 @@
-// Breaking Bad Sort — Cook the purest sort. I am the one who sorts.
+// Breaking Bad Sort — Cook the purest sort. Purity increases each pass.
 export function* breakingBadSort(arr) {
   const n = arr.length;
 
-  // Phase 1: Cooking — each pass increases purity
-  let purity = 0;
+  // Selection sort — purity augmente a chaque element place
   for (let i = 0; i < n; i++) {
     let minIdx = i;
+    const purity = Math.round(((i + 1) / n) * 991) / 10; // 0 → 99.1%
+
     for (let j = i + 1; j < n; j++) {
-      yield { type: 'compare', indices: [j, minIdx], meta: 'bb_cook', purity: Math.round(purity) };
+      yield { type: 'compare', indices: [j, minIdx], meta: 'bb_cook', purity };
       if (arr[j] < arr[minIdx]) minIdx = j;
     }
 
     if (minIdx !== i) {
+      // Crystal formation
+      yield { type: 'compare', indices: [minIdx], meta: 'bb_crystal', purity, crystalIdx: minIdx };
       [arr[i], arr[minIdx]] = [arr[minIdx], arr[i]];
-      yield { type: 'swap', indices: [i, minIdx], values: [arr[i], arr[minIdx]], meta: 'bb_crystal' };
+      yield { type: 'swap', indices: [i, minIdx], values: [arr[i], arr[minIdx]], meta: 'bb_pure', purity };
+    } else {
+      yield { type: 'compare', indices: [i], meta: 'bb_pure', purity };
     }
-    purity = ((i + 1) / n) * 99.1;
-    yield { type: 'compare', indices: [i], meta: 'bb_pure', purity: Math.round(purity * 10) / 10 };
   }
 
   // I am the one who knocks
-  for (let f = 0; f < 15; f++) {
+  for (let f = 0; f < 20; f++) {
     yield { type: 'compare', indices: [], meta: 'bb_heisenberg', frame: f, purity: 99.1 };
   }
 }

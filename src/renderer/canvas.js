@@ -2920,6 +2920,1228 @@ export class Renderer {
     ctx.restore();
   }
 
+  // UNO Sort — cartes colorees sur tapis vert
+  drawUno(data, step, stats) {
+    const { ctx, width, height } = this;
+    const n = data.length;
+    if (n === 0) return;
+    const usableW = width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad;
+    const barWidth = usableW / n;
+    const maxVal = Math.max(...data);
+
+    // Fond tapis vert
+    const grad = ctx.createLinearGradient(0, 0, 0, height);
+    grad.addColorStop(0, '#1a5c2a');
+    grad.addColorStop(0.5, '#1e6b30');
+    grad.addColorStop(1, '#145022');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, width, height);
+
+    // Texture du feutre — petits points
+    ctx.save();
+    ctx.globalAlpha = 0.06;
+    for (let dy = 0; dy < height; dy += 12) {
+      for (let dx = 0; dx < width; dx += 12) {
+        if (Math.sin(dx * 7.3 + dy * 3.1) > 0.5) {
+          ctx.fillStyle = '#0a3012';
+          ctx.fillRect(dx, dy, 2, 2);
+        }
+      }
+    }
+    ctx.restore();
+
+    // Header
+    if (stats) this._drawHeader(stats);
+
+    const unoColors = ['#FF5555', '#5555FF', '#55AA55', '#FFAA00'];
+    const meta = step ? step.meta : null;
+
+    // Draw pile (petit tas a droite)
+    ctx.save();
+    const pileX = width - LAYOUT.barsRightPad + 20;
+    const pileY = LAYOUT.barsTop + 100;
+    for (let c = 0; c < 5; c++) {
+      ctx.fillStyle = '#333';
+      ctx.beginPath();
+      ctx.roundRect(pileX - 20 + c * 2, pileY - 30 + c * 2, 40, 56, 4);
+      ctx.fill();
+    }
+    ctx.fillStyle = '#FF0000';
+    ctx.beginPath();
+    ctx.roundRect(pileX - 18, pileY - 26, 36, 48, 4);
+    ctx.fill();
+    ctx.fillStyle = '#FFF';
+    ctx.font = 'bold 18px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('UNO', pileX, pileY);
+    ctx.restore();
+
+    // Cartes (barres)
+    for (let i = 0; i < n; i++) {
+      const barH = (data[i] / maxVal) * LAYOUT.barsMaxH;
+      const x = LAYOUT.barsLeftPad + i * barWidth;
+      const y = LAYOUT.barsBottom - barH;
+      const cardW = barWidth - 4;
+      const color = unoColors[i % 4];
+      const isActive = step && step.indices && step.indices.includes(i);
+
+      ctx.save();
+
+      // Ombre de carte
+      ctx.fillStyle = 'rgba(0,0,0,0.3)';
+      ctx.beginPath();
+      ctx.roundRect(x + 5, y + 5, cardW, barH, 6);
+      ctx.fill();
+
+      // Glow si active
+      if (isActive) {
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 20;
+      }
+
+      // Carte : bordure coloree
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.roundRect(x + 2, y, cardW, barH, 6);
+      ctx.fill();
+
+      // Ovale blanc au centre
+      const ovalH = Math.min(barH * 0.5, 60);
+      const ovalW = Math.min(cardW * 0.7, 40);
+      const ovalCX = x + 2 + cardW / 2;
+      const ovalCY = y + barH / 2;
+      ctx.fillStyle = '#FFF';
+      ctx.beginPath();
+      ctx.ellipse(ovalCX, ovalCY, ovalW / 2, ovalH / 2, Math.PI / 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Nombre dans l'ovale
+      ctx.fillStyle = color;
+      ctx.font = `bold ${Math.min(24, barH * 0.25)}px Inter, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(data[i], ovalCX, ovalCY);
+
+      ctx.restore();
+    }
+
+    // Effets speciaux UNO
+    if (meta === 'uno_reverse') {
+      ctx.save();
+      const cx = LAYOUT.barsLeftPad + usableW / 2;
+      const cy = LAYOUT.barsTop + LAYOUT.barsMaxH / 2;
+      ctx.font = 'bold 120px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = 'rgba(0,0,0,0.5)';
+      ctx.fillText('\u27F2', cx + 3, cy + 3);
+      ctx.fillStyle = '#FF5555';
+      ctx.fillText('\u27F2', cx, cy);
+      ctx.font = 'bold 36px Inter, sans-serif';
+      ctx.fillStyle = '#FFF';
+      ctx.fillText('REVERSE!', cx, cy + 80);
+      ctx.restore();
+    }
+
+    if (meta === 'uno_skip') {
+      ctx.save();
+      const cx = LAYOUT.barsLeftPad + usableW / 2;
+      const cy = LAYOUT.barsTop + LAYOUT.barsMaxH / 2;
+      ctx.font = 'bold 100px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#5555FF';
+      ctx.fillText('\u2298', cx, cy);
+      ctx.font = 'bold 36px Inter, sans-serif';
+      ctx.fillStyle = '#FFF';
+      ctx.fillText('SKIP!', cx, cy + 70);
+      ctx.restore();
+    }
+
+    if (meta === 'uno_plus4' || meta === 'uno_plus4_swap') {
+      ctx.save();
+      const cx = LAYOUT.barsLeftPad + usableW / 2;
+      const cy = LAYOUT.barsTop + LAYOUT.barsMaxH / 2;
+      // Rainbow border card
+      const t = Date.now() * 0.005;
+      for (let r = 0; r < 4; r++) {
+        const hue = (t * 60 + r * 90) % 360;
+        ctx.fillStyle = `hsl(${hue}, 90%, 55%)`;
+        ctx.beginPath();
+        ctx.roundRect(cx - 50 + r * 8, cy - 70 + r * 8, 80, 110, 8);
+        ctx.fill();
+      }
+      ctx.fillStyle = '#FFF';
+      ctx.font = 'bold 48px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('+4', cx + 12, cy + 12);
+      ctx.restore();
+    }
+
+    if (meta === 'uno_win') {
+      ctx.save();
+      const cx = LAYOUT.barsLeftPad + usableW / 2;
+      const cy = LAYOUT.barsTop + LAYOUT.barsMaxH / 2;
+      const frame = step.frame || 0;
+      const scale = 1 + Math.sin(frame * 0.5) * 0.15;
+      ctx.font = `bold ${Math.floor(100 * scale)}px Inter, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = 'rgba(0,0,0,0.4)';
+      ctx.fillText('UNO!', cx + 4, cy + 4);
+      ctx.fillStyle = '#FF0000';
+      ctx.fillText('UNO!', cx, cy);
+      ctx.restore();
+    }
+
+    this._drawValueLabels(data, step, n, barWidth);
+    if (stats && stats.code) this._drawCodeBlock(stats.code);
+    this._drawWatermark();
+  }
+
+  // GTA Sort — ville neon, batiments, etoiles de recherche
+  drawGTA(data, step, stats) {
+    const { ctx, width, height } = this;
+    const n = data.length;
+    if (n === 0) return;
+    const usableW = width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad;
+    const barWidth = usableW / n;
+    const maxVal = Math.max(...data);
+
+    // Fond nuit ville
+    const grad = ctx.createLinearGradient(0, 0, 0, height);
+    grad.addColorStop(0, '#0a0015');
+    grad.addColorStop(0.3, '#1a0030');
+    grad.addColorStop(0.7, '#0d0020');
+    grad.addColorStop(1, '#050008');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, width, height);
+
+    // Etoiles dans le ciel
+    ctx.save();
+    for (let s = 0; s < 20; s++) {
+      const sx = (s * 173 + 50) % width;
+      const sy = 250 + (s * 97) % 180;
+      ctx.fillStyle = `rgba(255,255,255,${0.2 + Math.sin(Date.now() * 0.003 + s) * 0.15})`;
+      ctx.fillRect(sx, sy, 2, 2);
+    }
+    ctx.restore();
+
+    // Header
+    if (stats) this._drawHeader(stats);
+
+    const stars = step ? (step.stars || 0) : 0;
+    const meta = step ? step.meta : null;
+
+    // Route en bas de la zone barres
+    ctx.fillStyle = '#222';
+    ctx.fillRect(LAYOUT.barsLeftPad - 20, LAYOUT.barsBottom, usableW + 40, 8);
+    ctx.strokeStyle = '#FFD700';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([20, 15]);
+    ctx.beginPath();
+    ctx.moveTo(LAYOUT.barsLeftPad - 20, LAYOUT.barsBottom + 4);
+    ctx.lineTo(LAYOUT.barsLeftPad + usableW + 20, LAYOUT.barsBottom + 4);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Batiments (barres)
+    for (let i = 0; i < n; i++) {
+      const barH = (data[i] / maxVal) * LAYOUT.barsMaxH;
+      const x = LAYOUT.barsLeftPad + i * barWidth;
+      const y = LAYOUT.barsBottom - barH;
+      const bw = barWidth - 3;
+      const isActive = step && step.indices && step.indices.includes(i);
+
+      ctx.save();
+
+      // Neon glow si actif
+      if (isActive) {
+        ctx.shadowColor = '#ff00ff';
+        ctx.shadowBlur = 25;
+      }
+
+      // Batiment — degrade sombre
+      const bGrad = ctx.createLinearGradient(x, y, x, LAYOUT.barsBottom);
+      const ratio = data[i] / maxVal;
+      bGrad.addColorStop(0, isActive ? '#ff00ff' : `hsl(${260 + ratio * 40}, 60%, ${20 + ratio * 15}%)`);
+      bGrad.addColorStop(1, '#111');
+      ctx.fillStyle = bGrad;
+      ctx.fillRect(x + 1, y, bw, barH);
+
+      // Fenetres
+      ctx.shadowBlur = 0;
+      const winSize = Math.max(3, bw * 0.15);
+      const winGap = winSize * 1.8;
+      const cols = Math.max(1, Math.floor((bw - 4) / winGap));
+      const rows = Math.max(1, Math.floor((barH - 4) / winGap));
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const wx = x + 4 + c * winGap;
+          const wy = y + 4 + r * winGap;
+          const lit = Math.sin(i * 3.7 + r * 2.3 + c * 1.1) > -0.3;
+          ctx.fillStyle = lit ? `rgba(255,220,100,${0.5 + Math.random() * 0.3})` : 'rgba(20,20,40,0.8)';
+          ctx.fillRect(wx, wy, winSize, winSize);
+        }
+      }
+
+      // Enseigne neon au sommet des grands batiments
+      if (barH > LAYOUT.barsMaxH * 0.6 && bw > 20) {
+        const neonHue = (i * 60 + Date.now() * 0.05) % 360;
+        ctx.fillStyle = `hsl(${neonHue}, 100%, 60%)`;
+        ctx.shadowColor = `hsl(${neonHue}, 100%, 60%)`;
+        ctx.shadowBlur = 10;
+        ctx.fillRect(x + 3, y - 4, bw - 6, 3);
+        ctx.shadowBlur = 0;
+      }
+
+      ctx.restore();
+    }
+
+    // HUD: Etoiles de recherche (top-right safe zone adjusted)
+    ctx.save();
+    const starY = LAYOUT.barsTop - 30;
+    const starStartX = width - LAYOUT.barsRightPad - 5 * 32;
+    ctx.font = '24px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    for (let s = 0; s < 5; s++) {
+      const sx = starStartX + s * 32;
+      if (s < stars) {
+        ctx.fillStyle = '#FFD700';
+        ctx.shadowColor = '#FFD700';
+        ctx.shadowBlur = 8;
+      } else {
+        ctx.fillStyle = 'rgba(255,255,255,0.2)';
+        ctx.shadowBlur = 0;
+      }
+      ctx.fillText('\u2605', sx, starY);
+    }
+    ctx.shadowBlur = 0;
+    ctx.restore();
+
+    // Effets
+    if (meta === 'gta_steal') {
+      ctx.save();
+      const idx = step.stealIdx;
+      if (idx !== undefined && idx < n) {
+        const bx = LAYOUT.barsLeftPad + idx * barWidth + barWidth / 2;
+        const by = LAYOUT.barsBottom - (data[idx] / maxVal) * LAYOUT.barsMaxH;
+        ctx.font = 'bold 30px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#FF4444';
+        ctx.fillText('YOINK!', bx, by - 15);
+      }
+      ctx.restore();
+    }
+
+    if (meta === 'gta_wanted') {
+      ctx.save();
+      const frame = step.frame || 0;
+      // Police siren flash
+      const flashColor = Math.floor(frame * 3) % 2 === 0 ? 'rgba(255,0,0,0.15)' : 'rgba(0,0,255,0.15)';
+      ctx.fillStyle = flashColor;
+      ctx.fillRect(0, 0, width, height);
+      ctx.font = 'bold 28px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#FFF';
+      ctx.fillText('\uD83D\uDE94 POLICE CHASE! \uD83D\uDE94', width / 2, LAYOUT.barsTop + LAYOUT.barsMaxH / 2);
+      ctx.restore();
+    }
+
+    if (meta === 'gta_wasted') {
+      ctx.save();
+      const frame = step.frame || 0;
+      // Ecran gris + WASTED
+      ctx.fillStyle = `rgba(80,0,0,${Math.min(0.6, frame * 0.04)})`;
+      ctx.fillRect(0, 0, width, height);
+      ctx.font = `bold 90px 'Georgia', serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = `rgba(200,0,0,${Math.min(1, frame * 0.1)})`;
+      ctx.fillText('WASTED', width / 2, height / 2 - 50);
+      ctx.restore();
+    }
+
+    this._drawValueLabels(data, step, n, barWidth);
+    if (stats && stats.code) this._drawCodeBlock(stats.code);
+    this._drawWatermark();
+  }
+
+  // Pokemon Sort — combat, pokeballs, pokedex
+  drawPokemon(data, step, stats) {
+    const { ctx, width, height } = this;
+    const n = data.length;
+    if (n === 0) return;
+    const usableW = width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad;
+    const barWidth = usableW / n;
+    const maxVal = Math.max(...data);
+
+    // Fond herbe/combat
+    const grad = ctx.createLinearGradient(0, 0, 0, height);
+    grad.addColorStop(0, '#87CEEB'); // ciel
+    grad.addColorStop(0.4, '#68b868');
+    grad.addColorStop(0.7, '#4a9a4a');
+    grad.addColorStop(1, '#2d6b2d');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, width, height);
+
+    // Herbe (petits triangles)
+    ctx.save();
+    ctx.globalAlpha = 0.15;
+    ctx.fillStyle = '#2d5a2d';
+    for (let g = 0; g < 40; g++) {
+      const gx = (g * 83 + 20) % width;
+      const gy = LAYOUT.barsBottom + 10 + (g * 37) % 60;
+      ctx.beginPath();
+      ctx.moveTo(gx, gy);
+      ctx.lineTo(gx - 4, gy + 12);
+      ctx.lineTo(gx + 4, gy + 12);
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // Header
+    if (stats) this._drawHeader(stats);
+
+    const meta = step ? step.meta : null;
+    const caught = step ? (step.caught || 0) : 0;
+
+    // Pokedex counter (top right)
+    ctx.save();
+    ctx.fillStyle = 'rgba(200,30,30,0.85)';
+    ctx.beginPath();
+    ctx.roundRect(width - LAYOUT.barsRightPad - 120, LAYOUT.barsTop - 40, 115, 32, 8);
+    ctx.fill();
+    ctx.fillStyle = '#FFF';
+    ctx.font = 'bold 16px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`Pokedex: ${caught}/${n}`, width - LAYOUT.barsRightPad - 62, LAYOUT.barsTop - 20);
+    ctx.restore();
+
+    // Barres comme creatures colorees
+    for (let i = 0; i < n; i++) {
+      const barH = (data[i] / maxVal) * LAYOUT.barsMaxH;
+      const x = LAYOUT.barsLeftPad + i * barWidth;
+      const y = LAYOUT.barsBottom - barH;
+      const bw = barWidth - 3;
+      const ratio = data[i] / maxVal;
+      const isActive = step && step.indices && step.indices.includes(i);
+
+      ctx.save();
+
+      // Type color based on value ratio
+      let typeColor;
+      if (ratio < 0.2) typeColor = '#A8B820'; // bug
+      else if (ratio < 0.4) typeColor = '#6890F0'; // water
+      else if (ratio < 0.6) typeColor = '#F08030'; // fire
+      else if (ratio < 0.8) typeColor = '#A040A0'; // poison
+      else typeColor = '#F8D030'; // electric
+
+      if (isActive) {
+        ctx.shadowColor = '#FFF';
+        ctx.shadowBlur = 15;
+      }
+
+      // Barre creature
+      const bGrad = ctx.createLinearGradient(x, y, x, LAYOUT.barsBottom);
+      bGrad.addColorStop(0, typeColor);
+      bGrad.addColorStop(1, '#333');
+      ctx.fillStyle = bGrad;
+      ctx.beginPath();
+      ctx.roundRect(x + 1, y, bw, barH, [4, 4, 0, 0]);
+      ctx.fill();
+
+      // Yeux (petits cercles blancs)
+      if (bw > 10 && barH > 20) {
+        const eyeY = y + Math.min(15, barH * 0.15);
+        const eyeSize = Math.min(4, bw * 0.12);
+        ctx.fillStyle = '#FFF';
+        ctx.beginPath();
+        ctx.arc(x + bw * 0.3, eyeY, eyeSize, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(x + bw * 0.7, eyeY, eyeSize, 0, Math.PI * 2);
+        ctx.fill();
+        // Pupilles
+        ctx.fillStyle = '#111';
+        ctx.beginPath();
+        ctx.arc(x + bw * 0.3, eyeY, eyeSize * 0.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(x + bw * 0.7, eyeY, eyeSize * 0.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // HP bar (petit)
+      if (barH > 30 && bw > 12) {
+        const hpW = bw - 6;
+        const hpH = 4;
+        const hpX = x + 3;
+        const hpY = y + Math.min(28, barH * 0.25);
+        ctx.fillStyle = '#333';
+        ctx.fillRect(hpX, hpY, hpW, hpH);
+        ctx.fillStyle = ratio > 0.5 ? '#4CAF50' : ratio > 0.2 ? '#FF9800' : '#F44336';
+        ctx.fillRect(hpX, hpY, hpW * ratio, hpH);
+      }
+
+      ctx.restore();
+    }
+
+    // Wild encounter effect
+    if (meta === 'poke_wild') {
+      ctx.save();
+      const frame = step.frame || 0;
+      const idx = step.wildIdx;
+      if (idx !== undefined && idx < n) {
+        const bx = LAYOUT.barsLeftPad + idx * barWidth + barWidth / 2;
+        const by = LAYOUT.barsBottom - (data[idx] / maxVal) * LAYOUT.barsMaxH - 30;
+        ctx.font = `bold ${20 + frame * 2}px Inter, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#FFF';
+        ctx.strokeStyle = '#333';
+        ctx.lineWidth = 3;
+        ctx.strokeText('Wild!', bx, by);
+        ctx.fillText('Wild!', bx, by);
+      }
+      ctx.restore();
+    }
+
+    // Pokeball throw
+    if (meta === 'poke_catch') {
+      ctx.save();
+      const frame = step.frame || 0;
+      const idx = step.catchIdx;
+      if (idx !== undefined && idx < n) {
+        const bx = LAYOUT.barsLeftPad + idx * barWidth + barWidth / 2;
+        const by = LAYOUT.barsBottom - (data[idx] / maxVal) * LAYOUT.barsMaxH / 2;
+        const ballR = 12 + frame * 2;
+        // Top rouge
+        ctx.fillStyle = '#FF0000';
+        ctx.beginPath();
+        ctx.arc(bx, by, ballR, Math.PI, 0);
+        ctx.fill();
+        // Bottom blanc
+        ctx.fillStyle = '#FFF';
+        ctx.beginPath();
+        ctx.arc(bx, by, ballR, 0, Math.PI);
+        ctx.fill();
+        // Ligne
+        ctx.strokeStyle = '#333';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(bx - ballR, by);
+        ctx.lineTo(bx + ballR, by);
+        ctx.stroke();
+        // Bouton central
+        ctx.fillStyle = '#FFF';
+        ctx.strokeStyle = '#333';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(bx, by, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    // Registered in Pokedex
+    if (meta === 'poke_registered') {
+      ctx.save();
+      const cx = LAYOUT.barsLeftPad + usableW / 2;
+      const cy = LAYOUT.barsTop + LAYOUT.barsMaxH / 2;
+      ctx.fillStyle = 'rgba(0,0,0,0.4)';
+      ctx.beginPath();
+      ctx.roundRect(cx - 100, cy - 20, 200, 40, 8);
+      ctx.fill();
+      ctx.fillStyle = '#4CAF50';
+      ctx.font = 'bold 22px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('Registered!', cx, cy);
+      ctx.restore();
+    }
+
+    // Pokemon Master!
+    if (meta === 'poke_master') {
+      ctx.save();
+      const frame = step.frame || 0;
+      const cx = LAYOUT.barsLeftPad + usableW / 2;
+      const cy = LAYOUT.barsTop + LAYOUT.barsMaxH / 2;
+      const scale = 1 + Math.sin(frame * 0.3) * 0.1;
+      ctx.font = `bold ${Math.floor(44 * scale)}px Inter, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.strokeStyle = '#333';
+      ctx.lineWidth = 4;
+      ctx.strokeText('Gotta catch \'em all!', cx, cy);
+      ctx.fillStyle = '#FFD700';
+      ctx.fillText('Gotta catch \'em all!', cx, cy);
+      ctx.restore();
+    }
+
+    this._drawValueLabels(data, step, n, barWidth);
+    if (stats && stats.code) this._drawCodeBlock(stats.code);
+    this._drawWatermark();
+  }
+
+  // Breaking Bad Sort — cristaux bleus de methamphetamine
+  drawBreakingBad(data, step, stats) {
+    const { ctx, width, height } = this;
+    const n = data.length;
+    if (n === 0) return;
+    const usableW = width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad;
+    const barWidth = usableW / n;
+    const maxVal = Math.max(...data);
+    const t = Date.now() * 0.002;
+    const purity = step ? (step.purity || 0) : 0;
+
+    // Fond vert sombre labo
+    ctx.fillStyle = '#0a1a0a';
+    ctx.fillRect(0, 0, width, height);
+
+    // Grille chimique subtile
+    ctx.strokeStyle = 'rgba(0,191,255,0.04)';
+    ctx.lineWidth = 1;
+    for (let gx = 0; gx < width; gx += 60) {
+      ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, height); ctx.stroke();
+    }
+    for (let gy = 0; gy < height; gy += 60) {
+      ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(width, gy); ctx.stroke();
+    }
+
+    // Header
+    if (stats) this._drawHeader(stats);
+
+    // Smoke/vapor particles floating up from bars
+    ctx.save();
+    for (let p = 0; p < 25; p++) {
+      const px = LAYOUT.barsLeftPad + ((p * 137 + 50) % usableW);
+      const baseY = LAYOUT.barsBottom - 50;
+      const py = baseY - ((t * 40 + p * 73) % (LAYOUT.barsMaxH + 100));
+      const size = 3 + (p % 4) * 2;
+      const alpha = Math.max(0, 0.3 - ((t * 40 + p * 73) % (LAYOUT.barsMaxH + 100)) / (LAYOUT.barsMaxH + 100) * 0.3);
+      ctx.fillStyle = `rgba(180,220,180,${alpha})`;
+      ctx.beginPath();
+      ctx.arc(px + Math.sin(t + p) * 10, py, size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // Dessiner les barres comme des cristaux bleus
+    for (let i = 0; i < n; i++) {
+      if (data[i] <= 0) continue;
+      const barH = (data[i] / maxVal) * LAYOUT.barsMaxH;
+      const bx = LAYOUT.barsLeftPad + i * barWidth;
+      const by = LAYOUT.barsBottom - barH;
+      const bw = barWidth - 2;
+      const isActive = step && step.indices && step.indices.includes(i);
+
+      // Glow if active or high purity
+      if (isActive || purity > 95) {
+        ctx.save();
+        ctx.shadowColor = '#00BFFF';
+        ctx.shadowBlur = isActive ? 25 : 12;
+      }
+
+      // Crystal body
+      const crystalGrad = ctx.createLinearGradient(bx, by, bx + bw, LAYOUT.barsBottom);
+      crystalGrad.addColorStop(0, '#00BFFF');
+      crystalGrad.addColorStop(0.4, '#0099CC');
+      crystalGrad.addColorStop(1, '#006688');
+      ctx.fillStyle = crystalGrad;
+      ctx.fillRect(bx, by, bw, barH);
+
+      // Hexagonal top (crystal facet)
+      ctx.fillStyle = '#33DDFF';
+      ctx.beginPath();
+      const cx = bx + bw / 2;
+      ctx.moveTo(cx, by - 8);
+      ctx.lineTo(bx + bw, by + 4);
+      ctx.lineTo(bx + bw, by);
+      ctx.lineTo(bx, by);
+      ctx.lineTo(bx, by + 4);
+      ctx.closePath();
+      ctx.fill();
+
+      // Sparkle specks on crystal
+      ctx.fillStyle = 'rgba(255,255,255,0.7)';
+      for (let s = 0; s < 3; s++) {
+        const sx = bx + ((s * 37 + i * 13) % Math.max(1, Math.floor(bw)));
+        const sy = by + ((s * 53 + i * 19) % Math.max(1, Math.floor(barH)));
+        ctx.fillRect(sx, sy, 2, 2);
+      }
+
+      if (isActive || purity > 95) ctx.restore();
+    }
+
+    // Purity meter — big centered text
+    ctx.save();
+    ctx.font = 'bold 72px "Courier New", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const purityText = `${purity.toFixed(1)}%`;
+    ctx.fillStyle = purity > 95 ? '#00FF66' : '#00CC44';
+    ctx.globalAlpha = 0.25;
+    ctx.fillText(purityText, LAYOUT.barsLeftPad + usableW / 2, LAYOUT.barsTop + LAYOUT.barsMaxH / 2);
+    ctx.globalAlpha = 1;
+    ctx.font = '24px "Courier New", monospace';
+    ctx.fillStyle = '#00CC44';
+    ctx.fillText('PURITY', LAYOUT.barsLeftPad + usableW / 2, LAYOUT.barsTop + LAYOUT.barsMaxH / 2 + 50);
+    ctx.restore();
+
+    // Heisenberg meta
+    if (step && step.meta === 'bb_heisenberg') {
+      const cx = LAYOUT.barsLeftPad + usableW / 2;
+      const cy = LAYOUT.barsTop + LAYOUT.barsMaxH / 2 - 40;
+      ctx.save();
+      // Hat silhouette — brim
+      ctx.fillStyle = '#111111';
+      ctx.beginPath();
+      ctx.ellipse(cx, cy + 30, 70, 14, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // Hat crown
+      ctx.fillRect(cx - 35, cy - 30, 70, 60);
+      ctx.beginPath();
+      ctx.ellipse(cx, cy - 30, 35, 10, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // Text
+      ctx.font = 'bold 28px "Courier New", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#FFD700';
+      ctx.fillText('I am the one who knocks', cx, cy + 70);
+      ctx.restore();
+    }
+
+    // Value labels & code
+    this._drawValueLabels(data, step, n, barWidth);
+    if (stats && stats.code) this._drawCodeBlock(stats.code);
+    this._drawWatermark();
+  }
+
+  // Fortnite Sort — Battle Royale building theme
+  drawFortnite(data, step, stats) {
+    const { ctx, width, height } = this;
+    const n = data.length;
+    if (n === 0) return;
+    const usableW = width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad;
+    const barWidth = usableW / n;
+    const maxVal = Math.max(...data);
+
+    // Compter les barres triees (pour storm progress)
+    let sortedCount = 0;
+    for (let i = 1; i < n; i++) {
+      if (data[i] >= data[i - 1]) sortedCount++;
+      else break;
+    }
+    const progress = sortedCount / Math.max(1, n - 1);
+
+    // Blue sky background
+    const skyGrad = ctx.createLinearGradient(0, 0, 0, height);
+    skyGrad.addColorStop(0, '#4DA6FF');
+    skyGrad.addColorStop(0.4, '#87CEEB');
+    skyGrad.addColorStop(0.7, '#B0E0FF');
+    skyGrad.addColorStop(1, '#2E8B57');
+    ctx.fillStyle = skyGrad;
+    ctx.fillRect(0, 0, width, height);
+
+    // Storm — purple gradient closing in from the right
+    const stormX = width - (1 - progress) * width * 0.4;
+    const stormGrad = ctx.createLinearGradient(stormX - 100, 0, width, 0);
+    stormGrad.addColorStop(0, 'rgba(128,0,255,0)');
+    stormGrad.addColorStop(0.3, 'rgba(128,0,255,0.3)');
+    stormGrad.addColorStop(1, 'rgba(80,0,160,0.7)');
+    ctx.fillStyle = stormGrad;
+    ctx.fillRect(stormX - 100, 0, width - stormX + 100, height);
+
+    // Animated storm fog particles
+    const t = Date.now() * 0.001;
+    ctx.save();
+    for (let p = 0; p < 15; p++) {
+      const px = stormX + ((p * 47 + t * 30) % (width - stormX + 50));
+      const py = (p * 131) % height;
+      const size = 20 + (p % 5) * 15;
+      ctx.fillStyle = `rgba(128,0,255,${0.08 + (p % 3) * 0.04})`;
+      ctx.fillRect(px, py, size, size * 0.6);
+    }
+    ctx.restore();
+
+    // Header
+    if (stats) this._drawHeader(stats);
+
+    // Player count HUD (top-right)
+    const playersAlive = n - sortedCount;
+    ctx.save();
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    const hudX = width - LAYOUT.barsRightPad - 10;
+    const hudY = LAYOUT.barsTop - 30;
+    ctx.fillRect(hudX - 100, hudY - 20, 100, 40);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 24px Inter, -apple-system, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(`👤 ${playersAlive}`, hudX - 10, hudY + 8);
+    ctx.restore();
+
+    // Dessiner les barres comme des murs en bois
+    for (let i = 0; i < n; i++) {
+      if (data[i] <= 0) continue;
+      const barH = (data[i] / maxVal) * LAYOUT.barsMaxH;
+      const bx = LAYOUT.barsLeftPad + i * barWidth;
+      const by = LAYOUT.barsBottom - barH;
+      const bw = barWidth - 2;
+      const isActive = step && step.indices && step.indices.includes(i);
+
+      // Active bar golden glow
+      if (isActive) {
+        ctx.save();
+        ctx.shadowColor = '#FFD700';
+        ctx.shadowBlur = 20;
+      }
+
+      // Wood wall body
+      const woodGrad = ctx.createLinearGradient(bx, by, bx + bw, by);
+      woodGrad.addColorStop(0, '#8B6914');
+      woodGrad.addColorStop(0.5, '#A0822A');
+      woodGrad.addColorStop(1, '#7A5C10');
+      ctx.fillStyle = woodGrad;
+      ctx.fillRect(bx, by, bw, barH);
+
+      // Plank lines (horizontal)
+      ctx.strokeStyle = 'rgba(60,40,10,0.4)';
+      ctx.lineWidth = 1;
+      const plankH = Math.max(15, barH / 6);
+      for (let py = by + plankH; py < LAYOUT.barsBottom; py += plankH) {
+        ctx.beginPath();
+        ctx.moveTo(bx, py);
+        ctx.lineTo(bx + bw, py);
+        ctx.stroke();
+      }
+
+      // Nail dots
+      ctx.fillStyle = 'rgba(100,100,100,0.5)';
+      ctx.fillRect(bx + 3, by + 5, 3, 3);
+      ctx.fillRect(bx + bw - 6, by + 5, 3, 3);
+
+      // Wall border
+      ctx.strokeStyle = 'rgba(60,40,10,0.6)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(bx, by, bw, barH);
+
+      if (isActive) ctx.restore();
+    }
+
+    // Build animation meta
+    if (step && step.meta === 'fn_build') {
+      const f = step.frame || 0;
+      const centerX = LAYOUT.barsLeftPad + usableW / 2;
+      const centerY = LAYOUT.barsTop + LAYOUT.barsMaxH / 2;
+      ctx.save();
+      // Planks appearing
+      ctx.strokeStyle = '#A0822A';
+      ctx.lineWidth = 4;
+      for (let p = 0; p < Math.min(f, 5); p++) {
+        const px = centerX - 60 + p * 30;
+        const py = centerY - 30 + (p % 2) * 20;
+        ctx.globalAlpha = Math.min(1, f * 0.2);
+        ctx.strokeRect(px, py, 25, 50);
+      }
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    }
+
+    // Storm zone overlay meta
+    if (step && step.meta === 'fn_storm') {
+      ctx.fillStyle = 'rgba(128,0,255,0.15)';
+      ctx.fillRect(0, 0, width, height);
+    }
+
+    // Victory Royale meta
+    if (step && step.meta === 'fn_victory') {
+      const centerX = LAYOUT.barsLeftPad + usableW / 2;
+      ctx.save();
+      ctx.font = 'bold 56px Inter, -apple-system, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      // Gold text with shadow
+      ctx.shadowColor = '#FFD700';
+      ctx.shadowBlur = 30;
+      ctx.fillStyle = '#FFD700';
+      ctx.fillText('#1 VICTORY ROYALE', centerX, 800);
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = '#B8860B';
+      ctx.lineWidth = 2;
+      ctx.strokeText('#1 VICTORY ROYALE', centerX, 800);
+      ctx.restore();
+    }
+
+    // Value labels & code
+    this._drawValueLabels(data, step, n, barWidth);
+    if (stats && stats.code) this._drawCodeBlock(stats.code);
+    this._drawWatermark();
+  }
+
+  // Tinder Sort — swipe card theme
+  drawTinder(data, step, stats) {
+    const { ctx, width, height } = this;
+    const n = data.length;
+    if (n === 0) return;
+    const usableW = width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad;
+    const barWidth = usableW / n;
+    const maxVal = Math.max(...data);
+
+    // Warm pink-to-white gradient background
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
+    bgGrad.addColorStop(0, '#FF6B6B');
+    bgGrad.addColorStop(0.3, '#FFB4B4');
+    bgGrad.addColorStop(0.7, '#FFF0F0');
+    bgGrad.addColorStop(1, '#FFFFFF');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, width, height);
+
+    // Header
+    if (stats) this._drawHeader(stats);
+
+    // Match animation — hearts floating up
+    if (step && step.meta === 'tinder_match') {
+      const t = Date.now() * 0.003;
+      ctx.save();
+      ctx.font = '36px serif';
+      ctx.textAlign = 'center';
+      for (let h = 0; h < 10; h++) {
+        const hx = LAYOUT.barsLeftPad + ((h * 97) % usableW);
+        const hy = LAYOUT.barsBottom - ((t * 30 + h * 60) % (LAYOUT.barsMaxH + 200));
+        const alpha = Math.max(0, 1 - ((t * 30 + h * 60) % (LAYOUT.barsMaxH + 200)) / (LAYOUT.barsMaxH + 200));
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = '#FF4458';
+        ctx.fillText('\u2665', hx, hy);
+      }
+      ctx.globalAlpha = 1;
+      // Big match text
+      const centerX = LAYOUT.barsLeftPad + usableW / 2;
+      ctx.font = 'bold 60px Georgia, serif';
+      ctx.fillStyle = '#FF4458';
+      ctx.shadowColor = '#FF4458';
+      ctx.shadowBlur = 20;
+      ctx.fillText("It's a Match!", centerX, LAYOUT.barsTop + LAYOUT.barsMaxH / 2);
+      ctx.restore();
+    }
+
+    // Draw each bar as a profile card
+    for (let i = 0; i < n; i++) {
+      if (data[i] <= 0) continue;
+      const barH = (data[i] / maxVal) * LAYOUT.barsMaxH;
+      const bx = LAYOUT.barsLeftPad + i * barWidth;
+      const by = LAYOUT.barsBottom - barH;
+      const bw = barWidth - 4;
+      const isActive = step && step.indices && step.indices.includes(i);
+
+      ctx.save();
+
+      // Active card: slight rotation + lift
+      if (isActive) {
+        const cx = bx + bw / 2;
+        const cy = by + barH / 2;
+        ctx.translate(cx, cy);
+        ctx.rotate(0.03 * (i % 2 === 0 ? 1 : -1));
+        ctx.translate(-cx, -cy - 5);
+      }
+
+      // Card shadow
+      ctx.shadowColor = 'rgba(0,0,0,0.15)';
+      ctx.shadowBlur = 8;
+      ctx.shadowOffsetY = 3;
+
+      // White card body (rounded rect)
+      const radius = Math.min(6, bw / 3);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.beginPath();
+      ctx.moveTo(bx + radius, by);
+      ctx.lineTo(bx + bw - radius, by);
+      ctx.quadraticCurveTo(bx + bw, by, bx + bw, by + radius);
+      ctx.lineTo(bx + bw, by + barH - radius);
+      ctx.quadraticCurveTo(bx + bw, by + barH, bx + bw - radius, by + barH);
+      ctx.lineTo(bx + radius, by + barH);
+      ctx.quadraticCurveTo(bx, by + barH, bx, by + barH - radius);
+      ctx.lineTo(bx, by + radius);
+      ctx.quadraticCurveTo(bx, by, bx + radius, by);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.shadowColor = 'transparent';
+
+      // Gradient color strip on top of card
+      const stripH = Math.min(30, barH * 0.15);
+      const ratio = data[i] / maxVal;
+      const stripGrad = ctx.createLinearGradient(bx, by, bx + bw, by);
+      stripGrad.addColorStop(0, `hsl(${340 + ratio * 30}, 80%, 60%)`);
+      stripGrad.addColorStop(1, `hsl(${350 + ratio * 20}, 90%, 70%)`);
+      ctx.fillStyle = stripGrad;
+      ctx.beginPath();
+      ctx.moveTo(bx + radius, by);
+      ctx.lineTo(bx + bw - radius, by);
+      ctx.quadraticCurveTo(bx + bw, by, bx + bw, by + radius);
+      ctx.lineTo(bx + bw, by + stripH);
+      ctx.lineTo(bx, by + stripH);
+      ctx.lineTo(bx, by + radius);
+      ctx.quadraticCurveTo(bx, by, bx + radius, by);
+      ctx.closePath();
+      ctx.fill();
+
+      // Swipe left meta — tilt left + red X
+      if (step && step.meta === 'tinder_left' && isActive) {
+        ctx.save();
+        ctx.font = 'bold 40px Inter, -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(255,0,0,0.7)';
+        ctx.fillText('\u2715', bx + bw / 2, by + barH / 2);
+        ctx.restore();
+      }
+
+      // Swipe right meta — tilt right + green heart
+      if (step && step.meta === 'tinder_right' && isActive) {
+        ctx.save();
+        ctx.font = 'bold 40px Inter, -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(0,200,0,0.7)';
+        ctx.fillText('\u2665', bx + bw / 2, by + barH / 2);
+        ctx.restore();
+      }
+
+      // Super like meta — blue star
+      if (step && step.meta === 'tinder_super' && isActive) {
+        ctx.save();
+        ctx.font = 'bold 40px Inter, -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(0,120,255,0.7)';
+        ctx.fillText('\u2605', bx + bw / 2, by + barH / 2);
+        ctx.restore();
+      }
+
+      ctx.restore();
+    }
+
+    // Tinder bottom buttons (red X, green heart, blue star)
+    const btnY = LAYOUT.barsBottom + 50;
+    const btnCenterX = LAYOUT.barsLeftPad + usableW / 2;
+    const btnSpacing = 80;
+    const buttons = [
+      { symbol: '\u2715', color: '#FF4458', bgColor: 'rgba(255,68,88,0.15)' },
+      { symbol: '\u2665', color: '#2ECC71', bgColor: 'rgba(46,204,113,0.15)' },
+      { symbol: '\u2605', color: '#3B82F6', bgColor: 'rgba(59,130,246,0.15)' },
+    ];
+    ctx.save();
+    for (let b = 0; b < buttons.length; b++) {
+      const bx = btnCenterX + (b - 1) * btnSpacing;
+      // Circle bg
+      ctx.fillStyle = buttons[b].bgColor;
+      ctx.beginPath();
+      ctx.arc(bx, btnY, 28, 0, Math.PI * 2);
+      ctx.fill();
+      // Border
+      ctx.strokeStyle = buttons[b].color;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      // Symbol
+      ctx.font = 'bold 28px Inter, -apple-system, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = buttons[b].color;
+      ctx.fillText(buttons[b].symbol, bx, btnY);
+    }
+    ctx.restore();
+
+    // Value labels & code
+    this._drawValueLabels(data, step, n, barWidth);
+    if (stats && stats.code) this._drawCodeBlock(stats.code);
+    this._drawWatermark();
+  }
+
+  // Valorant Sort — FPS tactical theme
+  drawValorant(data, step, stats) {
+    const { ctx, width, height } = this;
+    const n = data.length;
+    if (n === 0) return;
+    const usableW = width - LAYOUT.barsLeftPad - LAYOUT.barsRightPad;
+    const barWidth = usableW / n;
+    const maxVal = Math.max(...data);
+
+    // Count sorted for round progress
+    let sortedCount = 0;
+    for (let i = 1; i < n; i++) {
+      if (data[i] >= data[i - 1]) sortedCount++;
+      else break;
+    }
+    const progress = sortedCount / Math.max(1, n - 1);
+
+    // Dark navy/black background
+    ctx.fillStyle = '#0F1923';
+    ctx.fillRect(0, 0, width, height);
+
+    // Subtle angular lines (Valorant style)
+    ctx.strokeStyle = 'rgba(255,70,85,0.05)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 8; i++) {
+      ctx.beginPath();
+      ctx.moveTo(0, 200 + i * 200);
+      ctx.lineTo(width, 100 + i * 200);
+      ctx.stroke();
+    }
+
+    // Header
+    if (stats) this._drawHeader(stats);
+
+    // Headshot white flash
+    if (step && step.meta === 'valo_headshot') {
+      ctx.fillStyle = 'rgba(255,255,255,0.15)';
+      ctx.fillRect(0, 0, width, height);
+    }
+
+    // Center crosshair
+    const chX = LAYOUT.barsLeftPad + usableW / 2;
+    const chY = LAYOUT.barsTop + LAYOUT.barsMaxH / 2;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+    ctx.lineWidth = 2;
+    const gap = 8;
+    const armLen = 18;
+    // Top
+    ctx.beginPath(); ctx.moveTo(chX, chY - gap); ctx.lineTo(chX, chY - gap - armLen); ctx.stroke();
+    // Bottom
+    ctx.beginPath(); ctx.moveTo(chX, chY + gap); ctx.lineTo(chX, chY + gap + armLen); ctx.stroke();
+    // Left
+    ctx.beginPath(); ctx.moveTo(chX - gap, chY); ctx.lineTo(chX - gap - armLen, chY); ctx.stroke();
+    // Right
+    ctx.beginPath(); ctx.moveTo(chX + gap, chY); ctx.lineTo(chX + gap + armLen, chY); ctx.stroke();
+    ctx.restore();
+
+    // Draw bars as angular geometric shapes
+    for (let i = 0; i < n; i++) {
+      if (data[i] <= 0) continue;
+      const barH = (data[i] / maxVal) * LAYOUT.barsMaxH;
+      const bx = LAYOUT.barsLeftPad + i * barWidth;
+      const by = LAYOUT.barsBottom - barH;
+      const bw = barWidth - 2;
+      const isActive = step && step.indices && step.indices.includes(i);
+
+      // Active bars: red glow + slight scale up
+      if (isActive) {
+        ctx.save();
+        ctx.shadowColor = '#FF4655';
+        ctx.shadowBlur = 20;
+        // Draw slightly wider for scale-up effect
+        const scaleOff = 2;
+        const barGrad = ctx.createLinearGradient(bx - scaleOff, by - scaleOff, bx + bw + scaleOff, by);
+        barGrad.addColorStop(0, '#FF4655');
+        barGrad.addColorStop(1, '#CC2233');
+        ctx.fillStyle = barGrad;
+        // Angular shape — clipped top-right corner
+        ctx.beginPath();
+        ctx.moveTo(bx - scaleOff, LAYOUT.barsBottom);
+        ctx.lineTo(bx - scaleOff, by - scaleOff);
+        ctx.lineTo(bx + bw + scaleOff - 6, by - scaleOff);
+        ctx.lineTo(bx + bw + scaleOff, by - scaleOff + 6);
+        ctx.lineTo(bx + bw + scaleOff, LAYOUT.barsBottom);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      } else {
+        const barGrad = ctx.createLinearGradient(bx, by, bx + bw, by);
+        barGrad.addColorStop(0, '#FF4655');
+        barGrad.addColorStop(1, '#1a1a2e');
+        ctx.fillStyle = barGrad;
+        // Angular shape — clipped top-right corner
+        ctx.beginPath();
+        ctx.moveTo(bx, LAYOUT.barsBottom);
+        ctx.lineTo(bx, by);
+        ctx.lineTo(bx + bw - 5, by);
+        ctx.lineTo(bx + bw, by + 5);
+        ctx.lineTo(bx + bw, LAYOUT.barsBottom);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // Headshot: skull icon + "HEADSHOT" above active bar
+      if (step && step.meta === 'valo_headshot' && isActive) {
+        ctx.save();
+        ctx.font = 'bold 18px Inter, -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#FF4655';
+        ctx.fillText('\u2620', bx + bw / 2, by - 28);
+        ctx.fillText('HEADSHOT', bx + bw / 2, by - 10);
+        ctx.restore();
+      }
+
+      // Peek: eye icon above bar
+      if (step && step.meta === 'valo_peek' && isActive) {
+        ctx.save();
+        ctx.font = '20px Inter, -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        ctx.fillText('\uD83D\uDC41', bx + bw / 2, by - 10);
+        ctx.restore();
+      }
+    }
+
+    // ACE meta
+    if (step && step.meta === 'valo_ace') {
+      const centerX = LAYOUT.barsLeftPad + usableW / 2;
+      ctx.save();
+      // Radial glow
+      const aceGlow = ctx.createRadialGradient(centerX, 800, 10, centerX, 800, 200);
+      aceGlow.addColorStop(0, 'rgba(255,70,85,0.4)');
+      aceGlow.addColorStop(1, 'rgba(255,70,85,0)');
+      ctx.fillStyle = aceGlow;
+      ctx.fillRect(centerX - 200, 600, 400, 400);
+      // ACE text
+      ctx.font = 'bold 96px Inter, -apple-system, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#FF4655';
+      ctx.shadowColor = '#FF4655';
+      ctx.shadowBlur = 40;
+      ctx.fillText('ACE', centerX, 800);
+      ctx.restore();
+    }
+
+    // Kill feed (top-right) — list of recent swaps
+    if (step && step.killFeed && step.killFeed.length > 0) {
+      ctx.save();
+      const feedX = width - LAYOUT.barsRightPad - 10;
+      const feedY = LAYOUT.barsTop + 10;
+      ctx.font = '18px "Courier New", monospace';
+      ctx.textAlign = 'right';
+      const feed = step.killFeed.slice(-3); // max 3
+      for (let f = 0; f < feed.length; f++) {
+        const alpha = 1 - f * 0.25;
+        ctx.fillStyle = `rgba(255,70,85,${alpha})`;
+        ctx.fillText(feed[f], feedX, feedY + f * 26);
+      }
+      ctx.restore();
+    }
+
+    // Bottom mini-bar: round progress
+    const progBarY = LAYOUT.barsBottom + 40;
+    const progBarW = usableW * 0.6;
+    const progBarX = LAYOUT.barsLeftPad + (usableW - progBarW) / 2;
+    ctx.fillStyle = 'rgba(255,255,255,0.1)';
+    ctx.fillRect(progBarX, progBarY, progBarW, 8);
+    ctx.fillStyle = '#FF4655';
+    ctx.fillRect(progBarX, progBarY, progBarW * progress, 8);
+    // Round label
+    ctx.save();
+    ctx.font = '14px "Courier New", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fillText('ROUND PROGRESS', progBarX + progBarW / 2, progBarY + 24);
+    ctx.restore();
+
+    // Value labels & code
+    this._drawValueLabels(data, step, n, barWidth);
+    if (stats && stats.code) this._drawCodeBlock(stats.code);
+    this._drawWatermark();
+  }
+
   // Seaweed Sort — dessine les barres comme des algues ondulantes
   drawSeaweed(data, step, stats) {
     const { ctx, width, height } = this;

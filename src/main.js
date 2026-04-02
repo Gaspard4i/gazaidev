@@ -540,6 +540,20 @@ function drawFrame(data, step, stats) {
     renderer.drawTetris(data, step, stats);
   } else if (key === 'amongUs') {
     renderer.drawAmongUs(data, step, stats);
+  } else if (key === 'uno') {
+    renderer.drawUno(data, step, stats);
+  } else if (key === 'gta') {
+    renderer.drawGTA(data, step, stats);
+  } else if (key === 'pokemon') {
+    renderer.drawPokemon(data, step, stats);
+  } else if (key === 'breakingBad') {
+    renderer.drawBreakingBad(data, step, stats);
+  } else if (key === 'fortnite') {
+    renderer.drawFortnite(data, step, stats);
+  } else if (key === 'tinder') {
+    renderer.drawTinder(data, step, stats);
+  } else if (key === 'valorant') {
+    renderer.drawValorant(data, step, stats);
   } else {
     renderer.draw(data, step, stats);
   }
@@ -689,7 +703,7 @@ const ANIMATION_METAS = new Set([
   'mc_scan', 'mc_mining', 'mc_place', 'mc_creeper_idle', 'mc_creeper_hiss', 'mc_explosion', 'mc_blast_remove',
   'valo_peek', 'valo_aim', 'valo_headshot', 'valo_kill', 'valo_ace',
   'rl_boost', 'rl_bump', 'rl_goal', 'rl_whs',
-  'poke_wild', 'poke_battle', 'poke_catch', 'poke_caught', 'poke_master',
+  'poke_wild', 'poke_battle', 'poke_catch', 'poke_caught', 'poke_registered', 'poke_master',
   'plane_boarding', 'plane_seat', 'plane_shuffle', 'plane_move', 'plane_turbulence', 'plane_landing',
   'boat_float', 'boat_sink', 'boat_splash', 'boat_steady', 'boat_harbor',
   'car_traffic', 'car_honk', 'car_overtake',
@@ -937,6 +951,48 @@ function drawSpecialEffects(step) {
     if (step.meta === 'among_kill' && step.frame === 0) sonifier.playAmongKill();
     if (step.meta === 'among_meeting' && step.frame === 0) sonifier.playAmongMeeting();
     if (step.meta === 'among_eject' && step.frame === 0) sonifier.playAmongEject();
+  }
+
+  // UNO Sort — sons
+  if (key === 'uno') {
+    if (step.meta === 'uno_play') sonifier.playUnoCard();
+    if (step.meta === 'uno_reverse' && step.frame === 0) sonifier.playUnoReverse();
+    if (step.meta === 'uno_skip' && step.frame === 0) sonifier.playUnoReverse();
+    if (step.meta === 'uno_plus4' && step.frame === 0) sonifier.playUnoReverse();
+  }
+
+  // GTA Sort — sons
+  if (key === 'gta') {
+    if (step.meta === 'gta_steal' && step.frame === 0) sonifier.playGTASteal();
+    if (step.meta === 'gta_wanted' && step.frame === 0) sonifier.playGTASiren();
+  }
+
+  // Pokemon Sort — sons
+  if (key === 'pokemon') {
+    if (step.meta === 'poke_wild' && step.frame === 0) sonifier.playPokeWild();
+    if (step.meta === 'poke_catch' && step.frame === 0) sonifier.playPokeCatch();
+  }
+
+  // Breaking Bad Sort — sons
+  if (key === 'breakingBad') {
+    if (step.meta === 'bb_crystal') sonifier.playBBCrystal();
+  }
+
+  // Fortnite Sort — sons
+  if (key === 'fortnite') {
+    if (step.meta === 'fn_elim') sonifier.playFortniteElim();
+  }
+
+  // Tinder Sort — sons
+  if (key === 'tinder') {
+    if (step.meta === 'tinder_left' || step.meta === 'tinder_right') sonifier.playTinderSwipe();
+    if (step.meta === 'tinder_match' && step.frame === 0) sonifier.playTinderMatch();
+  }
+
+  // Valorant Sort — sons
+  if (key === 'valorant') {
+    if (step.meta === 'valo_headshot' && step.frame === 0) sonifier.playValoHeadshot();
+    if (step.meta === 'valo_ace' && step.frame === 0) sonifier.playValoAce();
   }
 
   // Skibidi Sort — toilettes
