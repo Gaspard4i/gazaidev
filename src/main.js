@@ -61,6 +61,28 @@ import { ukraineSort } from './algos/ukraineSort.js';
 import { elonSort } from './algos/elonSort.js';
 import { npcSort } from './algos/npcSort.js';
 import { diddyIslandSort } from './algos/diddyIslandSort.js';
+import { minecraftSort } from './algos/minecraftSort.js';
+import { valorantSort } from './algos/valorantSort.js';
+import { rocketLeagueSort } from './algos/rocketLeagueSort.js';
+import { pokemonSort } from './algos/pokemonSort.js';
+import { planeSort } from './algos/planeSort.js';
+import { boatSort } from './algos/boatSort.js';
+import { carSort } from './algos/carSort.js';
+import { libertySort } from './algos/libertySort.js';
+import { prisonSort } from './algos/prisonSort.js';
+import { breakingBadSort } from './algos/breakingBadSort.js';
+import { chessSort } from './algos/chessSort.js';
+import { monopolySort } from './algos/monopolySort.js';
+import { tetrisSort } from './algos/tetrisSort.js';
+import { gtaSort } from './algos/gtaSort.js';
+import { fortniteSort } from './algos/fortniteSort.js';
+import { amongUsSort } from './algos/amongUsSort.js';
+import { unoSort } from './algos/unoSort.js';
+import { netflixSort } from './algos/netflixSort.js';
+import { tinderSort } from './algos/tinderSort.js';
+import { coffeeSort } from './algos/coffeeSort.js';
+import { ikeaSort } from './algos/ikeaSort.js';
+import { wifiSort } from './algos/wifiSort.js';
 
 // Preload Inter pour le canvas
 document.fonts.ready.then(() => {});
@@ -103,6 +125,13 @@ const ALGOS = {
   fanumTax: fanumTaxSort, northKorea: northKoreaSort,
   ukraine: ukraineSort, elon: elonSort, npc: npcSort,
   diddyIsland: diddyIslandSort,
+  minecraft: minecraftSort, valorant: valorantSort, rocketLeague: rocketLeagueSort,
+  pokemon: pokemonSort, plane: planeSort, boat: boatSort, car: carSort,
+  liberty: libertySort, prison: prisonSort, breakingBad: breakingBadSort,
+  chess: chessSort, monopoly: monopolySort, tetris: tetrisSort,
+  gta: gtaSort, fortnite: fortniteSort, amongUs: amongUsSort,
+  uno: unoSort, netflix: netflixSort, tinder: tinderSort,
+  coffee: coffeeSort, ikea: ikeaSort, wifi: wifiSort,
 };
 const META = {
   bubble: {
@@ -345,6 +374,94 @@ const META = {
     name: 'Island Sort', complexity: 'O(blackbook)', desc: 'Party on the island. Young bars vanish. The list doesn\'t exist.',
     code: ['function islandSort(arr) {', '  sendInvites(arr)', '  for (let x of arr)', '    if (x < 14) disappear(x)', '  sort(remaining(arr))', '  coverUp() // no list exists', '}'],
   },
+  minecraft: {
+    name: 'Minecraft Sort', complexity: 'O(n\u00B2 blocks)', desc: 'Mine each bar, craft it back in order. Watch out for creepers.',
+    code: ['function minecraftSort(arr) {', '  for (let i = 0; i < arr.length; i++) {', '    let block = findMin(arr, i)', '    pickaxe.mine(block)', '    place(block, i)', '  }', '  // sssssBOOM', '}'],
+  },
+  valorant: {
+    name: 'Valorant Sort', complexity: 'O(headshots)', desc: 'Peek, aim, headshot. Ace the array.',
+    code: ['function valorantSort(arr) {', '  for (let i = 0; i < arr.length; i++) {', '    peek(arr[i])', '    let target = findMin(arr, i)', '    headshot(target)', '    swap(arr, i, target)', '  } // ACE!', '}'],
+  },
+  rocketLeague: {
+    name: 'Rocket League Sort', complexity: 'O(boost)', desc: 'Boost, bump, aerial. What a save!',
+    code: ['function rocketLeagueSort(arr) {', '  while (!sorted(arr))', '    for (let i of arr)', '      boost(i)', '      if (wrong(i)) bump(i)', '  // What a save!', '}'],
+  },
+  pokemon: {
+    name: 'Pok\u00E9mon Sort', complexity: 'O(catch em all)', desc: 'Wild bar appeared! Throw Pok\u00E9ball, catch, sort by Pok\u00E9dex.',
+    code: ['function pokemonSort(arr) {', '  for (let bar of arr) {', '    wildAppeared(bar)', '    pokeball.throw(bar)', '    if (caught(bar))', '      pokedex.add(bar)', '  } // gotta catch em all', '}'],
+  },
+  plane: {
+    name: 'Plane Sort', complexity: 'O(turbulence)', desc: 'Board the plane, find your seat, survive turbulence.',
+    code: ['function planeSort(arr) {', '  boarding(arr)', '  for (let p of arr)', '    findSeat(p)', '  if (random()) turbulence()', '  landing() // sorted', '}'],
+  },
+  boat: {
+    name: 'Boat Sort', complexity: 'O(waves)', desc: 'Light bars float up, heavy bars sink. Buoyancy sorting.',
+    code: ['function boatSort(arr) {', '  for (let bar of arr)', '    if (light(bar)) float(bar)', '    else sink(bar)', '  return arr // harbor reached', '}'],
+  },
+  car: {
+    name: 'Car Sort', complexity: 'O(traffic)', desc: 'Traffic jam. Bars honk and overtake each other.',
+    code: ['function carSort(arr) {', '  while (traffic(arr))', '    for (let car of arr)', '      if (blocked(car))', '        honk(); overtake(car)', '  return arr // finally', '}'],
+  },
+  liberty: {
+    name: 'Liberty Sort', complexity: 'O(freedom)', desc: 'Free all bars. They find their own place. Vive la libert\u00E9.',
+    code: ['function libertySort(arr) {', '  freeAll(arr)', '  for (let bar of arr)', '    bar.findHome()', '  return arr // libre', '}'],
+  },
+  prison: {
+    name: 'Prison Sort', complexity: 'O(sentence)', desc: 'Bars locked up. Released for good behavior, smallest first.',
+    code: ['function prisonSort(arr) {', '  lockAll(arr)', '  for (let i = 0; i < arr.length; i++) {', '    let model = findMin(arr, i)', '    release(model) // good behavior', '  }', '  if (random()) riot() // oops', '}'],
+  },
+  breakingBad: {
+    name: 'Breaking Bad Sort', complexity: 'O(99.1%)', desc: 'Cook the purest sort. 99.1% purity. I am the one who sorts.',
+    code: ['function breakingBadSort(arr) {', '  for (let i = 0; i < arr.length; i++) {', '    cook(arr, i) // blue crystal', '    purity = (i/n) * 99.1', '  }', '  // I am the one who knocks', '}'],
+  },
+  chess: {
+    name: 'Chess Sort', complexity: 'O(checkmate)', desc: 'Bars move like chess pieces. Capture to swap.',
+    code: ['function chessSort(arr) {', '  for (let piece of arr) {', '    move(piece) // \u265E \u265D \u265C', '    if (canCapture(piece))', '      capture(piece)', '  } // checkmate', '}'],
+  },
+  monopoly: {
+    name: 'Monopoly Sort', complexity: 'O($$$)', desc: 'Roll dice, buy positions, go to jail, pass GO.',
+    code: ['function monopolySort(arr) {', '  let money = 1500', '  while (!sorted(arr)) {', '    dice = roll()', '    if (dice == 12) goToJail()', '    else buy(arr[dice], money)', '  }', '}'],
+  },
+  tetris: {
+    name: 'Tetris Sort', complexity: 'O(lines)', desc: 'Bars fall from the top and lock into place. Line clear!',
+    code: ['function tetrisSort(arr) {', '  for (let bar of arr) {', '    bar.fall()', '    bar.rotate()', '    bar.lock()', '    if (lineComplete()) clear()', '  }', '}'],
+  },
+  gta: {
+    name: 'GTA Sort', complexity: 'O(5 stars)', desc: 'Steal bars, evade police, get wasted.',
+    code: ['function gtaSort(arr) {', '  let stars = 0', '  for (let bar of arr) {', '    steal(bar); stars++', '    if (stars >= 3)', '      policeChase()', '  } // WASTED', '}'],
+  },
+  fortnite: {
+    name: 'Fortnite Sort', complexity: 'O(storm)', desc: 'Storm closes in. Build walls. Last bar standing.',
+    code: ['function fortniteSort(arr) {', '  while (storm.closing()) {', '    loot(arr)', '    build("wall")', '    let target = findMax(arr)', '    eliminate(target)', '  } // #1 Victory Royale', '}'],
+  },
+  amongUs: {
+    name: 'Among Us Sort', complexity: 'O(sus)', desc: 'Impostor sabotages swaps. Emergency meeting. Ejected.',
+    code: ['function amongUsSort(arr) {', '  while (!sorted(arr)) {', '    doTasks(arr) // sort', '    impostor.sabotage()', '    emergencyMeeting()', '    eject(impostor) // was sus', '  }', '}'],
+  },
+  uno: {
+    name: 'Uno Sort', complexity: 'O(reverse)', desc: 'Reverse! Skip! +4! The sort never ends.',
+    code: ['function unoSort(arr) {', '  while (!sorted(arr)) {', '    let card = draw()', '    if (card == "reverse") dir *= -1', '    if (card == "+4") addBars(4)', '    else sort1step(arr, dir)', '  } // UNO!', '}'],
+  },
+  netflix: {
+    name: 'Netflix Sort', complexity: 'O(binge)', desc: 'Sorts a bit, then "Are you still sorting?" Pause.',
+    code: ['function netflixSort(arr) {', '  while (!sorted(arr)) {', '    sort1step(arr)', '    if (ops % 12 == 0) {', '      ask("still sorting?")', '      pause()', '    }', '  } // credits roll', '}'],
+  },
+  tinder: {
+    name: 'Tinder Sort', complexity: 'O(swipes)', desc: 'Swipe right to keep, left to reject. It\'s a match!',
+    code: ['function tinderSort(arr) {', '  for (let bar of arr) {', '    if (good(bar))', '      swipeRight(bar) // match!', '    else', '      swipeLeft(bar) // nope', '  }', '}'],
+  },
+  coffee: {
+    name: 'Coffee Sort', complexity: 'O(caffeine)', desc: 'Without coffee: zombie. With coffee: sorts at light speed.',
+    code: ['function coffeeSort(arr) {', '  // no coffee: zzz...', '  yawn(); yawn(); yawn()', '  drink("espresso")', '  // NOW WE SORT', '  arr.sort() // zooooom', '}'],
+  },
+  ikea: {
+    name: 'IKEA Sort', complexity: 'O(instructions)', desc: 'Instructions unclear. Builds backwards. Disassembles. Rebuilds.',
+    code: ['function ikeaSort(arr) {', '  readInstructions() // ???', '  build(arr, "backwards")', '  realize("oops")', '  disassemble(arr)', '  rebuild(arr, "correct")', '  // 1 piece left over', '}'],
+  },
+  wifi: {
+    name: 'WiFi Sort', complexity: 'O(signal)', desc: 'Connection drops, bars freeze, lag, reconnect.',
+    code: ['function wifiSort(arr) {', '  while (!sorted(arr)) {', '    if (signal == 0)', '      disconnect(); reconnect()', '    else if (signal < 2)', '      lag() // buffering...', '    else sort1step(arr)', '  }', '}'],
+  },
 };
 const NUM_BARS = 20;
 
@@ -429,7 +546,7 @@ function getStepsThisFrame() {
 function updateTheme() {
   const key = getAlgoKey();
   // Les tris absurdes ont leur propre theme, les classiques utilisent default
-  const absurdThemes = ['trump', 'thanos', 'communism', 'stalin', 'hitler', 'diddy', 'epstein', 'sort67', 'nineEleven', 'unsort', 'bogo', 'sigma', 'gaza', 'french', 'gamble', 'adhd', 'autism', 'magician', 'drug', 'pong', 'claude', 'chatgpt', 'hiroshima', 'manual', 'skibidi', 'hawkTuah', 'rizz', 'mewing', 'ohio', 'brainrot', 'fanumTax', 'northKorea', 'ukraine', 'elon', 'npc', 'diddyIsland'];
+  const absurdThemes = ['trump', 'thanos', 'communism', 'stalin', 'hitler', 'diddy', 'epstein', 'sort67', 'nineEleven', 'unsort', 'bogo', 'sigma', 'gaza', 'french', 'gamble', 'adhd', 'autism', 'magician', 'drug', 'pong', 'claude', 'chatgpt', 'hiroshima', 'manual', 'skibidi', 'hawkTuah', 'rizz', 'mewing', 'ohio', 'brainrot', 'fanumTax', 'northKorea', 'ukraine', 'elon', 'npc', 'diddyIsland', 'minecraft', 'valorant', 'rocketLeague', 'pokemon', 'plane', 'boat', 'car', 'liberty', 'prison', 'breakingBad', 'chess', 'monopoly', 'tetris', 'gta', 'fortnite', 'amongUs', 'uno', 'netflix', 'tinder', 'coffee', 'ikea', 'wifi'];
   renderer.theme = absurdThemes.includes(key) ? key : 'default';
 }
 
@@ -545,6 +662,28 @@ const ANIMATION_METAS = new Set([
   'elon_buying', 'elon_fire', 'elon_fired', 'elon_keep', 'elon_rename', 'elon_sort', 'elon_mars',
   'npc_stare', 'npc_bump', 'npc_swap', 'npc_idle',
   'island_invite', 'island_arrive', 'island_disappear', 'island_gone', 'island_witness', 'island_coverup',
+  'mc_scan', 'mc_mine', 'mc_place', 'mc_diamond', 'mc_creeper',
+  'valo_peek', 'valo_aim', 'valo_headshot', 'valo_kill', 'valo_ace',
+  'rl_boost', 'rl_bump', 'rl_goal', 'rl_whs',
+  'poke_wild', 'poke_battle', 'poke_catch', 'poke_caught', 'poke_master',
+  'plane_boarding', 'plane_seat', 'plane_shuffle', 'plane_move', 'plane_turbulence', 'plane_landing',
+  'boat_float', 'boat_sink', 'boat_splash', 'boat_steady', 'boat_harbor',
+  'car_traffic', 'car_honk', 'car_overtake',
+  'liberty_free', 'liberty_search', 'liberty_move', 'liberty_home', 'liberty_flag',
+  'prison_lock', 'prison_review', 'prison_release', 'prison_free', 'prison_good', 'prison_riot', 'prison_escape',
+  'bb_cook', 'bb_crystal', 'bb_pure', 'bb_heisenberg',
+  'chess_move', 'chess_capture', 'chess_take', 'chess_checkmate',
+  'mono_dice', 'mono_inspect', 'mono_buy', 'mono_bankrupt', 'mono_trade', 'mono_jail',
+  'tetris_fall', 'tetris_slide', 'tetris_move', 'tetris_lock', 'tetris_clear', 'tetris_win',
+  'gta_drive', 'gta_steal', 'gta_escape', 'gta_wanted', 'gta_wasted',
+  'fn_storm', 'fn_loot', 'fn_build', 'fn_elim', 'fn_victory',
+  'among_task', 'among_fix', 'among_sabotage', 'among_meeting', 'among_eject',
+  'uno_play', 'uno_swap', 'uno_reverse', 'uno_skip', 'uno_plus4', 'uno_win',
+  'netflix_play', 'netflix_watch', 'netflix_pause', 'netflix_continue', 'netflix_credits',
+  'tinder_look', 'tinder_left', 'tinder_right', 'tinder_match', 'tinder_super', 'tinder_love',
+  'coffee_sleepy', 'coffee_yawn', 'coffee_drink', 'coffee_wired', 'coffee_zoom',
+  'ikea_open', 'ikea_confused', 'ikea_build', 'ikea_wrong', 'ikea_realize', 'ikea_rebuild', 'ikea_fix', 'ikea_leftover',
+  'wifi_scan', 'wifi_lost', 'wifi_reconnect', 'wifi_lag', 'wifi_swap',
 ]);
 
 function animateSort() {
@@ -754,95 +893,54 @@ function drawSpecialEffects(step) {
     renderer.drawHand(step.handIdx, data, step.handPhase, step.grabFrame || step.dropFrame || step.slideFrame || 0);
   }
 
-  // Skibidi Sort
+  // Skibidi Sort — toilettes
   if (key === 'skibidi') {
-    if (step.meta === 'skibidi_intro') renderer.drawMemeText('SKIBIDI DOP DOP DOP', { color: '#FFD700', fontSize: 42 });
     if (step.meta === 'skibidi_scan') renderer.drawSkibidiToilet(step.scanIdx, data);
     if (step.meta === 'skibidi_flush') renderer.drawSkibidiToilet(step.flushIdx, data, step.flushFrame);
-    if (step.meta === 'skibidi_victory') renderer.drawMemeText('YES YES', { color: '#FFD700', fontSize: 56 });
   }
 
-  // Hawk Tuah Sort
+  // Hawk Tuah Sort — spit droplets
   if (key === 'hawkTuah') {
-    if (step.meta === 'tuah_spit') {
-      renderer.drawSpit(step.spitIdx, data);
-      renderer.drawMemeText('HAWK TUAH', { color: '#87CEEB', fontSize: 36, y: 700 });
-    }
-    if (step.meta === 'tuah_land') renderer.drawMemeText('spit on that thang', { color: '#87CEEB', fontSize: 28, y: 700 });
+    if (step.meta === 'tuah_spit') renderer.drawSpit(step.spitIdx, data);
   }
 
-  // Rizz Sort
+  // Rizz Sort — coeur/broken heart
   if (key === 'rizz') {
     if (step.meta === 'rizz_success') renderer.drawRizzResult(step.rizzIdx, data, true);
     if (step.meta === 'rizz_fail' || step.meta === 'rizz_rejected') renderer.drawRizzResult(step.rizzIdx, data, false);
-    if (step.meta === 'rizz_success') renderer.drawMemeText('W RIZZ', { color: '#FF69B4', fontSize: 36, y: 700 });
-    if (step.meta === 'rizz_rejected') renderer.drawMemeText('L RIZZ', { color: '#888888', fontSize: 36, y: 700 });
   }
 
-  // Mewing Sort
+  // Mewing Sort — glow dore
   if (key === 'mewing') {
     if (step.meta === 'mewing_glow') renderer.drawMewingGlow(step.mewIdx, data, step.mewFrame);
-    if (step.meta === 'mewing_ascend') renderer.drawMemeText('MOGGER', { color: '#FFD700', fontSize: 36, y: 700 });
-    if (step.meta === 'mewing_chad') renderer.drawMemeText('CHAD', { color: '#FFD700', fontSize: 36, y: 700 });
   }
 
-  // Ohio Sort
+  // Ohio Sort — glitch visuel
   if (key === 'ohio') {
     if (step.meta === 'ohio_chaos' || step.meta === 'ohio_swap') renderer.drawOhioGlitch(Date.now());
-    if (step.meta === 'ohio_chaos') renderer.drawMemeText('ONLY IN OHIO', { color: '#FF4444', fontSize: 42 });
-    if (step.meta === 'ohio_wtf') renderer.drawMemeText('BRO WHAT', { color: '#FF4444', fontSize: 36, y: 700 });
-    if (step.meta === 'ohio_finale') renderer.drawMemeText('ONLY IN OHIO', { color: '#FF4444', fontSize: 56 });
   }
 
-  // Brainrot Sort
-  if (key === 'brainrot') {
-    if (step.memeText) renderer.drawMemeText(step.memeText.toUpperCase(), { color: '#FF69B4', fontSize: 38 });
-    if (step.meta === 'brainrot_pause') renderer.drawMemeText(step.memeText ? step.memeText.toUpperCase() : 'BRAINROT', { color: '#FF00FF', fontSize: 52, bg: 'rgba(0,0,0,0.8)' });
-  }
-
-  // Fanum Tax Sort
-  if (key === 'fanumTax') {
-    if (step.meta === 'fanum_tax') renderer.drawMemeText('FANUM TAX', { color: '#00FF00', fontSize: 40 });
-    if (step.meta === 'fanum_steal') renderer.drawMemeText(`-${step.taxAmount || '?'}`, { color: '#FF4444', fontSize: 48 });
-  }
-
-  // North Korea Sort
+  // North Korea Sort — drapeau
   if (key === 'northKorea') {
     renderer.drawNKFlag();
-    if (step.meta === 'nk_execute') renderer.drawMemeText('EXECUTED', { color: '#FF0000', fontSize: 48 });
-    if (step.meta === 'nk_applause') renderer.drawMemeText('\uD83D\uDC4F', { color: '#FFFFFF', fontSize: 48, bg: 'rgba(0,0,0,0.3)' });
-    if (step.meta === 'nk_glory') renderer.drawMemeText('GLORY TO THE LEADER', { color: '#FFD700', fontSize: 42 });
   }
 
-  // Ukraine Sort
+  // Ukraine Sort — drapeau + drones
   if (key === 'ukraine') {
     renderer.drawUkraineFlag();
     if (step.meta === 'ukraine_drone') renderer.drawDrone(step.droneTarget, data);
-    if (step.meta === 'ukraine_victory') renderer.drawMemeText('SLAVA UKRAINI', { color: '#FFD700', fontSize: 48, bg: 'rgba(0, 87, 183, 0.7)' });
-    if (step.meta === 'ukraine_hold') renderer.drawMemeText('\uD83C\uDDFA\uD83C\uDDE6', { color: '#FFFFFF', fontSize: 40, y: 700, bg: 'rgba(0,0,0,0.3)' });
   }
 
-  // Elon Sort
+  // Elon Sort — X logo
   if (key === 'elon') {
-    if (step.meta === 'elon_buying') renderer.drawMemeText('ACQUIRING ARRAY FOR $44B', { color: '#1DA1F2', fontSize: 32 });
-    if (step.meta === 'elon_fire') renderer.drawMemeText("YOU'RE FIRED", { color: '#FF4444', fontSize: 48 });
     if (step.meta === 'elon_rename') renderer.drawElonX(step.frame);
-    if (step.meta === 'elon_mars') renderer.drawMemeText('MARS NEXT \uD83D\uDE80', { color: '#FF6B35', fontSize: 48 });
   }
 
-  // NPC Sort
+  // NPC Sort — speech bubbles
   if (key === 'npc') {
     if (step.npcText && step.indices && step.indices.length > 0) {
       renderer.drawNpcBubble(step.indices[0], data, step.npcText);
     }
-    if (step.meta === 'npc_idle') renderer.drawMemeText('...', { color: '#888888', fontSize: 36, bg: 'rgba(0,0,0,0.3)' });
-  }
-
-  // Diddy Island Sort
-  if (key === 'diddyIsland') {
-    if (step.meta === 'island_invite') renderer.drawMemeText('\uD83C\uDFDD\uFE0F ISLAND PARTY \uD83C\uDFDD\uFE0F', { color: '#FFD700', fontSize: 40 });
-    if (step.meta === 'island_disappear') renderer.drawMemeText('VANISHED', { color: '#FF0000', fontSize: 48, bg: 'rgba(0,0,0,0.7)' });
-    if (step.meta === 'island_coverup') renderer.drawMemeText('THE LIST DOESN\'T EXIST', { color: '#FF0000', fontSize: 36, bg: 'rgba(0,0,0,0.8)' });
   }
 }
 
